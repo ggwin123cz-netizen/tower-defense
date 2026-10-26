@@ -1,0 +1,5 @@
+node_modules/
+preview/
+serve.js
+.claude/
+*.log

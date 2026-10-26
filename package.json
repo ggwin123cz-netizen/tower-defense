@@ -1,0 +1,16 @@
+{
+  "name": "tower-defense",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tower Defense game with online co-op for up to 4 players",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
