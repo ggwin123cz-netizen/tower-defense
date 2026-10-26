@@ -342,6 +342,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .eroster{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .eroster .fo{padding:4px 8px 4px 4px}.eroster .fo canvas{width:34px;height:34px}.eroster .fo b{font-size:11.5px}.eroster .fo small{font-size:10px}
 
+.runopt{display:flex;flex-wrap:wrap;gap:8px}.runopt button{padding:9px 14px;font-size:13px}
 /* Multiplayer: lobby, room settings and the in-battle player list */
 .mpbar{display:grid;gap:5px;margin:2px 0 10px}
 .mpr{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;background:var(--panel);border:1px solid var(--line);font-size:12.5px;font-weight:600}
@@ -490,6 +491,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
           <span class="lbl">Difficulty</span><div id="diff"></div>
           <span class="lbl">World <span id="totst" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div id="maps"></div>
           <span class="lbl">Battlefield <span id="lyname" style="text-transform:none;letter-spacing:0;color:var(--fg)"></span></span><div id="lays"></div>
+          <span class="lbl">Run options <span id="rmult" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div class="runopt" id="runopt"></div>
           <button class="go" id="startgame">Start game</button>
         </div>
         <div><span class="lbl">Enemies in <span id="rname"></span></span><div class="roster" id="roster"></div><span class="lbl">Elite enemies · every world, from wave 8</span><div class="eroster" id="eroster"></div></div>
@@ -941,6 +943,7 @@ const ACH=[
   {id:'world',n:'World Traveller',d:'Win on all '+MAPS.length+' worlds',g:250,p:()=>[Object.keys(save.wins).length,MAPS.length]},
   {id:'build15',n:'Architect',d:'Have 15 towers on the map at once',g:30,ok:()=>inGame&&st.tw.length>=15},
   {id:'lvl10',n:'Fully Loaded',d:'Upgrade one tower to level 10',g:40,ok:()=>inGame&&st.tw.some(t=>tot(t)>=10)},
+  {id:'end25',n:'No End in Sight',d:'Reach wave 25 in Endless mode',g:60,ok:()=>inGame&&RUN.en&&st.wave>=25},
   {id:'rich',n:'Hoarder',d:'Hold 2,000 gold at once',g:30,ok:()=>inGame&&goldOf()>=2000},
   {id:'spell25',n:'Spellcaster',d:'Cast 25 spells',g:40,p:()=>[save.stats.spells,25]},
   {id:'chest10',n:'Treasure Hunter',d:'Open 10 chests',g:50,p:()=>[save.stats.chests,10]},
@@ -1016,7 +1019,15 @@ const road=new Set();
 function setMap(m,l=0){cur=m;lay=l;const L=MAPS[m].ly[l];route=L.r;wp=route.map(([x,y])=>({x:x*C+C/2,y:y*C+C/2}));deco=new Set(L.d);road.clear();
 for(let i=0;i<route.length-1;i++){const[a,b]=route[i],[c,d]=route[i+1],sx=Math.sign(c-a),sy=Math.sign(d-b);let x=a,y=b;for(;;){road.add(x+','+y);if(x===c&&y===d)break;x+=sx;y+=sy}}
 buildBG()}
-let st,MP=null,SKC=null; // MP: online co-op session (null when playing alone); SKC: skills of the player whose action is being handled
+let st,MP=null,SKC=null;
+// Run options: Endless mode and modifiers that make a run harder and pay out more
+const MODS=[
+  {id:'swift',n:'Swift',d:'Enemies move 25% faster',b:.25},
+  {id:'tough',n:'Tough',d:'Enemies have 50% more health',b:.3},
+  {id:'poor',n:'Poor',d:'40% less starting gold and 20% less gold from enemies',b:.25},
+  {id:'frail',n:'Frail',d:'Half the castle lives',b:.2}];
+const RUN={en:false,mods:{},sp:1,hp:1,gs:1,gk:1,lm:1,rm:1};
+function runCalc(){const m=RUN.mods;RUN.sp=m.swift?1.25:1;RUN.hp=m.tough?1.5:1;RUN.gs=m.poor?.6:1;RUN.gk=m.poor?.8:1;RUN.lm=m.frail?.5:1;RUN.rm=1+MODS.reduce((a,x)=>a+(m[x.id]?x.b:0),0)+(RUN.en?.1:0)} // MP: online co-op session (null when playing alone); SKC: skills of the player whose action is being handled
 /* ---------- Skill tree (paid with Runes) ---------- */
 const sk=id=>{const s=SKC||save.skills;return(s&&s[id])||0};
 // Gold is kept per player in co-op (o = player id) and in one pool when playing alone
@@ -1047,7 +1058,7 @@ const SKT=[
 ];
 const SKI={};SKT.forEach(s=>SKI[s.id]=s);
 const skCost=(s,r)=>s.c+Math.floor(r/2);
-function reset(){const D=DIFFS[dif];MAXW=D.w;st={gold:D.g+30*sk('e1'),lives:D.l+2*sk('m4'),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
+function reset(){const D=DIFFS[dif];MAXW=D.w;st={gold:Math.round((D.g+30*sk('e1'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
   scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0};
   st.lives0=st.lives;SPELLS.forEach(s=>st.scd[s.k]=0);if(MP)mpAfterReset();$('ov').hidden=true;if(auto&&!(MP&&!MP.host))st.nxt=2}
 // Spells: active abilities on a cooldown (seconds of game time)
@@ -1112,8 +1123,8 @@ function dropMeteor(x,y,who){
   withSk(me?undefined:who,()=>{if(scd.met>0)return;scd.met=spellCd('met');if(me){save.stats.spells++;questAdd('spell',1)}st.met.push({x,y,t:.75,R:80*(1+.06*sk('m2')),mk:1+.25*sk('m2')});sfx('meteor')})}
 function spawn(){
   const w=st.wave,n=st.n++,{k,E}=pickSpawn(w,n);
-  const D=DIFFS[dif],hp=(18+w*w*1.5+w*8)*D.h*(E.hm||1)*(st.hpm||1),rw=Math.max(1,Math.round((4+Math.floor(w/3))*D.r)),o=ROLE[k];
-  st.en.push({k,elite:k==='elite',sh:E.s,col:E.c,c2:E.c2,c3:E.c3,hn:E.hn,ab:E.ab,at:1+Math.random(),ph:Math.random()*6,i:1,x:wp[0].x,y:wp[0].y,hp:hp*o.h,mx:hp*o.h,sp:o.s*(E.sm||1),rw:rw*o.r,z:o.z,slow:0,born:.5});
+  const D=DIFFS[dif],hp=(18+w*w*1.5+w*8)*D.h*(E.hm||1)*(st.hpm||1)*RUN.hp,rw=Math.max(1,Math.round((4+Math.floor(w/3))*D.r)),o=ROLE[k];
+  st.en.push({k,elite:k==='elite',sh:E.s,col:E.c,c2:E.c2,c3:E.c3,hn:E.hn,ab:E.ab,at:1+Math.random(),ph:Math.random()*6,i:1,x:wp[0].x,y:wp[0].y,hp:hp*o.h,mx:hp*o.h,sp:o.s*(E.sm||1)*RUN.sp,rw:rw*o.r,z:o.z,slow:0,born:.5});
   if(E.ab&&!st.seen[E.ab]){st.seen[E.ab]=1;st.tq.push({t:4,n:E.n,d:AB[E.ab].n,c:AB[E.ab].col})}
 }
 const fmt=n=>n>=1000?(n/1000).toFixed(1)+'k':Math.round(n);
@@ -1255,7 +1266,7 @@ function update(dt){
   for(const e of st.en)if(e.hp<=0&&!e.gone){
     if(e.ab==='revive'&&!e.rv){e.rv=1;e.hp=1;e.egg=1.4;st.fx.push({x:e.x,y:e.y,r:30,a:1,c:'255,120,40'});burst(e.x,e.y,'#ff7043',14);continue}
     const owr=MP?((e.lh&&e.lh.ow!==undefined&&st.P[e.lh.ow])?e.lh.ow:mpAnyPlayer()):undefined;
-    const rw=withSk(owr,()=>Math.max(1,Math.round(e.rw*(1+.06*sk('e2'))*(st.mid>0?3:1)*(e.ab==='treasure'?4:1))));
+    const rw=withSk(owr,()=>Math.max(1,Math.round(e.rw*(1+.06*sk('e2'))*(st.mid>0?3:1)*(e.ab==='treasure'?4:1)*RUN.gk)));
     giveGold(owr,rw);st.ge+=rw;e.gone=true;if(MP)MP.kd.push([eid(e),e.k==='tank'?1:0]);if(e.lh)e.lh.kills=(e.lh.kills||0)+1;st.kills++;save.stats.kills++;questAdd('kill',1);
     st.xp+=e.k==='tank'?10:e.elite?6:1;
     if(e.elite){st.elites++;save.stats.elites=(save.stats.elites||0)+1;questAdd('elite',1)}
@@ -1280,10 +1291,10 @@ function update(dt){
     for(const t of st.tw)if(T[t.k].bank&&!(t.frz>0)){const v=Math.round(Math.min(goldOf(t.ow)*t.bint,t.bcap));if(v>0){ex[t.ow]+=v;t.dmg=(t.dmg||0)+v;t.fl=1;st.pt.push({x:t.x,y:t.y-16,vx:0,vy:-24,l:1.4,tx:'+'+v})}}
     for(const o of ows){const e5=withSk(o,()=>sk('e5'));if(e5)ex[o]+=Math.round(Math.min(goldOf(o)*.02*e5,40+30*e5))}
     const gp={};for(const o of ows){giveGold(o,wb+ex[o]);gp[o]=wb+ex[o]}wb+=ex[ows[0]];st.ge+=wb;st.xp+=5+st.wave;mpEv('!w:'+st.wave);questAdd('wave',1);questAdd('gold',st.ge-st.qge);st.qge=st.ge;
-    const gm=DIFFS[dif].gm,ge=Math.round((2+st.wave*.2)*gm);st.gems+=ge;save.gems+=ge;mpEv('!g:'+ge);
-    if(st.wave<MAXW){st.clr={t:2.4,w:st.wave,g:wb,gm:ge,gp:MP?gp:undefined};sfx('clear')}if(st.wave>=10&&(!MP||MP.set.sw<=1))unlockAch('w10');
-    const bk=bkey(cur,lay,dif);if(!MP)save.best[bk]=Math.max(save.best[bk]||0,st.wave);
-    if(st.wave>=MAXW){const vb=Math.round(40*gm);st.gems+=vb;save.gems+=vb;mpEv('!g:'+vb);persist();end(true)}
+    const gm=DIFFS[dif].gm,ge=Math.round((2+st.wave*.2)*gm*RUN.rm);st.gems+=ge;save.gems+=ge;mpEv('!g:'+ge);
+    if(st.wave<MAXW||RUN.en){st.clr={t:2.4,w:st.wave,g:wb,gm:ge,gp:MP?gp:undefined};sfx('clear')}if(st.wave>=10&&(!MP||MP.set.sw<=1))unlockAch('w10');
+    const bk=bkey(cur,lay,dif);if(!MP)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.en){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
+    if(st.wave>=MAXW&&!RUN.en){const vb=Math.round(40*gm*RUN.rm);st.gems+=vb;save.gems+=vb;mpEv('!g:'+vb);persist();end(true)}
     else{persist();if(auto)st.nxt=3}
   }
 }
@@ -1293,7 +1304,7 @@ function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
   if(win){if(!MP)save.stars[bk]=Math.max(old,stars);save.wins[cur]=1;unlockAch('win'+dif);if(lost===0)unlockAch('perf');sfx('win');questAdd('win',1)}else{shake(6);sfx('lose')}
   questAdd('gold',st.ge-st.qge);st.qge=st.ge;
   // Rewards: XP (scaled by difficulty), a rune for every new star, plus level-up payouts
-  const ns=Math.max(0,(win?stars:0)-old),xg=Math.round(st.xp*[.8,1,1.3,1.7][dif]*.6)+(win?50*(dif+1):0),lv0=save.lvl,xp0=save.xp;save.runes+=ns;
+  const ns=Math.max(0,(win?stars:0)-old),xg=Math.round((Math.round(st.xp*[.8,1,1.3,1.7][dif]*.6)+(win?50*(dif+1):0))*RUN.rm),lv0=save.lvl,xp0=save.xp;save.runes+=ns;
   const ups=addXp(xg),lr=ups.reduce((a,l)=>a+lvRunes(l),0),lg=ups.reduce((a,l)=>a+lvGems(l),0);
   ups.forEach((l,i)=>setTimeout(()=>{toast('Level '+l+'!','+'+lvRunes(l)+' rune'+(lvRunes(l)>1?'s':'')+' · +'+lvGems(l)+' gems','<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3l3 6 6 1-4.5 4 1 6.5L12 17l-5.5 3.5 1-6.5L3 10l6-1z" fill="#6aa2ff"/></svg>','#6aa2ff');
     const tw=KEYS.filter(k=>towerLv(k)===l).map(k=>T[k].n),dn=DIFLV.map((v,d)=>v===l&&d>1?DIFFS[d].n:null).filter(Boolean);
@@ -1304,7 +1315,7 @@ function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
   $('ovxp').innerHTML='<div class="row"><span class="lvb">'+save.lvl+'</span><div class="bar"><i style="width:'+pFrom+'%"></i></div><span class="xg">+'+fmt(xg)+' XP</span></div><div class="rw2">'+(ups.length?'<span class="lu">Level up! '+lv0+' → '+save.lvl+'</span>':'')+(ns?'<span>'+RUNE+' +'+ns+' for new star'+(ns>1?'s':'')+'</span>':'')+(lr?'<span>'+RUNE+' +'+lr+' from levels</span>':'')+(lg?'<span style="color:var(--gem);border-color:rgba(180,120,255,.35);background:rgba(180,120,255,.1)">'+GEM+' +'+lg+' from levels</span>':'')+'</div>';
   $('ovxp').querySelector('.rw2').hidden=!(ups.length||ns);setTimeout(()=>{const i=$('ovxp').querySelector('.bar i');if(i)i.style.width=pTo+'%'},120);
   const mvp=st.tw.filter(t=>!T[t.k].gen&&!T[t.k].buff).sort((a,b)=>(b.dmg||0)-(a.dmg||0))[0];
-  $('ovt').textContent=win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):'The castle fell on wave '+st.wave+' of '+MAXW+'.';
+  $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
   $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win;
   $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';
   $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(MP)mpOver(win)}
@@ -2353,6 +2364,8 @@ function draw(){
     glow(hx,hy,30,'255,150,50',.9);ball(hx,hy,8.5,'#7a3a1a',1);cir(hx-2,hy-2,3,'#ffcf7a')}
   // Effects: layered explosions, cone blasts, rings
   for(const f of st.fx){const c=f.c||'255,170,60';
+    if(f.ping){const al=Math.min(1,f.a),k=3-f.a,R=f.r*(.6+k*.5);g.lineWidth=3;g.strokeStyle='rgba('+c+','+al+')';g.beginPath();g.arc(f.x,f.y,R,0,7);g.stroke();g.beginPath();g.arc(f.x,f.y,R*.55,0,7);g.stroke();cir(f.x,f.y,4,'rgba('+c+','+al+')');
+      g.globalAlpha=al;g.font='700 11px Inter,sans-serif';g.textAlign='center';g.textBaseline='bottom';g.lineWidth=3;g.strokeStyle='rgba(10,14,19,.9)';g.strokeText(f.nm||'',f.x,f.y-R-3);g.fillStyle='rgb('+c+')';g.fillText(f.nm||'',f.x,f.y-R-3);g.globalAlpha=1;continue}
     if(f.boom){const p=1-f.a,R=f.r*(.5+p*.7);glow(f.x,f.y,R*1.6,'255,170,70',f.a*.9);
       g.fillStyle=cg('fball',()=>{const r=g.createRadialGradient(0,0,0,0,0,1);r.addColorStop(0,'rgba(255,250,220,1)');r.addColorStop(.35,'rgba(255,190,80,.95)');r.addColorStop(.7,'rgba(230,80,20,.75)');r.addColorStop(1,'rgba(90,30,10,0)');return r});
       g.save();g.translate(f.x,f.y);g.scale(R*.75*(1-p*.4),R*.75*(1-p*.4));g.globalAlpha=Math.min(1,f.a*1.4);g.beginPath();g.arc(0,0,1,0,7);g.fill();g.restore();g.globalAlpha=1;
@@ -2378,7 +2391,7 @@ function draw(){
     const a=Math.min(1,st.ban),cx=W*C/2,by=H*C/2-(st.ban>1.7?(st.ban-1.7)*40:0),boss=st.wave%5===0;g.globalAlpha=a;
     const bd=g.createLinearGradient(0,0,W*C,0);bd.addColorStop(0,'rgba(10,14,19,0)');bd.addColorStop(.5,'rgba(10,14,19,.72)');bd.addColorStop(1,'rgba(10,14,19,0)');g.fillStyle=bd;g.fillRect(0,by-38,W*C,76);
     const lc=boss?'255,90,106':'244,193,82',ln=g.createLinearGradient(cx-160,0,cx+160,0);ln.addColorStop(0,'rgba('+lc+',0)');ln.addColorStop(.5,'rgba('+lc+',.9)');ln.addColorStop(1,'rgba('+lc+',0)');g.fillStyle=ln;g.fillRect(cx-160,by-38,320,1.5);g.fillRect(cx-160,by+36.5,320,1.5);
-    g.textAlign='center';g.textBaseline='middle';g.font='700 11px Inter,sans-serif';g.fillStyle='rgb('+lc+')';g.fillText((st.wave===MAXW?'FINAL WAVE':'WAVE '+st.wave+' OF '+MAXW)+(boss?'  ·  BOSS':''),cx,by-20);
+    g.textAlign='center';g.textBaseline='middle';g.font='700 11px Inter,sans-serif';g.fillStyle='rgb('+lc+')';g.fillText((RUN.en?'WAVE '+st.wave:st.wave===MAXW?'FINAL WAVE':'WAVE '+st.wave+' OF '+MAXW)+(boss?'  ·  BOSS':''),cx,by-20);
     g.font='700 38px '+FONT;g.fillStyle='#fff';g.fillText(boss?MAPS[cur].e.tank.n.toUpperCase():'INCOMING',cx,by+8);
   }
   g.globalAlpha=1;
@@ -2395,7 +2408,7 @@ function draw(){
 function ui(){ui0();if(MP)mpUi()}
 function ui0(){
   $('gold').textContent=Math.floor(goldOf());$('lives').textContent=st.lives;$('g2').textContent=save.gems;
-  $('wave').innerHTML=st.wave+'<small>/ '+MAXW+'</small>';$('wbar').style.width=(st.wave/MAXW*100)+'%';
+  $('wave').innerHTML=st.wave+(RUN.en?'<small>endless</small>':'<small>/ '+MAXW+'</small>');$('wbar').style.width=(RUN.en?(st.wave%10)*10:Math.min(100,st.wave/MAXW*100))+'%';
   $('lives').parentElement.classList.toggle('low',st.lives>0&&st.lives<=Math.max(3,DIFFS[dif].l*.25));
   $('start').disabled=st.run||st.over;
   for(const s of SPELLS){const b=$('sp-'+s.k),r=st.scd[s.k];if(!b)continue;b.style.setProperty('--p',r/s.cd);const tx=r>0?Math.ceil(r):'',em=b.querySelector('em');if(em.textContent!=String(tx))em.textContent=tx;b.classList.toggle('ready',r<=0&&inGame&&!st.over);b.classList.toggle('aim',st.aim===s.k)}
@@ -2415,8 +2428,8 @@ function ui0(){
   }
 }
 let nwKey='';
-function renderNext(){const w=st.wave+1,key=cur+'|'+dif+'|'+w+'|'+MAXW;if(key===nwKey)return;nwKey=key;const el=$('nextw');
-  if(w>MAXW){el.innerHTML='<span class="nl">Final wave</span><span>Defeat every enemy to win!</span>';return}
+function renderNext(){const w=st.wave+1,key=cur+'|'+dif+'|'+w+'|'+MAXW+'|'+RUN.en;if(key===nwKey)return;nwKey=key;const el=$('nextw');
+  if(w>MAXW&&!RUN.en){el.innerHTML='<span class="nl">Final wave</span><span>Defeat every enemy to win!</span>';return}
   const comp=waveComp(w);el.innerHTML='<span class="nl">Wave '+w+'</span>'+comp.map(c=>'<span class="ni" title="'+c.E.n+' ×'+c.c+'"><canvas width="52" height="52"></canvas><b>'+c.c+'</b></span>').join('')+(w%5===0?'<span class="bt">BOSS</span>':'');
   [...el.querySelectorAll('canvas')].forEach((c,i)=>eIcon(c,comp[i].E,comp[i].z))}
 function cell(e){const r=cv.getBoundingClientRect();return{x:Math.floor((e.clientX-r.left)*W/r.width),y:Math.floor((e.clientY-r.top)*H/r.height)}}
@@ -2427,6 +2440,7 @@ cv.addEventListener('contextmenu',e=>{if(st.aim){e.preventDefault();st.aim=null}
 function canBuild(k,x,y){if(x<0||y<0||x>=W||y>=H||st.tw.some(t=>t.cx===x&&t.cy===y))return false;const key=x+','+y;return T[k].trap?road.has(key):!road.has(key)&&!deco.has(key)}
 cv.addEventListener('click',e=>{
   if(st.over||paused)return;
+  if(MP&&e.shiftKey){const r0=cv.getBoundingClientRect();mpPing((e.clientX-r0.left)*W*C/r0.width,(e.clientY-r0.top)*H*C/r0.height);return}
   if(st.aim==='met'){const r=cv.getBoundingClientRect();dropMeteor((e.clientX-r.left)*W*C/r.width,(e.clientY-r.top)*H*C/r.height);return}
   const p=cell(e);st.hover=p;
   const t=st.tw.find(t=>t.cx===p.x&&t.cy===p.y);
@@ -2528,7 +2542,7 @@ function paintMaps(){const tot=totStars();[...$('maps').children].forEach((b,i)=
 function renderLays(){const M=MAPS[mapI];if(layI>=M.ly.length)layI=0;$('lyname').textContent='· '+M.n;
   $('lays').innerHTML=M.ly.map((l,j)=>{const sr=save.stars[bkey(mapI,j,dif)]||0,bw=save.best[bkey(mapI,j,dif)],o=layOpen(mapI,j);return'<button class="ly'+(j===layI?' on':'')+(o?'':' lock')+'" data-l="'+j+'"><canvas width="320" height="200"></canvas>'+(o?'':'<span class="lk2">'+LOCK+' Win '+M.ly[j-1].n+'</span>')+'<span>'+l.n+'<small class="'+l.len+'">'+l.len+' path</small></span><em>'+(sr?starStr(sr):bw?'Best wave '+bw+' / '+DIFFS[dif].w:'Not played yet')+'</em></button>'}).join('');
   [...$('lays').querySelectorAll('canvas')].forEach((c,j)=>thumb(mapI,j,c));paintStart()}
-function renderPlay(){paintDiff();paintMaps();renderRoster()}
+function renderPlay(){paintDiff();paintMaps();renderRoster();paintRun()}
 function renderRoster(){
   const M=MAPS[mapI];$('rname').textContent=M.n;
   const list=[['norm',M.e.norm],['fast',M.e.fast],['tank',M.e.tank],...ABK.map(a=>['spec',M.x[a]])];
@@ -2607,7 +2621,7 @@ function showReveal(){const s=SK[CH.id],R=RAR[CH.r],more=chestPool(CH.r).length&
 function closeChest(){CH=null;$('chm').hidden=true;scr('chests')}
 $('chc').onclick=()=>{if(CH&&!CH.done)CH.t0=performance.now()-(CH_T+.9)*1000};
 
-function startGame(){if(!worldOpen(mapI)||!layOpen(mapI,layI)||!difOpen(dif))return;setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;closeMenu();
+function startGame(){if(!worldOpen(mapI)||!layOpen(mapI,layI)||!difOpen(dif))return;runCalc();setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;closeMenu();
   if(!save.tut){save.tut=1;persist();setTimeout(()=>toast('Tip: build towers beside the path','Pick a tower, click a free tile, then press Space to start the wave','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6cc3ff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.5" stroke-linecap="round"/></svg>','#6cc3ff'),400)}}
 // Spell bar: the three base spells plus any learned in the skill tree
 function buildSpells(){const L=SPELLS.filter(spellOn);$('spells').innerHTML=L.map(s=>'<button class="sp" id="sp-'+s.k+'" title="'+s.n+' ('+s.key+'): '+s.d+'" style="--sc:rgb('+s.col+')">'+s.ic+'<span>'+s.n+'</span><kbd>'+s.key+'</kbd><i class="cd"></i><em></em></button>').join('');
@@ -2709,7 +2723,7 @@ function sendInfo(force){const s=JSON.stringify(myInfo());if(!force&&s===NET.sen
 
 /* --- Lobby --- */
 const CAPS=[6,8,10,12,15,20,25],GMS=[50,75,100,150,200],LIVES=[0,5,10,15,20,30,50],SCS=[[0,'Off'],[.35,'Normal'],[.7,'Hard'],[1.1,'Brutal']];
-function defaultSet(){const m=worldOpen(mapI)?mapI:0;return{map:m,lay:layOpen(m,layI)?layI:0,dif:difOpen(dif)?dif:1,sw:1,cap:12,gm:100,lives:0,sc:.35,aw:0}}
+function defaultSet(){const m=worldOpen(mapI)?mapI:0;return{map:m,lay:layOpen(m,layI)?layI:0,dif:difOpen(dif)?dif:1,sw:1,cap:12,gm:100,lives:0,sc:.35,aw:0,en:0,m_swift:0,m_tough:0,m_poor:0,m_frail:0}}
 function setOpt(k,v){
   const S=NET.set;if(!S||!isHost())return;
   S[k]=v;
@@ -2720,7 +2734,7 @@ function setOpt(k,v){
 function lbRow(a,b){return '<div class="lbk"><span>'+a+'</span><b>'+b+'</b></div>'}
 function lbSummary(S){
   const D=DIFFS[S.dif],M=MAPS[S.map];
-  return lbRow('World',M.n+' · '+M.ly[S.lay].n)+lbRow('Difficulty',D.n+' · '+D.w+' waves')+lbRow('Starting wave',S.sw)+lbRow('Towers per player',S.cap)+lbRow('Starting gold',S.gm+'%')+lbRow('Castle lives',S.lives||D.l)+lbRow('Enemy strength',(SCS.find(x=>x[0]===S.sc)||SCS[1])[1])+lbRow('Waves start','Host '+(S.aw?'(automatic)':'(manual)'));
+  return lbRow('World',M.n+' · '+M.ly[S.lay].n)+lbRow('Difficulty',D.n+' · '+D.w+' waves')+lbRow('Starting wave',S.sw)+lbRow('Towers per player',S.cap)+lbRow('Starting gold',S.gm+'%')+lbRow('Castle lives',S.lives||D.l)+lbRow('Enemy strength',(SCS.find(x=>x[0]===S.sc)||SCS[1])[1])+lbRow('Waves start','Host '+(S.aw?'(automatic)':'(manual)'))+lbRow('Run options',[S.en?'Endless':'',...MODS.filter(m=>S['m_'+m.id]).map(m=>m.n)].filter(Boolean).join(', ')||'None');
 }
 const lbOpts=(arr,cur,fmt)=>arr.map(v=>'<option value="'+v+'"'+(v===cur?' selected':'')+'>'+fmt(v)+'</option>').join('');
 function lbControls(S){
@@ -2736,7 +2750,9 @@ function lbControls(S){
    +'<div class="lbf"><label>Starting gold</label><select data-k="gm">'+lbOpts(GMS,S.gm,v=>v+'%')+'</select></div>'
    +'<div class="lbf"><label>Castle lives</label><select data-k="lives">'+lbOpts(LIVES,S.lives,v=>v?v:'Default ('+D.l+')')+'</select></div>'
    +'<div class="lbf"><label>Enemy strength per extra player</label><select data-k="sc">'+SCS.map(x=>'<option value="'+x[0]+'"'+(x[0]===S.sc?' selected':'')+'>'+x[1]+'</option>').join('')+'</select></div>'
-   +'<label class="lbchk"><input type="checkbox" data-k="aw"'+(S.aw?' checked':'')+'> Start each next wave automatically</label>';
+   +'<label class="lbchk"><input type="checkbox" data-k="aw"'+(S.aw?' checked':'')+'> Start each next wave automatically</label>'
+   +'<label class="lbchk"><input type="checkbox" data-k="en"'+(S.en?' checked':'')+'> Endless mode (no last wave)</label>'
+   +MODS.map(m=>'<label class="lbchk" title="'+m.d+'"><input type="checkbox" data-k="m_'+m.id+'"'+(S['m_'+m.id]?' checked':'')+'> '+m.n+' <small style="color:var(--mut)">'+m.d+'</small></label>').join('');
 }
 function renderLobby(){
   const el=$('lb');if(!el)return;
@@ -2808,7 +2824,7 @@ function mpStart(){
 function beginMP(S,players,host){
   MP={host,id:NET.you,set:S,players:players.map((p,i)=>Object.assign({},p,{col:PCOL[i%4]})),evq:new Set(),evs:[],kd:[]};
   NET.last=new Map();NET.live={};NET.map={en:new Map(),tw:new Map(),bl:new Map(),zones:new Map(),met:new Map()};NET.barH='';NET.snapT=tm;
-  mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;
+  mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
   setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';
   $('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');
   $('spd').textContent='Speed 1×';$('spd').classList.remove('on');
@@ -2828,11 +2844,11 @@ function mpAfterReset(){
     st.scd=me.scd;
     st.hpm=1+(S.sc||0)*(n-1);
     st.wave=S.sw-1;
-    let lv=S.lives||D.l;for(const id in st.P)lv+=2*(st.P[id].skills.m4||0);
+    let lv=S.lives||D.l;for(const id in st.P)lv+=2*(st.P[id].skills.m4||0);lv=Math.max(1,Math.round(lv*RUN.lm));
     st.lives=lv;st.lives0=lv;
     // Starting past wave 1: everyone gets their share of the gold they would have earned
     let earned=0;for(let w=1;w<S.sw;w++)earned+=Math.round((6+w*2)*D.c)*Math.max(1,Math.round((4+Math.floor(w/3))*D.r))+15+2*w;
-    for(const id in st.P){const p=st.P[id];p.gold=Math.round(D.g*S.gm/100)+30*(p.skills.e1||0)+Math.round(earned/n)}
+    for(const id in st.P){const p=st.P[id];p.gold=Math.round((Math.round(D.g*S.gm/100)+30*(p.skills.e1||0))*RUN.gs)+Math.round(earned/n)}
   }else st.scd=st.P[MP.id].scd;
 }
 function mpHud(on){
@@ -2862,7 +2878,7 @@ function mpEndGuest(d){
   if(st.over)return;
   st.over=true;inGame=false;st.aim=null;
   const win=!!d.win,D=DIFFS[dif];
-  const xg=Math.round(d.xp*[.8,1,1.3,1.7][dif]*.6)+(win?50*(dif+1):0),lv0=save.lvl,xp0=save.xp;
+  const xg=Math.round((Math.round(d.xp*[.8,1,1.3,1.7][dif]*.6)+(win?50*(dif+1):0))*RUN.rm),lv0=save.lvl,xp0=save.xp;
   if(win){unlockAch('win'+dif);if(!d.lost)unlockAch('perf');sfx('win');questAdd('win',1)}else{shake(6);sfx('lose')}
   questAdd('gold',Math.floor(d.ge/Math.max(1,MP.players.length)));
   const ups=addXp(xg),lr=ups.reduce((a,l)=>a+lvRunes(l),0),lg=ups.reduce((a,l)=>a+lvGems(l),0);
@@ -2871,8 +2887,8 @@ function mpEndGuest(d){
   const pTo=save.lvl>=MAXLV?100:save.xp/xpNeed(save.lvl)*100,pFrom=ups.length?0:xp0/xpNeed(lv0)*100;
   $('ovxp').innerHTML='<div class="row"><span class="lvb">'+save.lvl+'</span><div class="bar"><i style="width:'+pFrom+'%"></i></div><span class="xg">+'+fmt(xg)+' XP</span></div><div class="rw2">'+(ups.length?'<span class="lu">Level up! '+lv0+' → '+save.lvl+'</span>':'')+(lr?'<span>'+RUNE+' +'+lr+' from levels</span>':'')+(lg?'<span style="color:var(--gem);border-color:rgba(180,120,255,.35);background:rgba(180,120,255,.1)">'+GEM+' +'+lg+' from levels</span>':'')+'</div>';
   $('ovxp').querySelector('.rw2').hidden=!ups.length;setTimeout(()=>{const i=$('ovxp').querySelector('.bar i');if(i)i.style.width=pTo+'%'},120);
-  $('ovt').textContent=win?'Victory':'Defeat';
-  $('ovs').textContent=win?'Your team defended all '+MAXW+' waves on '+D.n+(d.lost?'.':' without losing a life!'):'The castle fell on wave '+d.wave+' of '+MAXW+'.';
+  $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';
+  $('ovs').textContent=win?'Your team defended all '+MAXW+' waves on '+D.n+(d.lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+d.wave+'.':'The castle fell on wave '+d.wave+' of '+MAXW+'.');
   $('ovst').hidden=true;
   $('oves').innerHTML='<div><b>'+d.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(d.ge)+'</b><span>Team gold earned</span></div><div><b>'+MP.players.length+'</b><span>Players</span></div>';
   $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;
@@ -2887,6 +2903,7 @@ function hostMsg(from,d){
   if(d.c==='build'){if(typeof d.k==='string'&&Number.isInteger(d.cx)&&Number.isInteger(d.cy))buildAs(from,d.k,d.cx,d.cy)}
   else if(d.c==='up'){const t=twById(d.id);if(t&&typeof d.s==='string'&&ownP(STATS,d.s))upAs(from,t,d.s)}
   else if(d.c==='sell'){const t=twById(d.id);if(t)sellAs(from,t)}
+  else if(d.c==='ping'){if(Number.isFinite(d.x)&&Number.isFinite(d.y))addPing(from,Math.max(0,Math.min(W*C,d.x)),Math.max(0,Math.min(H*C,d.y)))}
   else if(d.c==='tg'){const t=twById(d.id);if(t&&t.ow===from&&TGO.includes(d.v)&&hasTarget(t))t.tg=d.v}
   else if(d.c==='cast'){
     if(typeof d.k!=='string'||!ownP(SPK,d.k))return;
@@ -3051,6 +3068,8 @@ function guestStep(dt){
 }
 
 /* --- In-game display for multiplayer --- */
+function mpPing(x,y){if(MP.host)addPing(MP.id,x,y);else mpSend({c:'ping',x,y})}
+function addPing(o,x,y){const p=st.P[o];if(!p||(p.pt&&tm-p.pt<1))return;p.pt=tm;st.fx.push({x,y,r:26,a:3,c:rgbOf(p.col).join(','),ping:1,nm:p.name})}
 function ownerRing(t){
   const p=st.P&&st.P[t.ow];if(!p)return;
   g.globalAlpha=.7;g.strokeStyle=p.col;g.lineWidth=2.2;g.beginPath();g.ellipse(t.x,t.y+10,17,7,0,0,7);g.stroke();g.globalAlpha=1;
@@ -3061,7 +3080,7 @@ function mpUi(){
     const p=st.P[id],n=st.tw.reduce((a,t)=>a+(t.ow==id),0);
     h+='<div class="mpr'+(+id===MP.id?' me':'')+(p.gone?' off':'')+'" title="Gold and towers built (limit '+MP.set.cap+' each)"><i style="background:'+p.col+'"></i><span>'+escH(p.name)+(+id===1?' ★':'')+'</span><b>'+Math.floor(p.gold)+'</b><em>'+n+'/'+MP.set.cap+'</em></div>';
   }
-  if(!MP.host)h+='<div class="mpnote">'+(tm-NET.snapT>2.5?'Waiting for the host…':'The host starts each wave')+'</div>';
+  h+='<div class="mpnote">'+(!MP.host&&tm-NET.snapT>2.5?'Waiting for the host…':(MP.host?'You start each wave':'The host starts each wave'))+' · Shift+click pings</div>';
   if(h!==NET.barH){NET.barH=h;$('mpbar').innerHTML=h}
   const t=st.sel;
   if(t&&!$('info').hidden){
@@ -3076,6 +3095,13 @@ function mpUi(){
   if(q){NET.prefill=q;setTimeout(()=>{openMenu();scr('lobby')},50)}
 })();
 
+function paintRun(){
+  runCalc();
+  const bs=[['en','Endless','Keep fighting past the last wave. Rewards grow with every wave (+10%)',RUN.en]].concat(MODS.map(m=>[m.id,m.n,m.d+' (+'+Math.round(m.b*100)+'% rewards)',!!RUN.mods[m.id]]));
+  $('runopt').innerHTML=bs.map(b=>'<button data-r="'+b[0]+'" class="'+(b[3]?'on':'')+'" title="'+b[2]+'">'+b[1]+'</button>').join('');
+  $('rmult').textContent=RUN.rm>1?'· Rewards ×'+RUN.rm.toFixed(2):'';
+}
+$('runopt').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const k=b.dataset.r;if(k==='en')RUN.en=!RUN.en;else RUN.mods[k]=!RUN.mods[k];paintRun()};
 setMap(0);buildPicker();reset();openMenu();
 let last=0,achT=0;
 function loop(ts){
