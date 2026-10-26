@@ -288,10 +288,18 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .br{display:flex;flex-direction:column;gap:0;padding:14px;border-radius:14px;background:linear-gradient(180deg,color-mix(in srgb,var(--bc) 10%,transparent),transparent 40%),var(--panel);border:1px solid color-mix(in srgb,var(--bc) 30%,var(--line))}
 .br h3{margin:0 0 12px;display:flex;align-items:center;gap:8px;font:700 22px/1 "Barlow Condensed",Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--bc)}
 .br h3 small{margin-left:auto;font:600 11px Inter,sans-serif;letter-spacing:0;text-transform:none;color:var(--mut)}
-.node{position:relative;justify-content:flex-start;align-items:center;gap:11px;padding:10px 11px;margin-top:14px;text-align:left;border-radius:12px;background:var(--panel2)}
+.node{position:relative;justify-content:flex-start;align-items:center;gap:11px;padding:10px 11px;margin-top:8px;text-align:left;border-radius:12px;background:var(--panel2)}
 .node:first-of-type{margin-top:0}
-.node+.node::before{content:'';position:absolute;left:30px;top:-15px;width:3px;height:14px;border-radius:2px;background:var(--line2)}
-.node.got+.node::before,.node.got::before{background:var(--bc)}
+.tl{margin:16px 0 0;font:700 10px Inter,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.tl:first-of-type{margin-top:4px}
+.mast{display:grid;gap:4px;margin:-4px 0 4px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.mast b{font:700 15px/1 "Barlow Condensed",Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--bc)}
+.mast span{font-size:11px;color:var(--fg)}
+.mast i{position:relative;display:block;height:6px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:2px}
+.mast u{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--bc)}
+.mast s{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--line2)}
+.mast small{font-size:10.5px;color:var(--mut)}
+.node .nt small.rq{color:#ff9a6a}
 .node .ni{width:38px;height:38px;flex:none;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.05);color:var(--mut);border:1px solid var(--line2)}
 .node .ni svg{width:22px;height:22px}
 .node.got .ni{color:#fff;background:color-mix(in srgb,var(--bc) 30%,transparent);border-color:var(--bc);box-shadow:0 0 14px color-mix(in srgb,var(--bc) 40%,transparent)}
@@ -978,6 +986,7 @@ const DIFLV=[1,1,5,12]; // player level needed for Easy / Normal / Hard / Insane
 const difOpen=d=>save.lvl>=DIFLV[d];
 // Starter towers are free; the rest open up one after another as you level
 const towerLv=k=>DEF_UN.includes(k)?1:1+Math.ceil((KEYS.filter(x=>!DEF_UN.includes(x)).indexOf(k)+1)*.75);
+const skRefundCost=sp=>sp*5;
 const skSpent=()=>SKT.reduce((a,s)=>{let c=0;for(let r=0;r<sk(s.id);r++)c+=skCost(s,r);return a+c},0);
 // Daily quests: three per day, picked from the pool with a seed made from the date
 const QP=[
@@ -1037,28 +1046,54 @@ const withSk=(o,f)=>{if(!MP||o===undefined||!st.P[o])return f();const c=SKC;SKC=
 const richest=()=>{if(!MP)return undefined;let b,bg=-1;for(const id in st.P)if(st.P[id].gold>bg){bg=st.P[id].gold;b=+id}return b};
 const SKB=[{k:'o',n:'Offense',col:'#ff6b6b'},{k:'e',n:'Economy',col:'#f4c152'},{k:'m',n:'Magic',col:'#a78bfa'}];
 const SKT=[
-  {id:'o1',b:'o',n:'Sharpened',mx:5,c:1,ic:'M4 20l6-6M13 3h8v8L11 21l-8-8z',d:r=>'+'+r*4+'% tower damage'},
-  {id:'o2',b:'o',n:'Rapid Reload',mx:5,c:1,ic:'M4 6l6 6-6 6M12 6l6 6-6 6',d:r=>'+'+r*3+'% attack speed'},
-  {id:'o3',b:'o',n:'Eagle Eye',mx:3,c:2,ic:'M12 6a6 6 0 1 0 .01 0M12 2v4M12 18v4M2 12h4M18 12h4',d:r=>'+'+r*4+'% tower range'},
-  {id:'o4',b:'o',n:'Critical Strike',mx:5,c:2,ic:'M12 2l2.5 7H22l-6 4.5 2.5 7.5L12 16l-6.5 5 2.5-7.5L2 9h7.5z',d:r=>r*4+'% chance to deal 2.5× damage'},
-  {id:'o5',b:'o',n:'Giant Slayer',mx:3,c:3,ic:'M3 18h18l-2-10-5 5-2-7-2 7-5-5z',d:r=>'+'+r*12+'% damage to bosses and elites'},
-  {id:'o6',b:'o',n:'Overcharge',mx:1,c:6,ab:1,ic:'M13 2L4 14h7l-1 8 9-12h-7z',d:()=>'New spell (V): all towers attack twice as fast for 8s'},
-  {id:'e1',b:'e',n:'War Chest',mx:5,c:1,ic:'M4 7c0-2 16-2 16 0s-16 2-16 0zM4 7v5c0 2 16 2 16 0V7M4 12v5c0 2 16 2 16 0v-5',d:r=>'+'+r*30+' starting gold'},
-  {id:'e2',b:'e',n:'Bounty',mx:5,c:1,ic:'M12 3v18M16 7c-1-2-8-2-8 1s8 2 8 5-7 3-8 1',d:r=>'+'+r*6+'% gold from enemies'},
-  {id:'e3',b:'e',n:'Haggler',mx:5,c:2,ic:'M3 12l9-9h9v9l-9 9zM16 8h.01',d:r=>r*5+'% cheaper upgrades'},
-  {id:'e4',b:'e',n:'Salvage',mx:5,c:2,ic:'M7 7h10l-3-3M17 17H7l3 3M17 7v4M7 17v-4',d:r=>'Sell towers for '+(70+r*5)+'% of their cost'},
-  {id:'e5',b:'e',n:'Interest',mx:3,c:3,ic:'M5 19L19 5M7 4a3 3 0 1 0 .01 0M17 14a3 3 0 1 0 .01 0',d:r=>r*2+'% interest on your gold after each wave'},
-  {id:'e6',b:'e',n:'Midas Touch',mx:1,c:6,ab:1,ic:'M12 4a8 8 0 1 0 .01 0M12 8v8M9.5 10H14a1.5 1.5 0 0 1 0 3H10a1.5 1.5 0 0 0 0 3h4.5',d:()=>'New spell (B): enemies drop triple gold for 10s'},
-  {id:'m1',b:'m',n:'Quick Casting',mx:5,c:1,ic:'M6 3h12M6 21h12M7 3c0 6 10 6 10 9s-10 3-10 9M17 3c0 6-10 6-10 9s10 3 10 9',d:r=>r*6+'% shorter spell cooldowns'},
-  {id:'m2',b:'m',n:'Meteor Mastery',mx:3,c:2,ic:'M4 4l8 8M15 9a5 5 0 1 0 .01 0',d:r=>'+'+r*25+'% meteor damage and bigger blast'},
-  {id:'m3',b:'m',n:'Deep Freeze',mx:3,c:2,ic:'M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7',d:r=>'Blizzard lasts '+(4+r*.7).toFixed(1)+'s'},
-  {id:'m4',b:'m',n:'Fortify',mx:5,c:2,ic:'M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z',d:r=>'+'+r*2+' starting lives'},
-  {id:'m5',b:'m',n:'Alchemy',mx:3,c:3,ic:'M6 3h12l4 6-10 12L2 9z',d:r=>'Gold Rush gives +'+r*30+'% gold'},
-  {id:'m6',b:'m',n:'Time Warp',mx:1,c:6,ab:1,ic:'M12 3a9 9 0 1 0 .01 0M12 7v5l3 3',d:()=>'New spell (N): all enemies move at 40% speed for 10s'}
+  // Offense
+  {id:'o1',b:'o',t:1,n:'Sharpened',mx:5,c:1,ic:'M4 20l6-6M13 3h8v8L11 21l-8-8z',d:r=>'+'+r*4+'% tower damage'},
+  {id:'o2',b:'o',t:1,n:'Rapid Reload',mx:5,c:1,ic:'M4 6l6 6-6 6M12 6l6 6-6 6',d:r=>'+'+r*3+'% attack speed'},
+  {id:'o3',b:'o',t:2,n:'Eagle Eye',mx:3,c:2,req:[['o1',2]],ic:'M12 6a6 6 0 1 0 .01 0M12 2v4M12 18v4M2 12h4M18 12h4',d:r=>'+'+r*4+'% tower range'},
+  {id:'o4',b:'o',t:2,n:'Critical Strike',mx:5,c:2,req:[['o2',2]],ic:'M12 2l2.5 7H22l-6 4.5 2.5 7.5L12 16l-6.5 5 2.5-7.5L2 9h7.5z',d:r=>r*4+'% chance to deal 2.5× damage'},
+  {id:'o8',b:'o',t:2,n:'Armor Piercing',mx:3,c:2,req:[['o1',3]],ic:'M12 3v14M8 13l4 4 4-4M5 21h14',d:r=>'Armored enemies take '+Math.round(Math.min(1,.55+.15*r)*100)+'% damage instead of 55%'},
+  {id:'o5',b:'o',t:3,n:'Giant Slayer',mx:3,c:3,req:[['o4',2]],ic:'M3 18h18l-2-10-5 5-2-7-2 7-5-5z',d:r=>'+'+r*12+'% damage to bosses and elites'},
+  {id:'o7',b:'o',t:3,n:'Executioner',mx:5,c:3,req:[['o4',3],['o2',3]],ic:'M4 20l10-10M12 4l8 8-4 4-8-8z',d:r=>'+'+r*8+'% damage to enemies below 25% health'},
+  {id:'o9',b:'o',t:3,n:'Shrapnel',mx:4,c:3,req:[['o3',2]],ic:'M12 9a3 3 0 1 0 .01 0M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3',d:r=>'+'+r*10+'% blast radius for splash towers'},
+  {id:'o10',b:'o',t:4,n:'Veteran',mx:5,c:4,req:[['o7',2]],ic:'M12 3l2 5h5l-4 3 1.5 5L12 13l-4.5 3L9 11 5 8h5z',d:r=>'Towers gain up to +'+r*4+'% damage as they score kills'},
+  {id:'o6',b:'o',t:4,n:'Overcharge',mx:1,c:6,req:[['o2',5],['o3',2]],ab:1,ic:'M13 2L4 14h7l-1 8 9-12h-7z',d:()=>'New spell (V): all towers attack twice as fast for 8s'},
+  {id:'o11',b:'o',t:5,n:'Overclock',mx:2,c:5,req:[['o6',1]],ic:'M13 2L4 14h7l-1 8 9-12h-7zM3 21h18',d:r=>'Overcharge lasts '+(8+3*r)+'s'},
+  {id:'o12',b:'o',t:5,n:'Annihilator',mx:3,c:8,req:[['o5',3],['o7',3]],ic:'M12 2v6M12 16v6M2 12h6M16 12h6M5 5l4 4M15 15l4 4M19 5l-4 4M9 15l-4 4',d:r=>'Critical hits deal '+(2.5+.5*r).toFixed(1)+'× damage'},
+  // Economy
+  {id:'e1',b:'e',t:1,n:'War Chest',mx:5,c:1,ic:'M4 7c0-2 16-2 16 0s-16 2-16 0zM4 7v5c0 2 16 2 16 0V7M4 12v5c0 2 16 2 16 0v-5',d:r=>'+'+r*30+' starting gold'},
+  {id:'e2',b:'e',t:1,n:'Bounty',mx:5,c:1,ic:'M12 3v18M16 7c-1-2-8-2-8 1s8 2 8 5-7 3-8 1',d:r=>'+'+r*6+'% gold from enemies'},
+  {id:'e3',b:'e',t:2,n:'Haggler',mx:5,c:2,req:[['e1',2]],ic:'M3 12l9-9h9v9l-9 9zM16 8h.01',d:r=>r*5+'% cheaper upgrades'},
+  {id:'e4',b:'e',t:2,n:'Salvage',mx:5,c:2,req:[['e1',3]],ic:'M7 7h10l-3-3M17 17H7l3 3M17 7v4M7 17v-4',d:r=>'Sell towers for '+(70+r*5)+'% of their cost'},
+  {id:'e7',b:'e',t:2,n:'Scavenger',mx:5,c:2,req:[['e2',2]],ic:'M4 8h16l-2 12H6zM9 8a3 3 0 0 1 6 0',d:r=>r*4+'% chance for an enemy to drop double gold'},
+  {id:'e5',b:'e',t:3,n:'Interest',mx:3,c:3,req:[['e2',3],['e3',2]],ic:'M5 19L19 5M7 4a3 3 0 1 0 .01 0M17 14a3 3 0 1 0 .01 0',d:r=>r*2+'% interest on your gold after each wave'},
+  {id:'e9',b:'e',t:3,n:'Smart Spender',mx:5,c:3,req:[['e3',3]],ic:'M6 6h15l-2 9H8zM6 6L5 3H2M9 20a1 1 0 1 0 .01 0M18 20a1 1 0 1 0 .01 0',d:r=>r*3+'% cheaper towers'},
+  {id:'e10',b:'e',t:3,n:'Treasure Hunter',mx:3,c:3,req:[['e7',2]],ic:'M3 11h18v9H3zM3 11a9 6 0 0 1 18 0M12 14v3',d:r=>'Treasure Goblins pay +'+r*2+'× gold and +'+r+' gem'+(r>1?'s':'')},
+  {id:'e8',b:'e',t:4,n:'Investment',mx:5,c:4,req:[['e5',2]],ic:'M4 20V10M10 20V4M16 20v-8M22 20H2',d:r=>'+'+r+' × (4 + wave ÷ 2) gold after every wave'},
+  {id:'e6',b:'e',t:4,n:'Midas Touch',mx:1,c:6,req:[['e2',5],['e5',2]],ab:1,ic:'M12 4a8 8 0 1 0 .01 0M12 8v8M9.5 10H14a1.5 1.5 0 0 1 0 3H10a1.5 1.5 0 0 0 0 3h4.5',d:()=>'New spell (B): enemies drop triple gold for 10s'},
+  {id:'e11',b:'e',t:5,n:'Golden Age',mx:2,c:5,req:[['e6',1]],ic:'M12 3l2 6h6l-5 4 2 7-5-4-5 4 2-7-5-4h6z',d:r=>'Midas lasts '+(10+3*r)+'s'},
+  {id:'e12',b:'e',t:5,n:'Tycoon',mx:3,c:8,req:[['e8',3],['e9',3]],ic:'M5 20h14M7 20V9l5-5 5 5v11M10 20v-5h4v5',d:r=>'+'+r*8+'% gold from every enemy'},
+  // Magic
+  {id:'m1',b:'m',t:1,n:'Quick Casting',mx:5,c:1,ic:'M6 3h12M6 21h12M7 3c0 6 10 6 10 9s-10 3-10 9M17 3c0 6-10 6-10 9s10 3 10 9',d:r=>r*6+'% shorter spell cooldowns'},
+  {id:'m4',b:'m',t:1,n:'Fortify',mx:5,c:2,ic:'M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z',d:r=>'+'+r*2+' starting lives'},
+  {id:'m2',b:'m',t:2,n:'Meteor Mastery',mx:3,c:2,req:[['m1',2]],ic:'M4 4l8 8M15 9a5 5 0 1 0 .01 0',d:r=>'+'+r*25+'% meteor damage and bigger blast'},
+  {id:'m3',b:'m',t:2,n:'Deep Freeze',mx:3,c:2,req:[['m1',2]],ic:'M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7',d:r=>'Blizzard lasts '+(4+r*.7).toFixed(1)+'s'},
+  {id:'m10',b:'m',t:2,n:'Bulwark',mx:3,c:3,req:[['m4',3]],ic:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',d:r=>'Restore 1 castle life every '+(8-2*r)+' waves'},
+  {id:'m5',b:'m',t:3,n:'Alchemy',mx:3,c:3,req:[['m1',3]],ic:'M6 3h12l4 6-10 12L2 9z',d:r=>'Gold Rush gives +'+r*30+'% gold'},
+  {id:'m7',b:'m',t:3,n:'Meteor Fire',mx:3,c:3,req:[['m2',2]],ic:'M12 21c-4 0-7-3-7-7 0-4 3-6 4-10 3 2 5 5 5 8 1-1 2-2 2-4 2 2 3 4 3 6 0 4-3 7-7 7z',d:r=>'Meteors burn for +'+r*40+'% damage over time'},
+  {id:'m8',b:'m',t:3,n:'Lingering Frost',mx:3,c:3,req:[['m3',2]],ic:'M12 2v20M5 6l14 12M5 18L19 6M3 12h18',d:r=>'Frozen enemies stay slowed for '+(r*1.2).toFixed(1)+'s after thawing'},
+  {id:'m9',b:'m',t:4,n:'Arcane Reserve',mx:3,c:4,req:[['m1',5],['m5',2]],ic:'M4 12a8 8 0 1 0 16 0 8 8 0 1 0-16 0M12 7v5l3 2',d:r=>'Every cleared wave shortens spell cooldowns by '+r*2+'s'},
+  {id:'m6',b:'m',t:4,n:'Time Warp',mx:1,c:6,req:[['m1',4],['m4',3]],ab:1,ic:'M12 3a9 9 0 1 0 .01 0M12 7v5l3 3',d:()=>'New spell (N): all enemies move at 40% speed for 10s'},
+  {id:'m11',b:'m',t:5,n:'Spell Echo',mx:3,c:4,req:[['m9',2]],ic:'M4 12a4 4 0 1 0 8 0 4 4 0 1 0-8 0M12 12a4 4 0 1 0 8 0 4 4 0 1 0-8 0',d:r=>r*12+'% chance that a spell recharges 60% faster'},
+  {id:'m12',b:'m',t:5,n:'Archmage',mx:1,c:10,req:[['m7',2],['m8',2],['m9',3]],ic:'M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z',d:()=>'All spell cooldowns are 25% shorter'}
 ];
 const SKI={};SKT.forEach(s=>SKI[s.id]=s);
+// Branch mastery: spending ranks in a branch earns a permanent bonus at 10, 22 and 36 ranks
+const MAST=[10,22,36],MASTD={o:'+4% tower damage',e:'+3% gold from enemies, +35 starting gold',m:'4% shorter spell cooldowns'};
+const mastTier=b=>{const sv=SKC||save.skills||{};let p=0;for(const n of SKT)if(n.b===b)p+=sv[n.id]||0;return MAST.filter(x=>p>=x).length};
+const skOpen=s=>!s.req||s.req.every(([id,r])=>sk(id)>=r);
+const skNeed=s=>(s.req||[]).filter(([id,r])=>sk(id)<r).map(([id,r])=>SKI[id].n+' '+r).join(', ');
 const skCost=(s,r)=>s.c+Math.floor(r/2);
-function reset(){const D=DIFFS[dif];MAXW=D.w;st={gold:Math.round((D.g+30*sk('e1'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
+function reset(){const D=DIFFS[dif];MAXW=D.w;st={gold:Math.round((D.g+30*sk('e1')+35*mastTier('e'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
   scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0};
   st.lives0=st.lives;SPELLS.forEach(s=>st.scd[s.k]=0);if(MP)mpAfterReset();$('ov').hidden=true;if(auto&&!(MP&&!MP.host))st.nxt=2}
 // Spells: active abilities on a cooldown (seconds of game time)
@@ -1079,12 +1114,13 @@ const hasTarget=t=>{const b=T[t.k];return !(b.gen||b.buff||b.aura||b.vort||b.sto
 const MAXU=5;
 const STATS={d:'Damage',s:'Speed',r:'Range',z:'Slow'};
 function stat(t){withSk(t.ow,()=>stat0(t))}
-function stat0(t){const b=T[t.k],u=t.u;t.r=b.r*(1+.08*u.r)*(1+.04*sk('o3'));t.d=b.d*(1+.35*u.d)*(1+.04*sk('o1'));t.cdv=b.cd*Math.pow(.85,u.s)/(1+.03*sk('o2'));t.spl=b.spl?b.spl*(1+.12*u.z):0;t.sf=Math.max(.1,.5-.08*u.z);t.sdur=1.6+.3*u.z;t.ch=(b.chain||0)+u.z;t.pdur=3+.6*u.z;t.prad=30*(1+.15*u.z);
+function stat0(t){const b=T[t.k],u=t.u;t.r=b.r*(1+.08*u.r)*(1+.04*sk('o3'));t.d=b.d*(1+.35*u.d)*(1+.04*sk('o1'))*(1+.04*mastTier('o'));t.cdv=b.cd*Math.pow(.85,u.s)/(1+.03*sk('o2'));t.spl=b.spl?b.spl*(1+.12*u.z)*(1+.1*sk('o9')):0;t.sf=Math.max(.1,.5-.08*u.z);t.sdur=1.6+.3*u.z;t.ch=(b.chain||0)+u.z;t.pdur=3+.6*u.z;t.prad=30*(1+.15*u.z);
   t.mc=3+u.z;t.pb=30*(1+.15*u.z);t.ns=3+u.z;t.bd=.2+.07*u.d;t.wd=.2*u.z;
   // New towers: pierce count, boomerang size, cone width, tar puddles, root time, drone count, bank interest, trap slow
   t.prc=3+u.z;t.brad=10+3*u.z;t.cone=(35+8*u.z)*Math.PI/180;t.tdur=4+.8*u.z;t.tsl=Math.min(.8,.45+.07*u.z);t.rdur=1.2+.3*u.z;t.ndr=1+(u.z>=2)+(u.z>=4);t.bint=.04+.012*u.d;t.bcap=40+25*u.d;t.barb=.1*u.z}
 function hasZ(t){const b=T[t.k];return !!(b.spl||b.slow||b.chain||b.psn||b.multi||b.vort||b.storm||b.buff||b.pierce||b.boom||b.cone||b.tar||b.root||b.drone||b.trap)}
 function zName(t){const b=T[t.k];return b.aa?'Shrapnel':b.multi?'Salvo':b.spl?'Blast':b.chain?'Chain':b.psn?'Toxin':b.vort?'Pull':b.storm?'Strikes':b.buff?'Ward':b.pierce?'Pierce':b.boom?'Blade size':b.cone?'Spread':b.tar?'Sticky':b.root?'Roots':b.drone?'Drones':b.trap?'Barbs':STATS.z}
+const bcost=k=>Math.max(1,Math.floor(T[k].cost*(1-.03*sk('e9'))));
 function upCost(t,s){return Math.floor(T[t.k].cost*.6*(1+.7*t.u[s])*(1-.05*sk('e3')))}
 const refund=()=>.7+.05*sk('e4');
 const cc=e=>e.ab!=='warden'; // Wardens ignore slows, stuns, roots and knockback
@@ -1104,23 +1140,23 @@ function waveComp(w){const q=Math.round((6+w*2)*DIFFS[dif].c),m={};
   for(let n=0;n<q;n++){const{k,E}=pickSpawn(w,n);(m[E.n]=m[E.n]||{E,z:ROLE[k].z,c:0,k}).c++}
   return Object.values(m)}
 // Spells
-const spellCd=k=>SPK[k].cd*(1-.06*sk('m1'));
+const spellCd=k=>SPK[k].cd*(1-.06*sk('m1')-.04*mastTier('m'))*(sk('m12')?.75:1);
 function castSpell(k,who,ax,ay){
   if(MP&&!MP.host){if(!inGame||st.over||st.scd[k]>0||!spellOn(SPK[k]))return;if(k==='met'){st.aim=st.aim==='met'?null:'met';return}mpSend({c:'cast',k});return}
   withSk(MP?(who===undefined?MP.id:who):undefined,()=>castSpell0(k,who,ax,ay))}
 function castSpell0(k,who,ax,ay){const me=!MP||who===undefined||who===MP.id,scd=me?st.scd:st.P[who].scd;
   if(!inGame||st.over||paused||scd[k]>0||!spellOn(SPK[k]))return;
   if(k==='met'){if(ax!==undefined)dropMeteor(ax,ay,who);else st.aim=st.aim==='met'?null:'met';return}
-  scd[k]=spellCd(k);if(me){save.stats.spells++;questAdd('spell',1)}
-  if(k==='frz'){const fd=4+.7*sk('m3');for(const e of st.en){if(!cc(e))continue;const d=e.k==='tank'?fd*.6:fd;e.ice=Math.max(e.ice||0,d);e.stun=Math.max(e.stun||0,d)}st.flash={c:'170,225,255',a:.55};sfx('freeze')}
-  else if(k==='ovc'){st.ovc=8;st.flash={c:'255,214,102',a:.4};for(const t of st.tw){t.pop=.6;st.fx.push({x:t.x,y:t.y,r:22,a:.8,c:'255,214,102'})}sfx('up')}
-  else if(k==='mid'){st.mid=10;st.flash={c:'255,200,60',a:.4};sfx('gold')}
+  scd[k]=spellCd(k)*(Math.random()<.12*sk('m11')?.4:1);if(me){save.stats.spells++;questAdd('spell',1)}
+  if(k==='frz'){const fd=4+.7*sk('m3');for(const e of st.en){if(!cc(e))continue;const d=e.k==='tank'?fd*.6:fd;e.ice=Math.max(e.ice||0,d);e.stun=Math.max(e.stun||0,d);if(sk('m8'))e.slow=Math.max(e.slow||0,d+1.2*sk('m8'))}st.flash={c:'170,225,255',a:.55};sfx('freeze')}
+  else if(k==='ovc'){st.ovc=8+3*sk('o11');st.flash={c:'255,214,102',a:.4};for(const t of st.tw){t.pop=.6;st.fx.push({x:t.x,y:t.y,r:22,a:.8,c:'255,214,102'})}sfx('up')}
+  else if(k==='mid'){st.mid=10+3*sk('e11');st.flash={c:'255,200,60',a:.4};sfx('gold')}
   else if(k==='twp'){st.twp=10;st.flash={c:'170,150,255',a:.5};sfx('freeze')}
   else if(k==='gld'){const a=Math.round((60+st.wave*15)*(1+.3*sk('m5')));giveGold(who,a);st.ge+=a;st.pt.push({x:W*C/2,y:H*C/2,vx:0,vy:-22,l:1.6,tx:'+'+a+' GOLD',big:1});for(let i=0;i<26;i++)st.pt.push({x:W*C/2+(Math.random()-.5)*60,y:H*C/2,vx:(Math.random()-.5)*220,vy:-120-Math.random()*160,l:1.2,c:'#f4c152'});st.flash={c:'255,215,90',a:.35};sfx('gold')}}
 function dropMeteor(x,y,who){
   if(MP&&!MP.host){st.aim=null;if(st.scd.met>0)return;mpSend({c:'cast',k:'met',x,y});return}
   const me=!MP||who===undefined||who===MP.id,scd=me?st.scd:st.P[who].scd;if(me)st.aim=null;
-  withSk(me?undefined:who,()=>{if(scd.met>0)return;scd.met=spellCd('met');if(me){save.stats.spells++;questAdd('spell',1)}st.met.push({x,y,t:.75,R:80*(1+.06*sk('m2')),mk:1+.25*sk('m2')});sfx('meteor')})}
+  withSk(me?undefined:who,()=>{if(scd.met>0)return;scd.met=spellCd('met')*(Math.random()<.12*sk('m11')?.4:1);if(me){save.stats.spells++;questAdd('spell',1)}st.met.push({x,y,t:.75,R:80*(1+.06*sk('m2')),mk:1+.25*sk('m2'),fk:1+.4*sk('m7')});sfx('meteor')})}
 function spawn(){
   const w=st.wave,n=st.n++,{k,E}=pickSpawn(w,n);
   const D=DIFFS[dif],hp=(18+w*w*1.5+w*8)*D.h*(E.hm||1)*(st.hpm||1)*RUN.hp,rw=Math.max(1,Math.round((4+Math.floor(w/3))*D.r)),o=ROLE[k];
@@ -1135,8 +1171,8 @@ function hurt0(e,d,t){
   if(e.bur||e.egg>0)return; // burrowed or reviving: untouchable
   if(e.ab==='dodge'&&t&&d>3&&Math.random()<.35){if(st.dnc<dnMax()){st.dnc++;st.pt.push({x:e.x,y:e.y-e.z-8,vx:0,vy:-40,l:.8,tx:'MISS',dn:3})}return}
   let crit=false;
-  if(t&&d>2){if(e.k==='tank'||e.elite)d*=1+.12*sk('o5');if(sk('o4')&&Math.random()<.04*sk('o4')){d*=2.5;crit=true}}
-  if(e.ab==='armor')d*=.55;
+  if(t&&d>2){if(e.k==='tank'||e.elite)d*=1+.12*sk('o5');if(sk('o7')&&e.hp<e.mx*.25)d*=1+.08*sk('o7');if(sk('o10'))d*=1+Math.min(.04*sk('o10'),(t.kills||0)*.0004*sk('o10'));if(sk('o4')&&Math.random()<.04*sk('o4')){d*=2.5+.5*sk('o12');crit=true}}
+  if(e.ab==='armor')d*=t?Math.min(1,.55+.15*sk('o8')):.55;
   if(e.shd>0){const ab=Math.min(e.shd,d);e.shd-=ab;d-=ab}const a=Math.min(d,Math.max(0,e.hp));e.hp-=d;if(t){t.dmg=(t.dmg||0)+a;e.lh=t}
   e.hf=Math.min(1,(e.hf||0)+Math.min(.8,d/e.mx*3));
   if(crit&&st.dnc<dnMax()){st.dnc++;st.pt.push({x:e.x+(Math.random()-.5)*8,y:e.y-e.z-10,vx:(Math.random()-.5)*20,vy:-55,l:1,tx:fmt(d)+'!',dn:2});return}
@@ -1266,12 +1302,12 @@ function update(dt){
   for(const e of st.en)if(e.hp<=0&&!e.gone){
     if(e.ab==='revive'&&!e.rv){e.rv=1;e.hp=1;e.egg=1.4;st.fx.push({x:e.x,y:e.y,r:30,a:1,c:'255,120,40'});burst(e.x,e.y,'#ff7043',14);continue}
     const owr=MP?((e.lh&&e.lh.ow!==undefined&&st.P[e.lh.ow])?e.lh.ow:mpAnyPlayer()):undefined;
-    const rw=withSk(owr,()=>Math.max(1,Math.round(e.rw*(1+.06*sk('e2'))*(st.mid>0?3:1)*(e.ab==='treasure'?4:1)*RUN.gk)));
+    const rw=withSk(owr,()=>Math.max(1,Math.round(e.rw*(1+.06*sk('e2'))*(st.mid>0?3:1)*(e.ab==='treasure'?4+2*sk('e10'):1)*RUN.gk*(1+.03*mastTier('e'))*(1+.08*sk('e12'))*(Math.random()<.04*sk('e7')?2:1))));
     giveGold(owr,rw);st.ge+=rw;e.gone=true;if(MP)MP.kd.push([eid(e),e.k==='tank'?1:0]);if(e.lh)e.lh.kills=(e.lh.kills||0)+1;st.kills++;save.stats.kills++;questAdd('kill',1);
     st.xp+=e.k==='tank'?10:e.elite?6:1;
     if(e.elite){st.elites++;save.stats.elites=(save.stats.elites||0)+1;questAdd('elite',1)}
     if(e.ab==='emp'){for(const t of st.tw)if(Math.hypot(t.x-e.x,t.y-e.y)<=100)disable(t,'stn',2.5);st.fx.push({x:e.x,y:e.y,r:100,a:1,c:'90,200,255'});sfx('zap')}
-    if(e.ab==='treasure'){const gg=Math.round(3*DIFFS[dif].gm);st.gems+=gg;save.gems+=gg;mpEv('!g:'+gg);st.pt.push({x:e.x,y:e.y-22,vx:0,vy:-24,l:1.6,tx:'+'+gg+' GEMS',big:1,gem:1});burst(e.x,e.y,'#ffd54f',24);sfx('gold')}
+    if(e.ab==='treasure'){const gg=Math.round(3*DIFFS[dif].gm)+withSk(owr,()=>sk('e10'));st.gems+=gg;save.gems+=gg;mpEv('!g:'+gg);st.pt.push({x:e.x,y:e.y-22,vx:0,vy:-24,l:1.6,tx:'+'+gg+' GEMS',big:1,gem:1});burst(e.x,e.y,'#ffd54f',24);sfx('gold')}
     if(e.k==='tank'){save.stats.bosses++;questAdd('boss',1);boomFx(e.x,e.y,46,1.1);burst(e.x,e.y,e.col,20);shake(5);sfx('boom')}else{deathFx(e);sfx('die')}
     st.pt.push({x:e.x,y:e.y-8,vx:0,vy:-28,l:1,tx:'+'+rw});
     if(e.ab==='split')for(const s of[-1,1])add.push({k:'norm',sh:e.sh,col:e.col,c2:e.c2,ph:Math.random()*6,i:e.i,x:e.x+s*6,y:e.y+s*4,hp:e.mx*.35,mx:e.mx*.35,sp:62,rw:1,z:Math.round(e.z*.7),slow:0,mini:1,born:.3})}
@@ -1280,7 +1316,7 @@ function update(dt){
   // Spells, meteors and screen effects
   for(const k in st.scd)st.scd[k]=Math.max(0,st.scd[k]-dt);
   if(MP)for(const id in st.P){const c=st.P[id].scd;if(c!==st.scd)for(const k in c)c[k]=Math.max(0,c[k]-dt)}
-  for(const m of st.met){m.t-=dt;if(m.t<=0){m.done=true;const R=m.R||80*(1+.06*sk('m2')),dmg=(150+st.wave*30)*(m.mk||1+.25*sk('m2'));for(const e of st.en)if(Math.hypot(e.x-m.x,e.y-m.y)<=R){hurt(e,dmg,null);e.pt=3;e.pd=10+st.wave*2;e.pl=null}
+  for(const m of st.met){m.t-=dt;if(m.t<=0){m.done=true;const R=m.R||80*(1+.06*sk('m2')),dmg=(150+st.wave*30)*(m.mk||1+.25*sk('m2'));for(const e of st.en)if(Math.hypot(e.x-m.x,e.y-m.y)<=R){hurt(e,dmg,null);e.pt=3;e.pd=(10+st.wave*2)*(m.fk||1);e.pl=null}
     st.fx.push({x:m.x,y:m.y,r:R,a:1,c:'255,140,50'},{x:m.x,y:m.y,r:R*.56,a:1,c:'255,230,150'});boomFx(m.x,m.y,R,1.6);burst(m.x,m.y,'#ffe27a',16);st.scorch.push({x:m.x,y:m.y,a:1});shake(8);sfx('boom')}}
   if(st.ovc>0)st.ovc-=dt;if(st.mid>0)st.mid-=dt;if(st.twp>0)st.twp-=dt;
   st.met=st.met.filter(m=>!m.done);
@@ -1289,7 +1325,10 @@ function update(dt){
     let wb=15+st.wave*2;st.run=false;const ows=MP?Object.keys(st.P).map(Number):[undefined],ex={};ows.forEach(o=>ex[o]=0);
     // Interest: from Bank towers and the Interest skill
     for(const t of st.tw)if(T[t.k].bank&&!(t.frz>0)){const v=Math.round(Math.min(goldOf(t.ow)*t.bint,t.bcap));if(v>0){ex[t.ow]+=v;t.dmg=(t.dmg||0)+v;t.fl=1;st.pt.push({x:t.x,y:t.y-16,vx:0,vy:-24,l:1.4,tx:'+'+v})}}
-    for(const o of ows){const e5=withSk(o,()=>sk('e5'));if(e5)ex[o]+=Math.round(Math.min(goldOf(o)*.02*e5,40+30*e5))}
+    for(const o of ows){const e5=withSk(o,()=>sk('e5'));if(e5)ex[o]+=Math.round(Math.min(goldOf(o)*.02*e5,40+30*e5));
+      withSk(o,()=>{const e8=sk('e8'),m9=sk('m9'),m10=sk('m10');if(e8)ex[o]+=Math.round(e8*(4+st.wave*.5));
+        if(m9){const c=MP?st.P[o].scd:st.scd;for(const k in c)c[k]=Math.max(0,c[k]-2*m9)}
+        if(m10&&st.wave%(8-2*m10)===0&&st.lives<st.lives0)st.lives++})}
     const gp={};for(const o of ows){giveGold(o,wb+ex[o]);gp[o]=wb+ex[o]}wb+=ex[ows[0]];st.ge+=wb;st.xp+=5+st.wave;mpEv('!w:'+st.wave);questAdd('wave',1);questAdd('gold',st.ge-st.qge);st.qge=st.ge;
     const gm=DIFFS[dif].gm,ge=Math.round((2+st.wave*.2)*gm*RUN.rm);st.gems+=ge;save.gems+=ge;mpEv('!g:'+ge);
     if(st.wave<MAXW||RUN.en){st.clr={t:2.4,w:st.wave,g:wb,gm:ge,gp:MP?gp:undefined};sfx('clear')}if(st.wave>=10&&(!MP||MP.set.sw<=1))unlockAch('w10');
@@ -2311,7 +2350,7 @@ function draw(){
   for(const e of st.en)if(e.ab==='jam')cir(e.x,e.y,85,'rgba(190,120,255,.07)');
   const h=st.hover;
   if(h&&!st.aim&&!st.over&&T[st.type]&&canBuild(st.type,h.x,h.y)){
-    const ok=goldOf()>=T[st.type].cost&&mpCapOk(),hx=h.x*C+C/2,hy=h.y*C+C/2;rr(h.x*C+2,h.y*C+2,C-4,C-4,6,ok?'rgba(255,255,255,.22)':'rgba(255,70,80,.35)');
+    const ok=goldOf()>=bcost(st.type)&&mpCapOk(),hx=h.x*C+C/2,hy=h.y*C+C/2;rr(h.x*C+2,h.y*C+2,C-4,C-4,6,ok?'rgba(255,255,255,.22)':'rgba(255,70,80,.35)');
     if(T[st.type].r){g.setLineDash([5,4]);g.beginPath();g.arc(hx,hy,T[st.type].r,0,7);g.fillStyle=ok?'rgba(120,170,255,.12)':'rgba(255,70,80,.1)';g.fill();g.strokeStyle=ok?'rgba(200,220,255,.9)':'rgba(255,140,150,.9)';g.lineWidth=1.5;g.stroke();g.setLineDash([])}
     // Translucent preview of the tower that would be built here
     paint(ghost,54,()=>drawTower({k:st.type,u:{d:0,s:0,r:0,z:0},x:27,y:29,ang:-Math.PI/2}));g.globalAlpha=ok?.6:.3;g.drawImage(ghost,hx-27,hy-29,54,54);g.globalAlpha=1;
@@ -2414,7 +2453,7 @@ function ui0(){
   for(const s of SPELLS){const b=$('sp-'+s.k),r=st.scd[s.k];if(!b)continue;b.style.setProperty('--p',r/s.cd);const tx=r>0?Math.ceil(r):'',em=b.querySelector('em');if(em.textContent!=String(tx))em.textContent=tx;b.classList.toggle('ready',r<=0&&inGame&&!st.over);b.classList.toggle('aim',st.aim===s.k)}
   $('pause').textContent=st.pause?'Resume':'Pause';$('pause').classList.toggle('on',!!st.pause);
   renderNext();
-  AV.forEach(k=>{const b=$('t-'+k);if(!b)return;b.classList.toggle('on',st.type===k);b.classList.toggle('poor',goldOf()<T[k].cost)});
+  AV.forEach(k=>{const b=$('t-'+k);if(!b)return;b.classList.toggle('on',st.type===k);b.classList.toggle('poor',goldOf()<bcost(k))});
   const t=st.sel;$('info').hidden=!t||!$('mm').hidden;
   if(t){
     const B=T[t.k],ih=B.n+'<span>Level '+tot(t)+(MP&&st.P[t.ow]?' · '+escH(st.P[t.ow].name):'')+'</span>';if($('in').dataset.h!==ih){$('in').dataset.h=ih;$('in').innerHTML=ih}
@@ -2449,7 +2488,7 @@ cv.addEventListener('click',e=>{
   if(!T[st.type]||!canBuild(st.type,p.x,p.y))return;
   const lim=()=>toast('Tower limit reached','Each player can build '+MP.set.cap+' towers. Sell one to build another.',null,'#ff5a6a');
   if(MP&&!mpCapOk()){lim();return}
-  if(MP&&!MP.host){const b=T[st.type];if(b&&goldOf()>=b.cost)mpSend({c:'build',k:st.type,cx:p.x,cy:p.y});return}
+  if(MP&&!MP.host){const b=T[st.type];if(b&&goldOf()>=bcost(st.type))mpSend({c:'build',k:st.type,cx:p.x,cy:p.y});return}
   buildAs(MP?MP.id:undefined,st.type,p.x,p.y);
 });
 
@@ -2467,7 +2506,7 @@ function thumb(m,l,c){const x=c.getContext('2d'),s=c.width/(W*C),M=MAPS[m].ly[l]
 // In-game tower picker: only unlocked towers
 function buildPicker(){
   AV=KEYS.filter(k=>save.un.includes(k));
-  $('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" title="${T[k].n}: ${DESC[k]}"><canvas width="68" height="68"></canvas><span>${T[k].n}<b>${COIN}${T[k].cost}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
+  $('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" title="${T[k].n}: ${DESC[k]}"><canvas width="68" height="68"></canvas><span>${T[k].n}<b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
   AV.forEach(k=>{tIcon($('t-'+k).querySelector('canvas'),k);$('t-'+k).onclick=()=>{st.type=k;st.sel=null}});
 }
 
@@ -2479,19 +2518,32 @@ function renderSettings(){const tg=(k,n,d)=>'<div class="setr"><div class="tx"><
   $('setl').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;if(k==='snd')setSnd(!save.snd);else if(k==='mus')setMus(!save.mus);else{save[k]=save[k]?0:1;persist()}renderSettings()});
   $('vol').oninput=e=>{save.vol=e.target.value/100;if(AU.m)AU.m.gain.value=.55*save.vol;persist();e.target.parentElement.querySelector('small').textContent=e.target.value+'%'};
   $('sfs').onclick=()=>$('fs').click();
-  $('srs').onclick=()=>{const sp=skSpent();if(!sp)return;if(confirm('Refund '+sp+' runes and forget every skill?')){save.runes+=sp;save.skills={};persist();hdr();renderSettings()}};
+  $('srs').onclick=()=>{if(skRefund())renderSettings()};
   $('m-reset2').onclick=resetAll}
 // Skill tree: three branches; each node needs the one above it, abilities sit at the bottom
+// Resetting skills is not free: it costs gems
+function skRefund(){
+  const sp=skSpent();if(!sp)return false;const c=skRefundCost(sp);
+  if(save.gems<c){toast('Not enough gems','Resetting your skills costs '+c+' gems',null,'#ff5a6a');return false}
+  if(!confirm('Forget every skill and get '+sp+' runes back? This costs '+c+' gems.'))return false;
+  save.gems-=c;save.runes+=sp;save.skills={};persist();hdr();return true}
 function renderSkills(){
-  $('tree').innerHTML=SKB.map(B=>{const ns=SKT.filter(s=>s.b===B.k),pts=ns.reduce((a,s)=>a+sk(s.id),0);
-    return'<div class="br" style="--bc:'+B.col+'"><h3>'+B.n+'<small>'+pts+' / '+ns.reduce((a,s)=>a+s.mx,0)+' ranks</small></h3>'+ns.map((s,i)=>{const r=sk(s.id),max=r>=s.mx,open=!i||sk(ns[i-1].id)>0,cost=skCost(s,r),can=open&&!max&&save.runes>=cost;
-      return'<button class="node'+(r?' got':'')+(max?' max':'')+(open?'':' lock')+(s.ab?' ab':'')+'" data-s="'+s.id+'"'+(can?'':' aria-disabled="true"')+' title="'+(open?max?'Fully learned':'Learn for '+cost+' rune'+(cost>1?'s':''):'Learn '+ns[i-1].n+' first')+'"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+s.ic+'"/></svg></span>'+
-        '<span class="nt"><b>'+s.n+'</b><small>'+(s.ab?s.d():r?s.d(r)+(max?'':' → <em>'+s.d(r+1)+'</em>'):s.d(1))+'</small></span>'+
-        '<span class="nr"><i>'+'<u class="on"></u>'.repeat(r)+'<u></u>'.repeat(s.mx-r)+'</i>'+(max?'<small>MAX</small>':open?'<small class="'+(save.runes>=cost?'':'no')+'">'+RUNE+cost+'</small>':'<small class="no">'+LOCK+'</small>')+'</span></button>'}).join('')+'</div>'}).join('');
-  $('tree').querySelectorAll('.node:not([aria-disabled])').forEach(b=>b.onclick=()=>{const s=SKI[b.dataset.s],r=sk(s.id),c=skCost(s,r);if(save.runes<c||r>=s.mx)return;save.runes-=c;save.skills[s.id]=r+1;persist();sfx('up');
+  $('tree').innerHTML=SKB.map(B=>{
+    const ns=SKT.filter(s=>s.b===B.k),pts=ns.reduce((a,s)=>a+sk(s.id),0),mt=mastTier(B.k),nx=MAST[mt];
+    let h='<div class="br" style="--bc:'+B.col+'"><h3>'+B.n+'<small>'+pts+' / '+ns.reduce((a,s)=>a+s.mx,0)+' ranks</small></h3>'
+      +'<div class="mast"><b>Mastery '+['—','I','II','III'][mt]+'</b><span>'+MASTD[B.k]+' per level</span><i><u style="width:'+Math.min(100,pts/MAST[2]*100)+'%"></u>'+MAST.map(x=>'<s style="left:'+(x/MAST[2]*100)+'%"></s>').join('')+'</i><small>'+(nx?pts+' / '+nx+' ranks for the next level':'Maximum mastery')+'</small></div>';
+    for(let t=1;t<=5;t++){
+      const ts=ns.filter(s=>s.t===t);if(!ts.length)continue;
+      h+='<div class="tl">Tier '+t+'</div>'+ts.map(s=>{
+        const r=sk(s.id),max=r>=s.mx,open=skOpen(s),cost=skCost(s,r),can=open&&!max&&save.runes>=cost;
+        return'<button class="node'+(r?' got':'')+(max?' max':'')+(open?'':' lock')+(s.ab?' ab':'')+'" data-s="'+s.id+'"'+(can?'':' aria-disabled="true"')+' title="'+(open?max?'Fully learned':'Learn for '+cost+' rune'+(cost>1?'s':''):'Requires '+skNeed(s))+'"><span class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+s.ic+'"/></svg></span>'
+          +'<span class="nt"><b>'+s.n+'</b><small>'+(s.ab?s.d():r?s.d(r)+(max?'':' → <em>'+s.d(r+1)+'</em>'):s.d(1))+'</small>'+(open?'':'<small class="rq">Needs '+skNeed(s)+'</small>')+'</span>'
+          +'<span class="nr"><i>'+'<u class="on"></u>'.repeat(r)+'<u></u>'.repeat(s.mx-r)+'</i>'+(max?'<small>MAX</small>':open?'<small class="'+(save.runes>=cost?'':'no')+'">'+RUNE+cost+'</small>':'<small class="no">'+LOCK+'</small>')+'</span></button>'}).join('')}
+    return h+'</div>'}).join('');
+  $('tree').querySelectorAll('.node:not([aria-disabled])').forEach(b=>b.onclick=()=>{const s=SKI[b.dataset.s],r=sk(s.id),c=skCost(s,r);if(!skOpen(s)||save.runes<c||r>=s.mx)return;save.runes-=c;save.skills[s.id]=r+1;persist();sfx('up');
     if(s.ab)toast('New spell: '+s.n,s.d(),'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7ff0da" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+s.ic+'"/></svg>','#5ee0c8');scr('skills')});
-  const sp=skSpent();$('sksum').innerHTML='You have <b style="color:#7ff0da">'+save.runes+'</b> rune'+(save.runes===1?'':'s')+' to spend · '+sp+' spent. Earn more by levelling up, collecting stars and finishing quests.';
-  $('skreset').hidden=!sp;$('skreset').onclick=()=>{if(confirm('Refund all '+sp+' runes and forget every skill?')){save.runes+=sp;save.skills={};persist();scr('skills')}}}
+  const sp=skSpent();$('sksum').innerHTML='You have <b style="color:#7ff0da">'+save.runes+'</b> rune'+(save.runes===1?'':'s')+' to spend · '+sp+' spent. Skills unlock deeper tiers, so plan your build. Resetting costs '+skRefundCost(sp)+' gems.';
+  $('skreset').hidden=!sp;$('skreset').textContent='Reset skills ('+skRefundCost(sp)+' gems)';$('skreset').onclick=()=>{if(skRefund())scr('skills')}}
 // Quests and the level reward track
 function renderQuests(){
   const now=new Date(),mid=new Date(now);mid.setHours(24,0,0,0);const ms=mid-now;$('qsum').textContent='New quests in '+Math.floor(ms/36e5)+'h '+Math.floor(ms%36e5/6e4)+'m';
@@ -2514,7 +2566,7 @@ function renderHome(){
   $('m-ac').textContent=ACH.filter(a=>save.ach[a.id]).length+' of '+ACH.length+' unlocked';
   const nl=MAPS.reduce((a,m)=>a+m.ly.length,0),ne=MAPS.reduce((a,m)=>a+3+Object.keys(m.x).length,0)+ELITE.length;
   $('herop').textContent='Build and upgrade '+KEYS.length+' towers, level up, learn skills and dress your towers in skins. Hold the castle against '+ne+' different enemies across '+MAPS.length+' worlds and '+nl+' battlefields.';
-  const canSk=SKT.some(s=>{const r=sk(s.id),ns=SKT.filter(x=>x.b===s.b),j=ns.indexOf(s);return r<s.mx&&(!j||sk(ns[j-1].id)>0)&&save.runes>=skCost(s,r)});
+  const canSk=SKT.some(s=>{const r=sk(s.id);return r<s.mx&&skOpen(s)&&save.runes>=skCost(s,r)});
   $('m-kc').textContent=save.runes?save.runes+' rune'+(save.runes>1?'s':'')+' to spend':skSpent()+' runes spent';$('m-kb').hidden=!canSk;$('m-kb').textContent='!';
   const qd=save.q.list.filter(q=>q.c||q.p>=qGoal(q)).length,qr=qReady();$('m-qc').textContent=qr?qr+' reward'+(qr>1?'s':'')+' to claim':qd+' of 3 daily quests done';$('m-qb').hidden=!qr;$('m-qb').textContent=qr;
   const c=$('show');paint(c,280,()=>{
@@ -2848,7 +2900,7 @@ function mpAfterReset(){
     st.lives=lv;st.lives0=lv;
     // Starting past wave 1: everyone gets their share of the gold they would have earned
     let earned=0;for(let w=1;w<S.sw;w++)earned+=Math.round((6+w*2)*D.c)*Math.max(1,Math.round((4+Math.floor(w/3))*D.r))+15+2*w;
-    for(const id in st.P){const p=st.P[id];p.gold=Math.round((Math.round(D.g*S.gm/100)+30*(p.skills.e1||0))*RUN.gs)+Math.round(earned/n)}
+    for(const id in st.P){const p=st.P[id];p.gold=Math.round((Math.round(D.g*S.gm/100)+30*(p.skills.e1||0)+withSk(p.id,()=>35*mastTier('e')))*RUN.gs)+Math.round(earned/n)}
   }else st.scd=st.P[MP.id].scd;
 }
 function mpHud(on){
@@ -2921,9 +2973,10 @@ function buildAs(o,k,cx,cy){
     if(remote&&!pl.un.includes(k))return false;
     if(st.tw.reduce((a,t)=>a+(t.ow===o),0)>=MP.set.cap)return false;
   }
-  if(goldOf(o)<b.cost)return false;
-  giveGold(o,-b.cost);
-  const n={k,u:{d:0,s:0,r:0,z:0},cx,cy,x:cx*C+C/2,y:cy*C+C/2,cd:0,inv:b.cost,pop:1,tg:k==='snip'?'strong':'first',_id:++NET.nid};
+  const cost=withSk(o,()=>bcost(k));
+  if(goldOf(o)<cost)return false;
+  giveGold(o,-cost);
+  const n={k,u:{d:0,s:0,r:0,z:0},cx,cy,x:cx*C+C/2,y:cy*C+C/2,cd:0,inv:cost,pop:1,tg:k==='snip'?'strong':'first',_id:++NET.nid};
   if(MP){n.ow=o;n.skin=(pl.eq&&pl.eq[k])||'classic'}
   stat(n);st.tw.push(n);
   if(!remote){st.built++;save.stats.built++;questAdd('build',1)}
