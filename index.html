@@ -301,6 +301,21 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 #info button strong{min-width:34px;text-align:right;color:var(--gold)}
 #info #sell{justify-content:center;margin-top:4px;color:var(--life);border-color:rgba(255,90,106,.35);background:rgba(255,90,106,.08)}
 #info #sell:hover{background:rgba(255,90,106,.16)}
+/* Account screen and the "which progress?" choice */
+.grid2>#m-account[hidden]+#m-settings{grid-column:1/-1}
+.acc{max-width:440px}
+.acc h3 small{display:block;margin-top:6px;font:500 12.5px Inter,sans-serif;letter-spacing:0;text-transform:none;color:var(--mut)}
+.lbc input[type=password]{width:100%;font:600 14px Inter,system-ui,sans-serif;color:var(--fg);background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;outline:none}
+.lbc input[type=password]:focus{border-color:var(--acc)}
+#accq{position:fixed;inset:0;z-index:80;display:flex;padding:16px;overflow:auto;background:rgba(5,7,10,.84);backdrop-filter:blur(6px)}
+#accq .menu{margin:auto}
+#accq h2{margin:0;font:700 32px/1 "Barlow Condensed",Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+#accq p{margin:10px 0 0;color:var(--mut);font-size:13.5px;line-height:1.5}
+.accq2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.accq2 button{flex-direction:column;align-items:flex-start;gap:6px;padding:14px;text-align:left}
+.accq2 b{font:700 19px/1 "Barlow Condensed",Inter,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.accq2 span{font-size:12px;font-weight:500;color:var(--mut);line-height:1.5}
+@media (max-width:520px){.accq2{grid-template-columns:1fr}}
 #info button span small{display:block;margin-top:3px;font-size:11px;font-weight:500;color:var(--mut)}
 
 .setl{display:grid;gap:10px;max-width:640px}.setr{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.setr .tx{flex:1}.setr b{display:block;font-size:14px}.setr small{color:var(--mut);font-size:12px}.setr input[type=range]{width:160px;accent-color:var(--acc)}.setr button{min-width:84px}.setr button.on{background:var(--acc);border-color:var(--acc);color:#fff}.setr.dng{border-color:rgba(255,90,106,.35)}.setr.dng button{color:var(--life);border-color:rgba(255,90,106,.4)}
@@ -490,6 +505,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
   </section>
   <p class="hint"><kbd>1</kbd>–<kbd>0</kbd> <kbd>Q</kbd>–<kbd>T</kbd> towers · <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> spells · <kbd>Space</kbd> wave · <kbd>P</kbd> pause · <kbd>Esc</kbd> menu. Select a tower to upgrade it, change its target or sell it.</p>
 </aside>
+<div id="accq" hidden></div>
 <div id="info" hidden>
   <b id="in"></b>
   <div id="dm"></div>
@@ -531,7 +547,10 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
           <button class="tile" id="m-skills"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7ff0da" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><circle cx="12" cy="13" r="2.5"/><path d="M12 7v3.5M10.2 14.8L6.6 17.2M13.8 14.8l3.6 2.4"/></svg></span><span><b>Skill Tree</b><small id="m-kc"></small></span><span class="badge" id="m-kb" hidden></span></button>
           <button class="tile" id="m-quests"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9cc0ff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/><path d="M9 8l2 2 4-4"/></svg></span><span><b>Quests</b><small id="m-qc"></small></span><span class="badge" id="m-qb" hidden></span></button>
           </div>
+          <div class="grid2">
+          <button class="tile" id="m-account" style="padding:12px 20px" hidden><span class="ic" style="width:36px;height:36px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9cc0ff" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span><span><b style="font-size:18px">Account</b><small id="m-acc">Save progress online</small></span></button>
           <button class="tile" id="m-settings" style="padding:12px 20px"><span class="ic" style="width:36px;height:36px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></span><span><b style="font-size:18px">Settings</b><small>Sound, effects and progress</small></span></button>
+          </div>
         </div>
       </div>
     </section>
@@ -566,6 +585,10 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
       <p class="note">Chests only contain skins you don't own yet, for towers you have unlocked. Unlock more towers to find more skins.</p>
     </section>
 
+    <section class="scr" id="s-account" hidden>
+      <div class="sh"><button class="back" data-to="home">← Back</button><h2>Account</h2><p>Your progress, online and on every device you log in from.</p></div>
+      <div id="accl"></div>
+    </section>
     <section class="scr" id="s-settings" hidden>
       <div class="sh"><button class="back" data-to="home">← Back</button><h2>Settings</h2></div>
       <div class="setl" id="setl"></div>
@@ -903,7 +926,10 @@ const SKN=SKL.filter(s=>!s.def).length+1; // collectable skins per tower (8 + it
 const SAVE_KEY='td-save-v1',DEF_UN=['sip','del','mraz','pla','dul'];
 let save={gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}};
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&typeof s==='object')save=Object.assign(save,s)}catch(e){}
-const persist=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch(e){}};
+const persist0=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch(e){}};
+const persist=()=>{accDirty();persist0()};
+// Online account state (see Accounts below); declared here because saves happen while the page is still loading
+const ACC={user:null,name:'',n:0,t:0,at:0,busy:false,ask:0,err:'',loading:null,recheck:0};let FB=null;
 function fillSave(){save.stats=Object.assign({kills:0,bosses:0,spells:0,chests:0,built:0,elites:0,quests:0},save.stats||{});save.ach=save.ach||{};save.stars=save.stars||{};save.wins=save.wins||{};if(save.snd===undefined)save.snd=0;if(save.mus===undefined)save.mus=0;if(!save.mute1){save.snd=0;save.mus=0;save.mute1=1}if(save.tips===undefined)save.tips=save.tut||save.stats.built>0?1:0;if(save.vol===undefined)save.vol=1;if(save.dmg===undefined)save.dmg=1;if(save.shk===undefined)save.shk=1;
   save.skills=save.skills||{};
   // Older saves get a starting level based on the stars they already earned
@@ -2673,9 +2699,93 @@ function tutTick(){const el=$('tut');
 function tutHl(id){document.querySelectorAll('.tuthl').forEach(e=>e.classList.remove('tuthl'));if(id)$(id).classList.add('tuthl')}
 function tutEnd(){save.tips=1;persist();$('tut').hidden=true;tutHl(null)}
 
+/* ---------- Accounts: progress saved online (Firebase), so it follows the player to any device ---------- */
+// Public web settings of the Firebase project. Not a secret: the Firestore rules only let a player read and write their own save.
+const FB_CONFIG=null;
+// Players log in with a name. Firebase wants an e-mail, so the name becomes one on a domain that can never receive mail.
+const FB_SDK='https://www.gstatic.com/firebasejs/10.12.2/',ACC_MAIL='@players.invalid';
+function fbLoad(){
+  if(FB||!FB_CONFIG)return Promise.resolve(FB);
+  if(!ACC.loading)ACC.loading=Promise.all(['app','auth','firestore'].map(m=>import(FB_SDK+'firebase-'+m+'.js'))).then(([app,A,F])=>{
+    const a=app.initializeApp(FB_CONFIG);FB={auth:A.getAuth(a),db:F.getFirestore(a),A,F};A.onAuthStateChanged(FB.auth,accUser);return FB},e=>{ACC.loading=null;throw e});
+  return ACC.loading}
+function accUser(u){ACC.user=u||null;ACC.name=u?u.email.replace(ACC_MAIL,''):'';ACC.err='';if(!u){$('accq').hidden=true;ACC.ask=0}accView();if(u)accReconcile()}
+function accView(){$('m-acc').textContent=ACC.user?'Logged in as '+ACC.name:'Save progress online';if(!$('s-account').hidden)renderAccount()}
+// The save without the fields that only describe this device's link to the account
+const accData=()=>{const o=Object.assign({},save);delete o.syncUid;delete o.syncRev;delete o.syncDirty;return JSON.stringify(o)};
+const accFresh=()=>!(save.stats&&save.stats.built>0)&&(save.lvl||1)<=1;
+// Called by every local save: the online copy is now out of date, so upload a little later
+function accDirty(){if(!save.syncUid)return;save.syncDirty=1;ACC.n++;if(ACC.user&&!ACC.ask){clearTimeout(ACC.t);ACC.t=setTimeout(accPush,8000)}}
+// Upload this device's progress. The transaction refuses if another device saved since our last sync.
+async function accPush(){
+  clearTimeout(ACC.t);const u=ACC.user;if(!u||!FB||ACC.busy||ACC.ask)return;
+  ACC.busy=true;const n=ACC.n,ref=FB.F.doc(FB.db,'saves',u.uid),base=save.syncUid===u.uid?save.syncRev||0:0,data=accData();
+  try{
+    const rev=await FB.F.runTransaction(FB.db,async tx=>{const d=await tx.get(ref),cur=d.exists()?d.data().rev||0:0;
+      if(cur!==base)throw new Error('stale');tx.set(ref,{data,rev:cur+1,name:ACC.name,at:FB.F.serverTimestamp()});return cur+1});
+    if(ACC.user===u){save.syncUid=u.uid;save.syncRev=rev;if(ACC.n===n)save.syncDirty=0;persist0();ACC.at=Date.now();ACC.err='';if(save.syncDirty)ACC.t=setTimeout(accPush,8000)}
+  }catch(e){ACC.busy=false;if(e&&e.message==='stale'){accReconcile();return}ACC.err='offline';ACC.t=setTimeout(accPush,30000)}
+  ACC.busy=false;accView()}
+// After logging in, or when an upload finds the account changed: whose progress is newer?
+async function accReconcile(){
+  const u=ACC.user;if(!u||!FB||ACC.ask)return;
+  if(inGame){ACC.recheck=1;return} // never swap progress in the middle of a game; look again back in the menu
+  let d;try{d=await FB.F.getDoc(FB.F.doc(FB.db,'saves',u.uid))}catch(e){ACC.err='offline';accView();return}
+  if(ACC.user!==u)return;
+  if(!d.exists()){
+    // A new account starts with this device's progress, unless that progress already belongs to another account
+    if(save.syncUid&&save.syncUid!==u.uid)accApply({},0,'New account','Starting fresh. The progress on this device stays with its own account.');
+    return accPush()}
+  const c=d.data(),mine=save.syncUid===u.uid;
+  if(mine&&c.rev===save.syncRev){if(save.syncDirty)accPush();return}
+  let cloud=null;try{cloud=JSON.parse(c.data)}catch(e){}
+  if(!cloud||typeof cloud!=='object')return;
+  if((mine&&!save.syncDirty)||accFresh())accApply(cloud,c.rev,'Progress loaded','Your account’s progress is on this device now');
+  else accAsk(cloud,c.rev)}
+// Replace this device's progress with the account's
+function accApply(cloud,rev,title,msg){
+  save=Object.assign({gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}},cloud);fillSave();
+  save.syncUid=ACC.user.uid;save.syncRev=rev;save.syncDirty=0;persist0();ACC.at=Date.now();
+  if(AU.sfx)AU.sfx.gain.value=save.snd?1:0;if(AU.mus)AU.mus.gain.value=save.mus?.3:0;if(AU.m)AU.m.gain.value=.55*(save.vol??1);sndUI();buildPicker();
+  const k=['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account'].find(k=>!$('s-'+k).hidden);if(k)scr(k);
+  toast(title,msg,null,'#38d68a')}
+// This device and the account both have progress the other lacks: the player picks which to keep
+function accAsk(cloud,rev){
+  ACC.ask=1;clearTimeout(ACC.t);const el=$('accq'),stars=s=>Object.values(s.stars||{}).reduce((a,v)=>a+v,0);
+  const card=(id,t,s)=>'<button id="'+id+'"><b>'+t+'</b><span>Level '+(s.lvl||1)+' · '+fmt(s.gems||0)+' gems<br>'+stars(s)+' stars · '+(s.un||[]).length+' towers unlocked</span></button>';
+  el.innerHTML='<div class="menu"><h2>Which progress?</h2><p>This device and the account <b>'+escH(ACC.name)+'</b> have different progress. Choose the one to keep. The other one is replaced.</p><div class="accq2">'+card('accq-c','Account',cloud)+card('accq-d','This device',save)+'</div></div>';
+  el.hidden=false;
+  $('accq-c').onclick=()=>{el.hidden=true;ACC.ask=0;accApply(cloud,rev,'Progress loaded','Your account’s progress is on this device now')};
+  $('accq-d').onclick=()=>{el.hidden=true;ACC.ask=0;save.syncUid=ACC.user.uid;save.syncRev=rev;save.syncDirty=1;persist0();accPush();toast('Progress kept','This device’s progress is now saved to your account',null,'#38d68a')}}
+async function accLogin(make){
+  const n=$('acc-n').value.trim().toLowerCase(),p=$('acc-p').value;
+  if(!/^[a-z0-9_]{3,16}$/.test(n)){accMsg('Use 3 to 16 letters, numbers or _ for your name.');return}
+  if(p.length<6){accMsg('The password needs at least 6 characters.');return}
+  accMsg(make?'Creating your account…':'Logging in…');
+  try{await fbLoad();await(make?FB.A.createUserWithEmailAndPassword:FB.A.signInWithEmailAndPassword)(FB.auth,n+ACC_MAIL,p)}catch(e){accMsg(accErr(e))}}
+const accErr=e=>({'auth/email-already-in-use':'That name is taken. Pick another one, or log in if it is yours.','auth/invalid-credential':'Wrong name or password.','auth/invalid-login-credentials':'Wrong name or password.','auth/wrong-password':'Wrong name or password.','auth/user-not-found':'Wrong name or password.','auth/weak-password':'That password is too weak. Use at least 6 characters.','auth/too-many-requests':'Too many tries. Wait a minute and try again.','auth/network-request-failed':'No connection. Check your internet and try again.'})[e&&e.code]||'Something went wrong'+(e&&e.code?' ('+e.code+')':'')+'. Try again.';
+function accMsg(t){const el=$('acc-msg');if(el)el.textContent=t}
+async function accLogout(){if(ACC.user&&save.syncDirty)await accPush();clearTimeout(ACC.t);try{await FB.A.signOut(FB.auth)}catch(e){}}
+const ago=t=>{const s=(Date.now()-t)/1000;return s<45?'just now':s<3600?Math.round(s/60)+' min ago':'at '+new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})};
+function renderAccount(){const el=$('accl');
+  if(!FB_CONFIG){el.innerHTML='<div class="lbc acc"><p class="note">Online accounts are not set up for this game yet.</p></div>';return}
+  if(!FB){el.innerHTML='<div class="lbc acc"><p class="lbmsg">Loading…</p></div>';fbLoad().then(()=>{if(!$('s-account').hidden)renderAccount()},()=>{el.innerHTML='<div class="lbc acc"><p class="lbmsg">Could not reach the account service. Check your connection and open this page again.</p></div>'});return}
+  if(ACC.user){
+    const t=ACC.busy?'Saving…':ACC.err?'Offline. Your progress will be saved online when the connection is back.':ACC.at?'Progress saved online '+ago(ACC.at)+'.':'Progress is saved online.';
+    el.innerHTML='<div class="lbc acc"><h3>'+escH(ACC.name)+'<small>'+t+'</small></h3><p class="note">On any other device, log in with the same name and password to continue with this progress.</p><div class="lbrow"><button id="acc-sync">Save now</button><button id="acc-out">Log out</button></div></div>';
+    $('acc-sync').onclick=()=>accPush();$('acc-out').onclick=accLogout;return}
+  el.innerHTML='<form class="lbc acc" id="acc-f"><p class="note">Log in to save your progress online. On any other device, log in with the same name and password and keep playing where you left off.</p>'
+    +'<div class="lbf"><label>Name</label><input type="text" id="acc-n" maxlength="16" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="3 to 16 letters or numbers"></div>'
+    +'<div class="lbf"><label>Password</label><input type="password" id="acc-p" autocomplete="current-password" placeholder="At least 6 characters"></div>'
+    +'<div class="lbrow"><button class="go" type="submit">Log in</button><button type="button" id="acc-new">Create account</button></div><p class="lbmsg" id="acc-msg"></p>'
+    +'<p class="note">There is no e-mail, so a forgotten password cannot be reset. Pick one you will remember.</p></form>';
+  $('acc-f').onsubmit=e=>{e.preventDefault();accLogin(false)};$('acc-new').onclick=()=>accLogin(true)}
+// Upload right away when the player leaves the page or switches away
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&ACC.user&&save.syncDirty)accPush()});
+
 /* ---------- Main menu ---------- */
 let selT='sip',skT='sip';
-function scr(id){['home','play','towers','skins','chests','ach','skills','quests','settings','lobby'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby})[id]()}
+function scr(id){['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount})[id]()}
 function renderSettings(){const tg=(k,n,d)=>'<div class="setr"><div class="tx"><b>'+n+'</b><small>'+d+'</small></div><button data-t="'+k+'" class="'+(save[k]?'on':'')+'">'+(save[k]?'On':'Off')+'</button></div>';
   $('setl').innerHTML=tg('snd','Sound effects','Shots, hits and spell sounds')+tg('mus','Music','Background music')+'<div class="setr"><div class="tx"><b>Master volume</b><small>'+Math.round(save.vol*100)+'%</small></div><input type="range" id="vol" min="0" max="100" value="'+Math.round(save.vol*100)+'"></div>'+tg('dmg','Damage numbers','Floating numbers for big hits and crits')+tg('shk','Screen shake','Camera shake on explosions and leaks')+'<div class="setr"><div class="tx"><b>Fullscreen</b><small>Also available with the F key</small></div><button id="sfs">Toggle</button></div><div class="setr"><div class="tx"><b>Refund skill tree</b><small>Get all spent runes back</small></div><button id="srs">Refund</button></div><div class="setr"><div class="tx"><b>Move your progress</b><small>Copy a code here, then paste it on another device or another link of the game</small></div><button id="sexp">Copy code</button><button id="simp">Paste code</button></div><div class="setr dng"><div class="tx"><b>Reset all progress</b><small>Deletes gems, levels, skills, towers, skins and stars</small></div><button id="m-reset2">Reset</button></div>';
   $('setl').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;if(k==='snd')setSnd(!save.snd);else if(k==='mus')setMus(!save.mus);else{save[k]=save[k]?0:1;persist()}renderSettings()});
@@ -2719,7 +2829,7 @@ function renderQuests(){
     return'<div class="lvt'+(i?'':' next')+'"><b>'+l+'</b><small>+'+lvRunes(l)+' '+RUNE+'</small><small>+'+lvGems(l)+' '+GEM+'</small>'+tw.map(k=>'<small class="u">'+T[k].n+'</small>').join('')+df.map(n=>'<small class="u">'+n+' mode</small>').join('')+'</div>'}).join('')||'<p class="note">Max level reached!</p>'}
 function renderAch(){const dn=ACH.filter(a=>save.ach[a.id]);$('achsum').textContent=dn.length+' of '+ACH.length+' unlocked · '+dn.reduce((s,a)=>s+a.g,0)+' gems earned';
   $('achs').innerHTML=ACH.map(a=>{const d=!!save.ach[a.id],p=a.p&&!d?a.p():null;return'<div class="ach'+(d?' done':'')+'"><span class="ti">'+(d?TROPHY:TROPHY.replace(/#ffd34d/g,'#4a5568'))+'</span><div class="tx"><b>'+a.n+'</b><small>'+a.d+(p?' · '+fmt(Math.min(p[0],p[1]))+' / '+fmt(p[1]):'')+'</small>'+(p?'<div class="pg"><i style="width:'+Math.min(100,p[0]/p[1]*100)+'%"></i></div>':'')+'</div><span class="rw">'+(d?'✓ Done':'+'+a.g+' '+GEM)+'</span></div>'}).join('')}
-function openMenu(){paused=!MP;st.sel=null;$('mm').hidden=false;scr('home')}
+function openMenu(){paused=!MP;st.sel=null;$('mm').hidden=false;scr('home');if(ACC.recheck&&!inGame){ACC.recheck=0;accReconcile()}}
 function closeMenu(){$('mm').hidden=true;paused=false}
 function renderHome(){
   $('m-resume').hidden=!inGame;if(inGame)$('m-rs').textContent=MAPS[cur].n+' · '+DIFFS[dif].n+' · wave '+st.wave+' of '+MAXW;
@@ -2857,15 +2967,15 @@ $('lays').onclick=e=>{const b=e.target.closest('[data-l]');if(b){layI=+b.dataset
 document.querySelectorAll('.back').forEach(b=>b.onclick=()=>scr(b.dataset.to));
 $('m-play').onclick=()=>scr('play');$('m-towers').onclick=()=>scr('towers');$('m-skins').onclick=()=>scr('skins');$('m-chests').onclick=()=>scr('chests');$('m-skills').onclick=()=>scr('skills');$('m-quests').onclick=()=>scr('quests');$('m-resume').onclick=closeMenu;
 // Progress lives in this browser only; a code moves it to another device or another link of the game
-function saveExport(){const c='TD1:'+btoa(unescape(encodeURIComponent(JSON.stringify(save))));
+function saveExport(){const c='TD1:'+btoa(unescape(encodeURIComponent(accData())));
   (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast('Progress code copied','On the other device open Settings and press Paste code',null,'#38d68a'),()=>prompt('Copy this progress code:',c))}
 function saveImport(){const c=(prompt('Paste your progress code:')||'').trim();if(!c)return;let s=null;
   try{if(c.slice(0,4)==='TD1:')s=JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))))}catch(e){}
   if(!s||typeof s!=='object'||!Array.isArray(s.un)){toast('That code did not work','Copy it again on the other device and paste all of it',null,'#ff5a6a');return}
   if(!confirm('Replace the progress on this device with the copied one? What is saved here now will be lost.'))return;
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(s))}catch(e){}location.reload()}
-function resetAll(){if(confirm('Reset ALL progress: gems, levels, skills, towers, skins and stars? This cannot be undone.')){const k={snd:save.snd,mus:save.mus,vol:save.vol,dmg:save.dmg,shk:save.shk};save=Object.assign({gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}},k);fillSave();questsFresh();persist();inGame=false;buildPicker();buildSpells();scr('settings')}}
-$('m-settings').onclick=()=>scr('settings');
+function resetAll(){if(confirm('Reset ALL progress: gems, levels, skills, towers, skins and stars?'+(ACC.user?' This also resets the progress saved online for '+ACC.name+'.':'')+' This cannot be undone.')){const k={snd:save.snd,mus:save.mus,vol:save.vol,dmg:save.dmg,shk:save.shk,syncUid:save.syncUid,syncRev:save.syncRev};save=Object.assign({gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}},k);fillSave();questsFresh();persist();inGame=false;buildPicker();buildSpells();scr('settings')}}
+$('m-settings').onclick=()=>scr('settings');$('m-account').onclick=()=>scr('account');
 $('startgame').onclick=startGame;
 $('menu').onclick=openMenu;
 $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()};
@@ -3399,6 +3509,7 @@ function paintRun(){
 }
 $('runopt').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const k=b.dataset.r;if(k==='en')RUN.en=!RUN.en;else RUN.mods[k]=!RUN.mods[k];paintRun()};
 setMap(0);buildPicker();reset();openMenu();if(coarse())$('phh').textContent='Tap a tile twice to build';
+if(FB_CONFIG){$('m-account').hidden=false;if(save.syncUid)fbLoad().catch(()=>{})}
 let last=0,achT=0;
 // One step of the game: logic, co-op updates and achievements (no drawing)
 function simStep(ts){
