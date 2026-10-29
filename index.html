@@ -69,6 +69,10 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .ctl{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 #start{grid-column:1/-1;padding:14px;font-size:14px}
 .ctl button:not(#start){font-size:11.5px;padding:10px 4px}
+#start.early{background:linear-gradient(180deg,#f6cd5e,#dda022);border-color:#b07a12;color:#241703;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 8px 20px rgba(221,160,34,.28)}
+#start.early:hover:not(:disabled){background:linear-gradient(180deg,#f9d873,#e5aa2c);border-color:#b07a12}
+#start.early kbd{color:#5a3f08;border-color:rgba(90,63,8,.35);background:rgba(255,255,255,.2)}
+#start b{font-weight:800}
 .hint{margin:0;color:var(--dim);font-size:11.5px;line-height:1.6}
 .hint kbd{font-size:9.5px;padding:2px 4px}
 .ib{width:32px;height:32px;padding:0;border-radius:9px;flex:none}
@@ -121,7 +125,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .mmr{display:flex;align-items:center;gap:8px}
 
 /* End-of-game card (over the board) */
-#ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(circle at 50% 40%,rgba(10,14,19,.5),rgba(10,14,19,.88));backdrop-filter:blur(4px)}
+#ov{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:radial-gradient(circle at 50% 40%,rgba(10,14,19,.5),rgba(10,14,19,.88));backdrop-filter:blur(4px)}
 .menu{width:min(470px,100%);background:rgba(17,23,31,.96);border:1px solid var(--line2);border-radius:16px;padding:26px 24px 22px;box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:center}
 #ovt{margin:0;font:700 46px/1 "Barlow Condensed",Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase}
 #ov[data-s=win] #ovt{color:var(--gold)}#ov[data-s=lose] #ovt{color:var(--life)}
@@ -130,6 +134,27 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .earn b{font:700 20px/1 "Barlow Condensed",Inter,sans-serif}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
 .row2 button{padding:13px}
+#ov .menu{margin:auto}
+/* End-of-game card: which enemies got through, plus a tip */
+.leak{margin-top:12px;padding:11px 14px;border-radius:12px;background:rgba(255,90,106,.07);border:1px solid rgba(255,90,106,.28);text-align:left}
+.leak .lkl{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:13px}
+.leak .lkh{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.leak .lkl b{color:var(--life)}
+.leak .lkt{margin:8px 0 0;font-size:12.5px;line-height:1.45}
+.leak .lkt b{color:var(--gold);margin-right:6px}
+/* First-game tips: over the board, below it on narrow screens */
+#tut{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;width:min(360px,calc(100% - 20px));padding:10px 14px 12px;border-radius:12px;background:rgba(14,19,26,.94);border:1px solid rgba(244,193,82,.45);box-shadow:0 12px 30px rgba(0,0,0,.45);pointer-events:none;animation:tutin .3s ease-out}
+@keyframes tutin{from{opacity:0;transform:translate(-50%,-8px)}}
+#tut .tuth{display:flex;align-items:center;gap:8px}
+#tut .tuth span{font:700 10px/1 Inter,sans-serif;padding:3px 6px;border-radius:99px;background:rgba(244,193,82,.16);color:var(--gold)}
+#tut .tuth b{flex:1;font-size:13.5px}
+#tut p{margin:5px 0 0;font-size:12.5px;line-height:1.45;color:#c9d3df}
+#tut button{pointer-events:auto}
+#tut .link{padding:2px 0;font-size:11px}
+#tutok{margin-top:9px;padding:7px 14px;font-size:12px}
+.tuthl{animation:tuthl 1.6s ease-in-out infinite}
+@keyframes tuthl{50%{box-shadow:0 0 0 4px rgba(244,193,82,.55),0 0 22px rgba(244,193,82,.45)}}
+@media (max-width:900px){#tut{position:relative;top:auto;left:auto;transform:none;width:auto;border-radius:0;border-width:1px 0 0;box-shadow:none;animation:none}}
 
 /* Main menu */
 #mm{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(1000px 600px at 75% 0,rgba(76,141,255,.16),transparent 70%),radial-gradient(800px 600px at 0 100%,rgba(140,90,255,.10),transparent 70%),rgba(8,11,15,.86);backdrop-filter:blur(10px)}
@@ -274,6 +299,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 #info button strong{min-width:34px;text-align:right;color:var(--gold)}
 #info #sell{justify-content:center;margin-top:4px;color:var(--life);border-color:rgba(255,90,106,.35);background:rgba(255,90,106,.08)}
 #info #sell:hover{background:rgba(255,90,106,.16)}
+#info button span small{display:block;margin-top:3px;font-size:11px;font-weight:500;color:var(--mut)}
 
 .setl{display:grid;gap:10px;max-width:640px}.setr{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.setr .tx{flex:1}.setr b{display:block;font-size:14px}.setr small{color:var(--mut);font-size:12px}.setr input[type=range]{width:160px;accent-color:var(--acc)}.setr button{min-width:84px}.setr button.on{background:var(--acc);border-color:var(--acc);color:#fff}.setr.dng{border-color:rgba(255,90,106,.35)}.setr.dng button{color:var(--life);border-color:rgba(255,90,106,.4)}
 /* Progression: level chip, runes, skill tree, quests, locks */
@@ -416,12 +442,14 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 <main>
 <div class="wrap">
   <canvas id="c" aria-label="Game board"></canvas>
+  <div id="tut" hidden><div class="tuth"><span id="tutn"></span><b id="tutt"></b><button class="link" id="tutx">Skip tips</button></div><p id="tutd"></p><button class="go" id="tutok" hidden>Got it</button></div>
   <div class="chatov" id="chatov"></div>
   <input type="text" class="chatin" id="chatin" maxlength="140" placeholder="Message to the team (Enter to send)" hidden autocomplete="off">
   <div id="ov" hidden><div class="menu">
     <h2 id="ovt"></h2><p id="ovs"></p>
     <div class="stars" id="ovst"></div>
     <div class="estats" id="oves"></div>
+    <div class="leak" id="ovlk" hidden></div>
     <div class="xpr" id="ovxp"></div>
     <div class="earn"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#b57bff"/><path d="M2 9h20M8 3l4 18 4-18" stroke="#ecdcff" stroke-width="1" fill="none" opacity=".6"/></svg>+<b id="earn">0</b> gems earned</div>
     <div class="row2"><button id="tomenu">Main menu</button><button class="go" id="again">Play again</button></div>
@@ -872,7 +900,7 @@ const SAVE_KEY='td-save-v1',DEF_UN=['sip','del','mraz','pla','dul'];
 let save={gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}};
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&typeof s==='object')save=Object.assign(save,s)}catch(e){}
 const persist=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch(e){}};
-function fillSave(){save.stats=Object.assign({kills:0,bosses:0,spells:0,chests:0,built:0,elites:0,quests:0},save.stats||{});save.ach=save.ach||{};save.stars=save.stars||{};save.wins=save.wins||{};if(save.snd===undefined)save.snd=0;if(save.mus===undefined)save.mus=0;if(!save.mute1){save.snd=0;save.mus=0;save.mute1=1}if(save.vol===undefined)save.vol=1;if(save.dmg===undefined)save.dmg=1;if(save.shk===undefined)save.shk=1;
+function fillSave(){save.stats=Object.assign({kills:0,bosses:0,spells:0,chests:0,built:0,elites:0,quests:0},save.stats||{});save.ach=save.ach||{};save.stars=save.stars||{};save.wins=save.wins||{};if(save.snd===undefined)save.snd=0;if(save.mus===undefined)save.mus=0;if(!save.mute1){save.snd=0;save.mus=0;save.mute1=1}if(save.tips===undefined)save.tips=save.tut||save.stats.built>0?1:0;if(save.vol===undefined)save.vol=1;if(save.dmg===undefined)save.dmg=1;if(save.shk===undefined)save.shk=1;
   save.skills=save.skills||{};
   // Older saves get a starting level based on the stars they already earned
   if(save.runes===undefined){const ts=Object.values(save.stars).reduce((a,v)=>a+v,0);save.lvl=1+Math.min(15,Math.floor(ts/3));save.xp=0;save.runes=2+save.lvl}}
@@ -1129,7 +1157,7 @@ const skOpen=s=>!s.req||s.req.every(([id,r])=>sk(id)>=r);
 const skNeed=s=>(s.req||[]).filter(([id,r])=>sk(id)<r).map(([id,r])=>SKI[id].n+' '+r).join(', ');
 const skCost=(s,r)=>s.c+Math.floor(r/2);
 function reset(){const D=DIFFS[dif];MAXW=D.w;st={gold:Math.round((D.g+30*sk('e1')+35*mastTier('e'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
-  scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0};
+  scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0,early:0,wq:0,lk:{},tut:0};
   st.lives0=st.lives;SPELLS.forEach(s=>st.scd[s.k]=0);if(MP)mpAfterReset();$('ov').hidden=true;if(auto&&!(MP&&!MP.host))st.nxt=2}
 // Spells: active abilities on a cooldown (seconds of game time)
 const SPELLS=[
@@ -1152,13 +1180,24 @@ function stat(t){withSk(t.ow,()=>stat0(t))}
 function stat0(t){const b=T[t.k],u=t.u;t.r=b.r*(1+.08*u.r)*(1+.04*sk('o3'));t.d=b.d*(1+.35*u.d)*(1+.04*sk('o1'))*(1+.04*mastTier('o'));t.cdv=b.cd*Math.pow(.85,u.s)/(1+.03*sk('o2'));t.spl=b.spl?b.spl*(1+.12*u.z)*(1+.1*sk('o9')):0;t.sf=Math.max(.1,.5-.08*u.z);t.sdur=1.6+.3*u.z;t.ch=(b.chain||0)+u.z;t.pdur=3+.6*u.z;t.prad=30*(1+.15*u.z);
   t.mc=3+u.z;t.pb=30*(1+.15*u.z);t.ns=3+u.z;t.bd=.2+.07*u.d;t.wd=.2*u.z;
   // New towers: pierce count, boomerang size, cone width, tar puddles, root time, drone count, bank interest, trap slow
-  t.prc=3+u.z;t.brad=10+3*u.z;t.cone=(35+8*u.z)*Math.PI/180;t.tdur=4+.8*u.z;t.tsl=Math.min(.8,.45+.07*u.z);t.rdur=1.2+.3*u.z;t.ndr=1+(u.z>=2)+(u.z>=4);t.bint=.04+.012*u.d;t.bcap=40+25*u.d;t.barb=.1*u.z}
+  t.prc=3+u.z;t.brad=10+3*u.z;t.cone=(35+8*u.z)*Math.PI/180;t.tdur=4+.8*u.z;t.tsl=Math.min(.8,.45+.07*u.z);t.rdur=1.2+.3*u.z;t.ndr=1+u.z;t.bint=.04+.012*u.d;t.bcap=40+25*u.d;t.barb=.1*u.z}
 function hasZ(t){const b=T[t.k];return !!(b.spl||b.slow||b.chain||b.psn||b.multi||b.vort||b.storm||b.buff||b.pierce||b.boom||b.cone||b.tar||b.root||b.drone||b.trap)}
 const UPN={
   d:{sip:'Arrow damage',del:'Shell damage',mraz:'Frost damage',tesla:'Shock damage',snip:'Shot damage',pla:'Burn damage',dul:'Gold per payout',poi:'Poison damage',las:'Beam damage',mor:'Shell damage',rail:'Slug damage',mis:'Warhead damage',bea:'Boost',vor:'Crush damage',sto:'Lightning damage',bal:'Bolt damage',boo:'Blade damage',blu:'Pellet damage',spk:'Spike damage',tar:'Tar damage',gat:'Bullet damage',thr:'Thorn damage',flk:'Flak damage',bnk:'Interest',drn:'Drone damage'},
-  s:{sip:'Fire rate',del:'Reload speed',mraz:'Chill rate',tesla:'Zap rate',snip:'Reload speed',pla:'Burn rate',dul:'Faster generation',poi:'Spit rate',las:'Pulse rate',mor:'Reload speed',rail:'Charge speed',mis:'Launch rate',vor:'Pull rate',sto:'Storm rate',bal:'Reload speed',boo:'Throw rate',blu:'Reload speed',spk:'Snap rate',tar:'Lob rate',gat:'Fire rate',thr:'Growth rate',flk:'Fire rate',drn:'Launch rate'},
+  s:{sip:'Fire rate',del:'Faster reload',mraz:'Chill rate',tesla:'Zap rate',snip:'Faster reload',pla:'Burn rate',dul:'Faster generation',poi:'Faster spitting',las:'Pulse rate',mor:'Faster reload',rail:'Faster charge',mis:'Faster launch',vor:'Faster pulls',sto:'Faster storms',bal:'Faster reload',boo:'Faster throws',blu:'Faster reload',spk:'Snap rate',tar:'Faster lobs',gat:'Fire rate',thr:'Faster growth',flk:'Faster reload',drn:'Launch rate'},
   r:{sip:'Range',del:'Range',mraz:'Frost range',tesla:'Arc range',snip:'Scope range',pla:'Flame reach',poi:'Spit range',las:'Beam range',mor:'Artillery range',rail:'Rail range',mis:'Missile range',bea:'Aura range',vor:'Pull range',sto:'Storm range',bal:'Bolt range',boo:'Throw range',blu:'Blast reach',tar:'Tar range',gat:'Range',thr:'Vine reach',flk:'Flak range',drn:'Patrol range'}};
 function upName(t,s){return s==='z'?zName(t):(UPN[s]&&UPN[s][t.k])||STATS[s]}
+// Which tower field an upgrade changes and how to show it (the z list follows zName)
+const nf=v=>v>=100?String(Math.round(v)):String(Math.round(v*10)/10),pc=v=>Math.round(v*100)+'%',sec=v=>v.toFixed(1)+'s';
+function upStat(t,s){const b=T[t.k];
+  if(s==='d')return b.gen?['d',Math.round]:b.bank?['bint',v=>(v*100).toFixed(1)+'%']:b.buff?['bd',v=>'+'+pc(v)]:['d',nf];
+  if(s==='s')return b.cd<1?['cdv',v=>nf(1/v)+'/s']:['cdv',sec];
+  if(s==='r')return['r',Math.round];
+  return b.aa?['spl',Math.round]:b.multi?['mc',Math.round]:b.spl?['spl',Math.round]:b.chain?['ch',Math.round]:b.psn?['pdur',sec]:b.vort?['pb',Math.round]:b.storm?['ns',Math.round]:b.buff?['wd',pc]:
+    b.pierce?['prc',Math.round]:b.boom?['brad',Math.round]:b.cone?['cone',v=>Math.round(v*360/Math.PI)+'°']:b.tar?['tsl',pc]:b.root?['rdur',sec]:b.drone?['ndr',Math.round]:b.trap?['barb',pc]:['sf',v=>pc(1-v)]}
+// The stat now and after the next level, e.g. '9 → 12.2' (just the value once maxed)
+function upPrev(t,s){const[f,fm]=upStat(t,s),a={...t,u:{...t.u}},b={...t,u:{...t.u,[s]:t.u[s]+1}};withSk(t.ow,()=>{stat0(a);stat0(b)});
+  return t.u[s]>=MAXU?fm(a[f]):fm(a[f])+' → '+fm(b[f])}
 function zName(t){const b=T[t.k];return b.aa?'Shrapnel':b.multi?'Salvo':b.spl?'Blast':b.chain?'Chain':b.psn?'Toxin':b.vort?'Pull':b.storm?'Strikes':b.buff?'Ward':b.pierce?'Pierce':b.boom?'Blade size':b.cone?'Spread':b.tar?'Sticky':b.root?'Roots':b.drone?'Drones':b.trap?'Barbs':STATS.z}
 const bcost=k=>Math.max(1,Math.floor(T[k].cost*(1-.03*sk('e9'))));
 function upCost(t,s){return Math.floor(T[t.k].cost*.6*(1+.7*t.u[s])*(1-.05*sk('e3')))}
@@ -1166,7 +1205,15 @@ const refund=()=>.7+.05*sk('e4');
 const cc=e=>e.ab!=='warden'; // Wardens ignore slows, stuns, roots and knockback
 const ccHold=e=>cc(e)&&!(e.ccT>2.5); // tower stuns and roots stop working after 2.5s held
 const isFly=e=>FLY.has(e.sh);
-function startWave(){if(st.run||st.over||paused||(MP&&!MP.host))return;st.wave++;st.nxt=0;st.q=Math.round((6+st.wave*2)*DIFFS[dif].c);st.sp=0;st.n=0;st.run=true;st.ban=2;st.clr=null;sfx(st.wave%5===0?'boss':'wave')}
+function startWave(){if(st.run||st.over||paused||(MP&&!MP.host))return;st.wave++;st.nxt=0;st.q=st.wq=Math.round((6+st.wave*2)*DIFFS[dif].c);st.sp=0;st.n=0;st.run=true;st.ban=2;st.clr=null;sfx(st.wave%5===0?'boss':'wave')}
+// Calling the next wave while the current one is still on the field pays a bonus; the earlier the call, the bigger it is
+function earlyBonus(){if(!st.run||st.over||st.q>0||!st.en.length||(st.wave>=MAXW&&!RUN.en)||(MP&&!MP.host))return 0;
+  return Math.max(1,Math.round((10+2*st.wave)*Math.min(1,st.en.length/(st.wq||1))))}
+function callEarly(){const b=earlyBonus();if(!b||paused)return;
+  for(const o of MP?Object.keys(st.P).map(Number):[undefined])giveGold(o,b);st.ge+=b;
+  st.pt.push({x:W*C/2,y:H*C/2-30,vx:0,vy:-24,l:1.4,tx:'+'+b+' EARLY',big:1});sfx('coin');
+  st.early++;st.run=false;startWave()}
+function waveGo(){if(earlyBonus())callEarly();else startWave()}
 // What the next wave will contain (mirrors the spawn rules below)
 // Which enemy is the n-th of wave w (shared by spawning and the next-wave preview)
 function pickSpawn(w,n){let k='norm',E;const av=ABK.filter(a=>w>=AB[a].w);
@@ -1200,7 +1247,7 @@ function dropMeteor(x,y,who){
 function spawn(){
   const w=st.wave,n=st.n++,{k,E}=pickSpawn(w,n);
   const D=DIFFS[dif],hp=(18+w*w*1.5+w*8)*D.h*(E.hm||1)*(st.hpm||1)*RUN.hp,rw=Math.max(1,Math.round((4+Math.floor(w/3))*D.r)),o=ROLE[k];
-  st.en.push({k,elite:k==='elite',sh:E.s,col:E.c,c2:E.c2,c3:E.c3,hn:E.hn,ab:E.ab,at:1+Math.random(),ph:Math.random()*6,i:1,x:wp[0].x,y:wp[0].y,hp:hp*o.h,mx:hp*o.h,sp:o.s*(E.sm||1)*RUN.sp,rw:rw*o.r,z:o.z,slow:0,born:.5});
+  st.en.push({k,nm:E.n,elite:k==='elite',sh:E.s,col:E.c,c2:E.c2,c3:E.c3,hn:E.hn,ab:E.ab,at:1+Math.random(),ph:Math.random()*6,i:1,x:wp[0].x,y:wp[0].y,hp:hp*o.h,mx:hp*o.h,sp:o.s*(E.sm||1)*RUN.sp,rw:rw*o.r,z:o.z,slow:0,born:.5});
   if(E.ab&&!st.seen[E.ab]){st.seen[E.ab]=1;st.tq.push({t:4,n:E.n,d:AB[E.ab].n,c:AB[E.ab].col})}
 }
 const fmt=n=>n>=1000?(n/1000).toFixed(1)+'k':Math.round(n);
@@ -1273,7 +1320,7 @@ function update(dt){
       else if(e.ab==='heal'){for(const x of st.en)if(Math.hypot(x.x-e.x,x.y-e.y)<=70)x.hp=Math.min(x.mx,x.hp+x.mx*.1);st.fx.push({x:e.x,y:e.y,r:70,a:.7,c:A.col})}
       else if(e.ab==='shield'){for(const x of st.en)if(Math.hypot(x.x-e.x,x.y-e.y)<=70)x.shd=Math.max(x.shd||0,x.mx*.3);st.fx.push({x:e.x,y:e.y,r:70,a:.7,c:A.col})}
       else if(e.ab==='blink'){const ox=e.x,oy=e.y;advance(e,75);st.fx.push({x:ox,y:oy,r:16,a:.9,c:A.col},{x:e.x,y:e.y,r:18,a:.9,c:A.col});burst(ox,oy,'#c58bff',6);burst(e.x,e.y,'#c58bff',8)}
-      else if(e.ab==='summon'){const M=MAPS[cur].e.norm;for(const s2 of[-1,1])pend.push({k:'norm',sh:M.s,col:M.c,c2:M.c2,ph:Math.random()*6,i:e.i,x:e.x+s2*7,y:e.y-s2*5,hp:e.mx*.15,mx:e.mx*.15,sp:62,rw:1,z:7,slow:0,mini:1,born:.35});st.fx.push({x:e.x,y:e.y,r:26,a:.8,c:A.col})}
+      else if(e.ab==='summon'){const M=MAPS[cur].e.norm;for(const s2 of[-1,1])pend.push({k:'norm',nm:e.nm,from:'summon',sh:M.s,col:M.c,c2:M.c2,ph:Math.random()*6,i:e.i,x:e.x+s2*7,y:e.y-s2*5,hp:e.mx*.15,mx:e.mx*.15,sp:62,rw:1,z:7,slow:0,mini:1,born:.35});st.fx.push({x:e.x,y:e.y,r:26,a:.8,c:A.col})}
       else if(e.ab==='thief'){const o=richest(),a=Math.min(Math.floor(goldOf(o)),4+Math.floor(st.wave/2));if(a>0){giveGold(o,-a);st.pt.push({x:e.x,y:e.y-14,vx:0,vy:-26,l:1,tx:'-'+a,neg:1})}}
     }}
     if(e.egg>0){e.egg-=dt;if(e.egg<=0){e.hp=e.mx*.5;st.fx.push({x:e.x,y:e.y,r:40,a:1,c:'255,150,50'});burst(e.x,e.y,'#ffb347',18);sfx('boom')}continue}
@@ -1285,7 +1332,7 @@ function update(dt){
     const p=wp[e.i],dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy);
     if(d<=s){e.x=p.x;e.y=p.y;e.i++;if(e.i>=wp.length){e.gone=true;
       if(e.ab==='treasure')st.tq.push({t:3,n:'Treasure Goblin escaped',d:'Catch it next time for bonus gems',c:'255,230,80'});
-      else{st.lives--;st.hurt=1;shake(4);sfx('leak')}
+      else{st.lives--;st.hurt=1;shake(4);sfx('leak');const n=(e.nm||'Enemy')+(e.from==='split'?' pieces':e.from?' minions':''),L=st.lk[n]||(st.lk[n]={c:0,k:e.k,ab:e.from?'kid':e.ab,f:isFly(e)?1:0});L.c++}
       if(e.ab==='thief'){const o=richest(),a=Math.floor(goldOf(o)*.1);giveGold(o,-a);if(a)st.pt.push({x:e.x-30,y:e.y-20,vx:0,vy:-20,l:1.4,tx:'-'+a,neg:1})}}}
     else{e.x+=dx/d*s;e.y+=dy/d*s}
   }
@@ -1350,7 +1397,7 @@ function update(dt){
     if(e.ab==='treasure'){const gg=Math.round(3*DIFFS[dif].gm)+withSk(owr,()=>sk('e10'));st.gems+=gg;save.gems+=gg;mpEv('!g:'+gg);st.pt.push({x:e.x,y:e.y-22,vx:0,vy:-24,l:1.6,tx:'+'+gg+' GEMS',big:1,gem:1});burst(e.x,e.y,'#ffd54f',24);sfx('gold')}
     if(e.k==='tank'){save.stats.bosses++;questAdd('boss',1);boomFx(e.x,e.y,46,1.1);burst(e.x,e.y,e.col,20);shake(5);sfx('boom')}else{deathFx(e);sfx('die')}
     st.pt.push({x:e.x,y:e.y-8,vx:0,vy:-28,l:1,tx:'+'+rw});
-    if(e.ab==='split')for(const s of[-1,1])add.push({k:'norm',sh:e.sh,col:e.col,c2:e.c2,ph:Math.random()*6,i:e.i,x:e.x+s*6,y:e.y+s*4,hp:e.mx*.35,mx:e.mx*.35,sp:62,rw:1,z:Math.round(e.z*.7),slow:0,mini:1,born:.3})}
+    if(e.ab==='split')for(const s of[-1,1])add.push({k:'norm',nm:e.nm,from:'split',sh:e.sh,col:e.col,c2:e.c2,ph:Math.random()*6,i:e.i,x:e.x+s*6,y:e.y+s*4,hp:e.mx*.35,mx:e.mx*.35,sp:62,rw:1,z:Math.round(e.z*.7),slow:0,mini:1,born:.3})}
   st.en=st.en.filter(e=>!e.gone).concat(add);st.bl=st.bl.filter(b=>!b.done);
   visTick(dt);
   // Spells, meteors and screen effects
@@ -1362,21 +1409,59 @@ function update(dt){
   st.met=st.met.filter(m=>!m.done);
   if(st.lives<=0){st.lives=0;end(false)}
   else if(st.run&&st.q===0&&st.en.length===0){
-    let wb=15+st.wave*2;st.run=false;const ows=MP?Object.keys(st.P).map(Number):[undefined],ex={};ows.forEach(o=>ex[o]=0);
-    // Interest: from Bank towers and the Interest skill
-    for(const t of st.tw)if(T[t.k].bank&&!(t.frz>0)){const v=Math.round(Math.min(goldOf(t.ow)*t.bint,t.bcap));if(v>0){ex[t.ow]+=v;t.dmg=(t.dmg||0)+v;t.fl=1;st.pt.push({x:t.x,y:t.y-16,vx:0,vy:-24,l:1.4,tx:'+'+v})}}
-    for(const o of ows){const e5=withSk(o,()=>sk('e5'));if(e5)ex[o]+=Math.round(Math.min(goldOf(o)*.02*e5,40+30*e5));
-      withSk(o,()=>{const e8=sk('e8'),m9=sk('m9'),m10=sk('m10');if(e8)ex[o]+=Math.round(e8*(4+st.wave*.5));
-        if(m9){const c=MP?st.P[o].scd:st.scd;for(const k in c)c[k]=Math.max(0,c[k]-2*m9)}
-        if(m10&&st.wave%(8-2*m10)===0&&st.lives<st.lives0)st.lives++})}
-    const gp={};for(const o of ows){giveGold(o,wb+ex[o]);gp[o]=wb+ex[o]}wb+=ex[ows[0]];st.ge+=wb;st.xp+=5+st.wave;mpEv('!w:'+st.wave);questAdd('wave',1);questAdd('gold',st.ge-st.qge);st.qge=st.ge;
-    const gm=DIFFS[dif].gm,ge=Math.round((2+st.wave*.2)*gm*RUN.rm);st.gems+=ge;save.gems+=ge;mpEv('!g:'+ge);
+    st.run=false;const ows=MP?Object.keys(st.P).map(Number):[undefined],gp={},gm=DIFFS[dif].gm;let wb=0,ge=0;ows.forEach(o=>gp[o]=0);
+    // A wave that was called early is paid out together with the wave that followed it
+    for(let w=st.wave-(st.early||0);w<=st.wave;w++){const p=payWave(w,ows);wb+=p.wb;ge+=p.ge;for(const o of ows)gp[o]+=p.gp[o]}
+    st.early=0;
     if(st.wave<MAXW||RUN.en){st.clr={t:2.4,w:st.wave,g:wb,gm:ge,gp:MP?gp:undefined};sfx('clear')}if(st.wave>=10&&(!MP||MP.set.sw<=1))unlockAch('w10');
     const bk=bkey(cur,lay,dif);if(!MP)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.en){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
     if(st.wave>=MAXW&&!RUN.en){const vb=Math.round(40*gm*RUN.rm);st.gems+=vb;save.gems+=vb;mpEv('!g:'+vb);persist();end(true)}
     else{persist();if(auto)st.nxt=3}
   }
 }
+// End-of-wave payout for wave w: clear bonus, Bank interest, economy skills, XP, quests and gems
+function payWave(w,ows){let wb=15+w*2;const ex={};ows.forEach(o=>ex[o]=0);
+  // Interest: from Bank towers and the Interest skill
+  for(const t of st.tw)if(T[t.k].bank&&!(t.frz>0)){const v=Math.round(Math.min(goldOf(t.ow)*t.bint,t.bcap));if(v>0){ex[t.ow]+=v;t.dmg=(t.dmg||0)+v;t.fl=1;st.pt.push({x:t.x,y:t.y-16,vx:0,vy:-24,l:1.4,tx:'+'+v})}}
+  for(const o of ows){const e5=withSk(o,()=>sk('e5'));if(e5)ex[o]+=Math.round(Math.min(goldOf(o)*.02*e5,40+30*e5));
+    withSk(o,()=>{const e8=sk('e8'),m9=sk('m9'),m10=sk('m10');if(e8)ex[o]+=Math.round(e8*(4+w*.5));
+      if(m9){const c=MP?st.P[o].scd:st.scd;for(const k in c)c[k]=Math.max(0,c[k]-2*m9)}
+      if(m10&&w%(8-2*m10)===0&&st.lives<st.lives0)st.lives++})}
+  const gp={};for(const o of ows){giveGold(o,wb+ex[o]);gp[o]=wb+ex[o]}wb+=ex[ows[0]];st.ge+=wb;st.xp+=5+w;mpEv('!w:'+w);questAdd('wave',1);questAdd('gold',st.ge-st.qge);st.qge=st.ge;
+  const ge=Math.round((2+w*.2)*DIFFS[dif].gm*RUN.rm);st.gems+=ge;save.gems+=ge;mpEv('!g:'+ge);
+  return{wb,ge,gp}}
+// End screen: the enemies that reached the castle most often, and a tip for the worst one
+function leakTop(lk){return Object.entries(lk||{}).map(([n,v])=>Object.assign({n},v)).sort((a,b)=>b.c-a.c).slice(0,3)}
+const LTIP={
+  stealth:'It turns invisible every few seconds, so towers can’t aim at it. {spk} still hits it, and towers spread along the path catch it when it reappears.',
+  burrow:'It burrows underground where nothing can hit it. Keep a few towers close to the castle to finish it when it surfaces.',
+  armor:'Its armor blocks 45% of all damage. Upgrade damage and add more towers.',
+  dodge:'It dodges 35% of hits, but poison and tar damage can’t be dodged: try {poi} or {tar}.',
+  warden:'It ignores slows, stuns and knockback, so it needs raw damage. Upgrade damage on your towers.',
+  regen:'It regenerates health quickly. Several towers in one spot beat towers spread thin.',
+  heal:'It makes the enemies around it harder to kill. Put more damage near the start of the path so it dies early.',
+  shield:'It makes the enemies around it harder to kill. Put more damage near the start of the path so it dies early.',
+  split:'It splits into smaller enemies when killed. Splash damage from {del} cleans up the pieces.',
+  summon:'It summons minions as it walks. Splash damage from {del} handles the swarm.',
+  kid:'They came out of a bigger enemy along the way. Splash damage from {del} cleans them up.',
+  blink:'It teleports forward along the path. Keep some towers close to the castle.',
+  haste:'It speeds up the enemies around it. Slow the group down with {mraz}.',
+  berserk:'It gets faster as it loses health. Slow it down with {mraz}.',
+  thief:'It steals your gold as it walks. Put more damage near the start of the path.',
+  revive:'It rises again once after dying. Keep towers near the castle to finish it off.',
+  jam:'It weakens towers near it. Spread your towers out so it can’t hurt many at once.',
+  stun:'It weakens towers near it. Spread your towers out so it can’t hurt many at once.',
+  freeze:'It weakens towers near it. Spread your towers out so it can’t hurt many at once.',
+  emp:'It weakens towers near it. Spread your towers out so it can’t hurt many at once.',
+  fog:'It weakens towers near it. Spread your towers out so it can’t hurt many at once.'};
+function leakTip(L){const tw=k=>T[k].n+(AV.includes(k)?'':' (unlock it in Towers)'),fill=s=>s.replace(/\{(\w+)\}/g,(_,k)=>tw(k));
+  if(L.f)return fill('Flying enemies ignore Spike Traps and tar. {flk} deals triple damage to them.');
+  if(L.k==='tank')return 'Bosses have huge health. Upgrade damage and set a few towers to target Strongest.';
+  if(LTIP[L.ab])return fill(LTIP[L.ab]);
+  if(L.k==='fast')return fill('It’s fast and runs past your towers. Slow it down with {mraz}.');
+  return 'Build towers where the path bends (enemies stay in range longer there) and upgrade their damage.'}
+function leakBox(top){const el=$('ovlk');if(!top||!top.length){el.hidden=true;return}
+  el.innerHTML='<div class="lkl"><span class="lkh">Got through</span>'+top.map(x=>'<span><b>'+x.c+'×</b> '+escH(x.n)+'</span>').join('')+'</div><p class="lkt"><b>Tip</b>'+escH(top[0].n)+': '+escH(leakTip(top[0]))+'</p>';el.hidden=false}
 const STAR=on=>'<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21.1l1.5-7L2 9.3l7-.8z" fill="'+(on?'#ffd34d':'#252d3b')+'" stroke="'+(on?'#b8860b':'#3a4456')+'" stroke-width="1"/></svg>';
 function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
   const D=DIFFS[dif],lost=st.lives0-st.lives,stars=MP?0:win?(lost===0?3:lost<=D.l*.3?2:1):0,bk=bkey(cur,lay,dif),old=save.stars[bk]||0,wo=MAPS.map((_,i)=>worldOpen(i));
@@ -1396,7 +1481,7 @@ function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
   const mvp=st.tw.filter(t=>!T[t.k].gen&&!T[t.k].buff).sort((a,b)=>(b.dmg||0)-(a.dmg||0))[0];
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
   $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win;
-  $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';
+  $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));
   $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(MP)mpOver(win)}
 let tm=0;
 const cir=(x,y,r,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill()};
@@ -2488,12 +2573,13 @@ function draw(){
   if(st.mid>0){for(let i=0;i<10;i++){const x=(i*97+tm*30)%(W*C),y=(i*61+tm*40)%(H*C);g.globalAlpha=Math.min(1,st.mid)*.7;star(x,y,2,'#ffd34d')}g.globalAlpha=1}
   if(st.pause&&!st.over){g.fillStyle='rgba(8,11,16,.55)';g.fillRect(0,0,W*C,H*C);g.textAlign='center';g.textBaseline='middle';g.font='700 44px '+FONT;g.fillStyle='#fff';g.fillText('PAUSED',W*C/2,H*C/2-8);g.font='600 12px Inter,sans-serif';g.fillStyle='#b7c2d0';g.fillText('Press P or the Pause button to resume · you can still build and upgrade',W*C/2,H*C/2+24)}
 }
-function ui(){ui0();if(MP)mpUi()}
+function ui(){ui0();if(MP)mpUi();tutTick()}
 function ui0(){
   $('gold').textContent=Math.floor(goldOf());$('lives').textContent=st.lives;$('g2').textContent=save.gems;
   $('wave').innerHTML=st.wave+(RUN.en?'<small>endless</small>':'<small>/ '+MAXW+'</small>');$('wbar').style.width=(RUN.en?(st.wave%10)*10:Math.min(100,st.wave/MAXW*100))+'%';
   $('lives').parentElement.classList.toggle('low',st.lives>0&&st.lives<=Math.max(3,DIFFS[dif].l*.25));
-  $('start').disabled=st.run||st.over;
+  const eb=earlyBonus(),sb=$('start'),sh=eb?'<svg width="14" height="14" viewBox="0 0 24 24"><path d="M3 5l8 7-8 7zM12 5l8 7-8 7z" fill="currentColor"/></svg>Call wave '+(st.wave+1)+' early <b>+'+eb+'</b>':'<svg width="14" height="14" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg>Start wave';
+  sb.disabled=st.over||(st.run&&!eb);sb.classList.toggle('early',!!eb);if(sb.dataset.h!==sh){sb.dataset.h=sh;sb.innerHTML=sh+'<kbd>Space</kbd>';sb.title=eb?'Start the next wave now for bonus gold. The sooner you call it, the bigger the bonus.':''}
   for(const s of SPELLS){const b=$('sp-'+s.k),r=st.scd[s.k];if(!b)continue;b.style.setProperty('--p',r/s.cd);const tx=r>0?Math.ceil(r):'',em=b.querySelector('em');if(em.textContent!=String(tx))em.textContent=tx;b.classList.toggle('ready',r<=0&&inGame&&!st.over);b.classList.toggle('aim',st.aim===s.k)}
   $('pause').textContent=st.pause?'Resume':'Pause';$('pause').classList.toggle('on',!!st.pause);
   renderNext();
@@ -2505,7 +2591,7 @@ function ui0(){
     const r=cv.getBoundingClientRect(),k=r.width/(W*C),inf=$('info'),pw=inf.offsetWidth||244,ph=inf.offsetHeight||220,rt=r.left+t.x*k+30*k+pw<r.right,top=Math.max(r.top+4,Math.min(r.bottom-ph-4,r.top+t.y*k-ph/2));
     inf.className=rt?'r':'l';inf.style.left=(rt?r.left+t.x*k+30*k:r.left+t.x*k-30*k-pw)+'px';inf.style.top=top+'px';inf.style.setProperty('--ay',(r.top+t.y*k-top)+'px');
     for(const s in STATS){const b=$('u-'+s);b.hidden=(s==='z'&&!hasZ(t))||(s==='r'&&(B.gen||B.bank))||(s==='s'&&(B.buff||B.bank));if(b.hidden)continue;const m=t.u[s]>=MAXU;let pips='';for(let i=0;i<MAXU;i++)pips+=i<t.u[s]?'<i class="f"></i>':'<i></i>';
-      const hh='<span>'+upName(t,s)+'</span><em>'+pips+'</em><strong>'+(m?'MAX':upCost(t,s))+'</strong>';if(b.dataset.h!==hh){b.dataset.h=hh;b.innerHTML=hh}b.disabled=m||goldOf()<upCost(t,s)}
+      const hh='<span>'+upName(t,s)+'<small>'+upPrev(t,s)+'</small></span><em>'+pips+'</em><strong>'+(m?'MAX':upCost(t,s))+'</strong>';if(b.dataset.h!==hh){b.dataset.h=hh;b.innerHTML=hh}b.disabled=m||goldOf()<upCost(t,s)}
     const ub=$('u-t');ub.hidden=!hasTarget(t);if(!ub.hidden){const h2='<span>Target</span><strong style="color:var(--fg);min-width:0">'+TGN[t.tg||'first']+' ⟳</strong>';if(ub.dataset.h!==h2){ub.dataset.h=h2;ub.innerHTML=h2}}
     $('sell').textContent='Sell for '+Math.floor(t.inv*refund());
   }
@@ -2553,6 +2639,22 @@ function buildPicker(){
   $('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" title="${T[k].n}: ${DESC[k]}"><canvas width="68" height="68"></canvas><span>${T[k].n}<b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
   AV.forEach(k=>{tIcon($('t-'+k).querySelector('canvas'),k);$('t-'+k).onclick=()=>{st.type=k;st.sel=null}});
 }
+
+/* ---------- First-game tips (single player, until finished or skipped) ---------- */
+const TUT=[
+  {t:'Build your first tower',d:()=>T[st.type].n+' is selected. Click a grass tile next to the path to build it.',done:()=>st.tw.length>0},
+  {t:'Start the first wave',d:()=>'Build one or two more towers, then press Start wave (or Space). Enemies follow the path to your castle.',hl:'start',done:()=>st.wave>0},
+  {t:'Upgrade your towers',d:()=>'Every enemy that reaches the castle costs a life. Click a tower to upgrade it with the gold you earn.',done:()=>!!st.sel||st.wave>1},
+  {t:'Spells help in a pinch',d:()=>'Meteor (Z), Blizzard (X) and Gold Rush (C) recharge over time. Good luck!',hl:'spells',ok:1,done:()=>st.wave>2}];
+function tutTick(){const el=$('tut');
+  if(MP||save.tips||!inGame||st.over||!$('mm').hidden){if(!el.hidden){el.hidden=true;tutHl(null)}return}
+  while(st.tut<TUT.length&&TUT[st.tut].done())st.tut++;
+  if(st.tut>=TUT.length){tutEnd();return}
+  const s=TUT[st.tut],d=s.d(),k=st.tut+'|'+d;
+  if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent=(st.tut+1)+'/'+TUT.length;$('tutt').textContent=s.t;$('tutd').textContent=d;$('tutok').hidden=!s.ok;tutHl(s.hl)}
+  if(el.hidden){el.hidden=false;tutHl(s.hl)}}
+function tutHl(id){document.querySelectorAll('.tuthl').forEach(e=>e.classList.remove('tuthl'));if(id)$(id).classList.add('tuthl')}
+function tutEnd(){save.tips=1;persist();$('tut').hidden=true;tutHl(null)}
 
 /* ---------- Main menu ---------- */
 let selT='sip',skT='sip';
@@ -2717,8 +2819,7 @@ function showReveal(){const s=SK[CH.id],R=RAR[CH.r],more=chestPool(CH.r).length&
 function closeChest(){CH=null;$('chm').hidden=true;scr('chests')}
 $('chc').onclick=()=>{if(CH&&!CH.done)CH.t0=performance.now()-(CH_T+.9)*1000};
 
-function startGame(){if(!worldOpen(mapI)||!layOpen(mapI,layI)||!difOpen(dif))return;runCalc();setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;closeMenu();
-  if(!save.tut){save.tut=1;persist();setTimeout(()=>toast('Tip: build towers beside the path','Pick a tower, click a free tile, then press Space to start the wave','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6cc3ff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.5" stroke-linecap="round"/></svg>','#6cc3ff'),400)}}
+function startGame(){if(!worldOpen(mapI)||!layOpen(mapI,layI)||!difOpen(dif))return;runCalc();setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;closeMenu()}
 // Spell bar: the three base spells plus any learned in the skill tree
 function buildSpells(){const L=SPELLS.filter(spellOn);$('spells').innerHTML=L.map(s=>'<button class="sp" id="sp-'+s.k+'" title="'+s.n+' ('+s.key+'): '+s.d+'" style="--sc:rgb('+s.col+')">'+s.ic+'<span>'+s.n+'</span><kbd>'+s.key+'</kbd><i class="cd"></i><em></em></button>').join('');
 L.forEach(s=>$('sp-'+s.k).onclick=()=>castSpell(s.k))}
@@ -2744,7 +2845,7 @@ $('startgame').onclick=startGame;
 $('menu').onclick=openMenu;
 $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()};
 $('again').onclick=()=>{if(MP){mpBackToLobby();return}mapI=cur;layI=lay;startGame()};
-$('start').onclick=startWave;
+$('start').onclick=waveGo;$('tutx').onclick=tutEnd;$('tutok').onclick=tutEnd;
 $('auto').onclick=()=>{if(MP&&!MP.host)return;auto=!auto;$('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');if(auto&&!st.run&&!st.over)startWave()};
 $('fs').onclick=()=>{const d=document;try{(d.fullscreenElement?d.exitFullscreen():d.documentElement.requestFullscreen()).catch(()=>{})}catch(e){}};
 $('spd').onclick=()=>{if(MP&&!MP.host)return;st.spd=st.spd%3+1;$('spd').textContent='Speed '+st.spd+'×';$('spd').classList.toggle('on',st.spd>1)};
@@ -2760,7 +2861,7 @@ addEventListener('keydown',e=>{
   if(kl==='f'){$('fs').click();return}
   const sp=SPELLS.find(s=>s.key.toLowerCase()===kl);if(sp){castSpell(sp.k);return}
   const ki=HOT.indexOf(e.key.toUpperCase());if(e.key.length===1&&ki>=0&&ki<AV.length){st.type=AV[ki];st.sel=null}
-  if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();startWave()}
+  if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();waveGo()}
 });
 /* ---------- Multiplayer: the host's browser runs the game, guests send commands and draw the host's state ---------- */
 const PCOL=['#4c8dff','#ff6b6b','#38d68a','#f4c152'];
@@ -2976,7 +3077,7 @@ function mpBackToLobby(auto2){
 function mpOverButtons(){$('again').textContent='Back to lobby';$('tomenu').textContent='Leave room'}
 function mpOver(win){
   sendSnap();
-  mpToAll({c:'over',win:win?1:0,wave:st.wave,kills:st.kills,ge:st.ge,xp:st.xp,lost:st.lives0-st.lives});
+  mpToAll({c:'over',win:win?1:0,wave:st.wave,kills:st.kills,ge:st.ge,xp:st.xp,lost:st.lives0-st.lives,lk:leakTop(st.lk)});
   mpOverButtons();
 }
 function mpEndGuest(d){
@@ -2995,7 +3096,7 @@ function mpEndGuest(d){
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';
   $('ovs').textContent=win?'Your team defended all '+MAXW+' waves on '+D.n+(d.lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+d.wave+'.':'The castle fell on wave '+d.wave+' of '+MAXW+'.');
   $('ovst').hidden=true;
-  $('oves').innerHTML='<div><b>'+d.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(d.ge)+'</b><span>Team gold earned</span></div><div><b>'+MP.players.length+'</b><span>Players</span></div>';
+  $('oves').innerHTML='<div><b>'+d.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(d.ge)+'</b><span>Team gold earned</span></div><div><b>'+MP.players.length+'</b><span>Players</span></div>';leakBox(d.lk);
   $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;
   mpOverButtons();
 }
