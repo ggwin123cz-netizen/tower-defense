@@ -438,6 +438,8 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 
 @media (max-width:900px){main{display:flex;flex-direction:column;height:auto;padding:12px}.tree{grid-template-columns:1fr}.lvtrack{grid-template-columns:repeat(3,1fr)}.wrap{width:100%}.side{overflow:visible}
   .home,.play,.split{grid-template-columns:1fr}.hero h2{font-size:52px}.tgrid{grid-template-columns:repeat(3,1fr)}.skgrid{grid-template-columns:repeat(2,1fr)}.chests{grid-template-columns:repeat(2,1fr)}#diff{grid-template-columns:repeat(2,1fr)}.scr{padding:16px}}
+/* Phones held upright: the board stays at the top while the controls scroll under it */
+@media (max-width:900px) and (orientation:portrait){.wrap{position:sticky;top:0;z-index:6}}
 </style>
 </head>
 <body>
@@ -483,7 +485,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
     <button id="menu">Menu</button>
   </div>
   <section class="panel">
-    <div class="ph">Towers<span>Click a tile to build</span></div>
+    <div class="ph">Towers<span id="phh">Click a tile to build</span></div>
     <div id="types"></div>
   </section>
   <p class="hint"><kbd>1</kbd>–<kbd>0</kbd> <kbd>Q</kbd>–<kbd>T</kbd> towers · <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> spells · <kbd>Space</kbd> wave · <kbd>P</kbd> pause · <kbd>Esc</kbd> menu. Select a tower to upgrade it, change its target or sell it.</p>
@@ -1159,7 +1161,7 @@ const skOpen=s=>!s.req||s.req.every(([id,r])=>sk(id)>=r);
 const skNeed=s=>(s.req||[]).filter(([id,r])=>sk(id)<r).map(([id,r])=>SKI[id].n+' '+r).join(', ');
 const skCost=(s,r)=>s.c+Math.floor(r/2);
 function reset(){const D=DIFFS[dif];MAXW=D.w;st={gold:Math.round((D.g+30*sk('e1')+35*mastTier('e'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
-  scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0,early:0,wq:0,lk:{},tut:0};
+  scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0,early:0,wq:0,lk:{},tut:0,pend:null};
   st.lives0=st.lives;SPELLS.forEach(s=>st.scd[s.k]=0);if(MP)mpAfterReset();$('ov').hidden=true;if(auto&&!(MP&&!MP.host))st.nxt=2}
 // Spells: active abilities on a cooldown (seconds of game time)
 const SPELLS=[
@@ -2477,12 +2479,15 @@ function draw(){
   ell(4,wp[0].y,9,22,th.pc);
   for(let i=0;i<4;i++){g.strokeStyle='rgba('+th.portal+','+(.85-i*.2)+')';g.lineWidth=2;g.beginPath();g.ellipse(4,wp[0].y,6+i*3+Math.sin(tm*3+i)*1.5,18+i*3,0,0,7);g.stroke()}
   for(const e of st.en)if(e.ab==='jam')cir(e.x,e.y,85,'rgba(190,120,255,.07)');
-  const h=st.hover;
+  const h=st.pend||st.hover;
   if(h&&!st.sel&&!st.aim&&!st.over&&T[st.type]&&canBuild(st.type,h.x,h.y)){
     const ok=goldOf()>=bcost(st.type)&&mpCapOk(),hx=h.x*C+C/2,hy=h.y*C+C/2;rr(h.x*C+2,h.y*C+2,C-4,C-4,6,ok?'rgba(255,255,255,.22)':'rgba(255,70,80,.35)');
     if(T[st.type].r){g.setLineDash([5,4]);g.beginPath();g.arc(hx,hy,T[st.type].r,0,7);g.fillStyle=ok?'rgba(120,170,255,.12)':'rgba(255,70,80,.1)';g.fill();g.strokeStyle=ok?'rgba(200,220,255,.9)':'rgba(255,140,150,.9)';g.lineWidth=1.5;g.stroke();g.setLineDash([])}
     // Translucent preview of the tower that would be built here
     paint(ghost,54,()=>drawTower({k:st.type,u:{d:0,s:0,r:0,z:0},x:27,y:29,ang:-Math.PI/2}));g.globalAlpha=ok?.6:.3;g.drawImage(ghost,hx-27,hy-29,54,54);g.globalAlpha=1;
+    // Touch preview: say what the next tap does, in a size that stays readable on a small board
+    if(st.pend){const fs=Math.round(12/Math.min(1,cv.getBoundingClientRect().width/(W*C))),tx=ok?'Tap again to build':'Not enough gold',lx=Math.min(W*C-fs*4.5,Math.max(fs*4.5,hx)),ly=h.y>0?h.y*C-3:(h.y+1)*C+fs+3;
+      g.font='700 '+fs+'px '+FONT;g.textAlign='center';g.textBaseline='bottom';g.lineWidth=3;g.strokeStyle='rgba(10,14,19,.85)';g.strokeText(tx,lx,ly);g.fillStyle=ok?'#fff':'#ff8a95';g.fillText(tx,lx,ly)}
   }
   if(st.aim==='met'&&st.mx!==undefined){const p=.5+Math.sin(tm*8)*.5;g.beginPath();g.arc(st.mx,st.my,80,0,7);g.fillStyle='rgba(255,120,40,.13)';g.fill();g.setLineDash([7,5]);g.strokeStyle='rgba(255,170,90,'+(.6+p*.4)+')';g.lineWidth=2;g.stroke();g.setLineDash([]);
     g.strokeStyle='rgba(255,220,180,.9)';g.lineWidth=1.5;g.beginPath();g.moveTo(st.mx-9,st.my);g.lineTo(st.mx+9,st.my);g.moveTo(st.mx,st.my-9);g.lineTo(st.mx,st.my+9);g.stroke()}
@@ -2608,6 +2613,9 @@ function renderNext(){const w=st.wave+1,key=cur+'|'+dif+'|'+w+'|'+MAXW+'|'+RUN.e
   const comp=waveComp(w);el.innerHTML='<span class="nl">Wave '+w+'</span>'+comp.map(c=>'<span class="ni" title="'+c.E.n+' ×'+c.c+'"><canvas width="52" height="52"></canvas><b>'+c.c+'</b></span>').join('')+(w%5===0?'<span class="bt">BOSS</span>':'');
   [...el.querySelectorAll('canvas')].forEach((c,i)=>eIcon(c,comp[i].E,comp[i].z))}
 function cell(e){const r=cv.getBoundingClientRect();return{x:Math.floor((e.clientX-r.left)*W/r.width),y:Math.floor((e.clientY-r.top)*H/r.height)}}
+// Touch screens have no hover, so building there takes two taps (see the click handler)
+let ptype='mouse';cv.addEventListener('pointerdown',e=>{ptype=e.pointerType||'mouse'});
+const coarse=()=>!!(window.matchMedia&&matchMedia('(pointer: coarse)').matches);
 cv.addEventListener('pointermove',e=>{st.hover=cell(e);const r=cv.getBoundingClientRect();st.mx=(e.clientX-r.left)*W*C/r.width;st.my=(e.clientY-r.top)*H*C/r.height});
 cv.addEventListener('pointerleave',()=>{st.hover=null;st.mx=undefined});
 cv.addEventListener('contextmenu',e=>{if(st.aim){e.preventDefault();st.aim=null}});
@@ -2618,11 +2626,13 @@ cv.addEventListener('click',e=>{
   if(MP&&e.shiftKey){const r0=cv.getBoundingClientRect();mpPing((e.clientX-r0.left)*W*C/r0.width,(e.clientY-r0.top)*H*C/r0.height);return}
   if(st.aim==='met'){const r=cv.getBoundingClientRect();dropMeteor((e.clientX-r.left)*W*C/r.width,(e.clientY-r.top)*H*C/r.height);return}
   const p=cell(e);st.hover=p;
-  const t=st.tw.find(t=>t.cx===p.x&&t.cy===p.y);
+  const t=st.tw.find(t=>t.cx===p.x&&t.cy===p.y),pend=st.pend;st.pend=null;
   if(t){st.sel=st.sel===t?null:t;return}
   // With a tower's window open, a click on empty ground only closes it
   if(st.sel){st.sel=null;return}
   if(!T[st.type]||!canBuild(st.type,p.x,p.y))return;
+  // Touch: the first tap shows the tower and its range, a second tap on the same tile builds it
+  if(ptype!=='mouse'&&!(pend&&pend.x===p.x&&pend.y===p.y)){st.pend=p;return}
   const lim=()=>toast('Tower limit reached','Each player can build '+MP.set.cap+' towers. Sell one to build another.',null,'#ff5a6a');
   if(MP&&!mpCapOk()){lim();return}
   if(MP&&!MP.host){const b=T[st.type];if(b&&goldOf()>=bcost(st.type))mpSend({c:'build',k:st.type,cx:p.x,cy:p.y});return}
@@ -2649,7 +2659,7 @@ function buildPicker(){
 
 /* ---------- First-game tips (single player, until finished or skipped) ---------- */
 const TUT=[
-  {t:'Build your first tower',d:()=>T[st.type].n+' is selected. Click a grass tile next to the path to build it.',done:()=>st.tw.length>0},
+  {t:'Build your first tower',d:()=>T[st.type].n+' is selected. '+(coarse()?'Tap a grass tile next to the path, then tap it again to build.':'Click a grass tile next to the path to build it.'),done:()=>st.tw.length>0},
   {t:'Start the first wave',d:()=>'Build one or two more towers, then press Start wave (or Space). Enemies follow the path to your castle.',hl:'start',done:()=>st.wave>0},
   {t:'Upgrade your towers',d:()=>'Every enemy that reaches the castle costs a life. Click a tower to upgrade it with the gold you earn.',done:()=>!!st.sel||st.wave>1},
   {t:'Spells help in a pinch',d:()=>'Meteor (Z), Blizzard (X) and Gold Rush (C) recharge over time. Good luck!',hl:'spells',ok:1,done:()=>st.wave>2}];
@@ -2667,12 +2677,12 @@ function tutEnd(){save.tips=1;persist();$('tut').hidden=true;tutHl(null)}
 let selT='sip',skT='sip';
 function scr(id){['home','play','towers','skins','chests','ach','skills','quests','settings','lobby'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby})[id]()}
 function renderSettings(){const tg=(k,n,d)=>'<div class="setr"><div class="tx"><b>'+n+'</b><small>'+d+'</small></div><button data-t="'+k+'" class="'+(save[k]?'on':'')+'">'+(save[k]?'On':'Off')+'</button></div>';
-  $('setl').innerHTML=tg('snd','Sound effects','Shots, hits and spell sounds')+tg('mus','Music','Background music')+'<div class="setr"><div class="tx"><b>Master volume</b><small>'+Math.round(save.vol*100)+'%</small></div><input type="range" id="vol" min="0" max="100" value="'+Math.round(save.vol*100)+'"></div>'+tg('dmg','Damage numbers','Floating numbers for big hits and crits')+tg('shk','Screen shake','Camera shake on explosions and leaks')+'<div class="setr"><div class="tx"><b>Fullscreen</b><small>Also available with the F key</small></div><button id="sfs">Toggle</button></div><div class="setr"><div class="tx"><b>Refund skill tree</b><small>Get all spent runes back</small></div><button id="srs">Refund</button></div><div class="setr dng"><div class="tx"><b>Reset all progress</b><small>Deletes gems, levels, skills, towers, skins and stars</small></div><button id="m-reset2">Reset</button></div>';
+  $('setl').innerHTML=tg('snd','Sound effects','Shots, hits and spell sounds')+tg('mus','Music','Background music')+'<div class="setr"><div class="tx"><b>Master volume</b><small>'+Math.round(save.vol*100)+'%</small></div><input type="range" id="vol" min="0" max="100" value="'+Math.round(save.vol*100)+'"></div>'+tg('dmg','Damage numbers','Floating numbers for big hits and crits')+tg('shk','Screen shake','Camera shake on explosions and leaks')+'<div class="setr"><div class="tx"><b>Fullscreen</b><small>Also available with the F key</small></div><button id="sfs">Toggle</button></div><div class="setr"><div class="tx"><b>Refund skill tree</b><small>Get all spent runes back</small></div><button id="srs">Refund</button></div><div class="setr"><div class="tx"><b>Move your progress</b><small>Copy a code here, then paste it on another device or another link of the game</small></div><button id="sexp">Copy code</button><button id="simp">Paste code</button></div><div class="setr dng"><div class="tx"><b>Reset all progress</b><small>Deletes gems, levels, skills, towers, skins and stars</small></div><button id="m-reset2">Reset</button></div>';
   $('setl').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;if(k==='snd')setSnd(!save.snd);else if(k==='mus')setMus(!save.mus);else{save[k]=save[k]?0:1;persist()}renderSettings()});
   $('vol').oninput=e=>{save.vol=e.target.value/100;if(AU.m)AU.m.gain.value=.55*save.vol;persist();e.target.parentElement.querySelector('small').textContent=e.target.value+'%'};
   $('sfs').onclick=()=>$('fs').click();
   $('srs').onclick=()=>{if(skRefund())renderSettings()};
-  $('m-reset2').onclick=resetAll}
+  $('m-reset2').onclick=resetAll;$('sexp').onclick=saveExport;$('simp').onclick=saveImport}
 // Skill tree: three branches; each node needs the one above it, abilities sit at the bottom
 // Resetting skills is not free: it costs gems
 function skRefund(){
@@ -2846,6 +2856,14 @@ $('maps').onclick=e=>{const b=e.target.closest('[data-i]');if(b){mapI=+b.dataset
 $('lays').onclick=e=>{const b=e.target.closest('[data-l]');if(b){layI=+b.dataset.l;renderLays()}};
 document.querySelectorAll('.back').forEach(b=>b.onclick=()=>scr(b.dataset.to));
 $('m-play').onclick=()=>scr('play');$('m-towers').onclick=()=>scr('towers');$('m-skins').onclick=()=>scr('skins');$('m-chests').onclick=()=>scr('chests');$('m-skills').onclick=()=>scr('skills');$('m-quests').onclick=()=>scr('quests');$('m-resume').onclick=closeMenu;
+// Progress lives in this browser only; a code moves it to another device or another link of the game
+function saveExport(){const c='TD1:'+btoa(unescape(encodeURIComponent(JSON.stringify(save))));
+  (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast('Progress code copied','On the other device open Settings and press Paste code',null,'#38d68a'),()=>prompt('Copy this progress code:',c))}
+function saveImport(){const c=(prompt('Paste your progress code:')||'').trim();if(!c)return;let s=null;
+  try{if(c.slice(0,4)==='TD1:')s=JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))))}catch(e){}
+  if(!s||typeof s!=='object'||!Array.isArray(s.un)){toast('That code did not work','Copy it again on the other device and paste all of it',null,'#ff5a6a');return}
+  if(!confirm('Replace the progress on this device with the copied one? What is saved here now will be lost.'))return;
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(s))}catch(e){}location.reload()}
 function resetAll(){if(confirm('Reset ALL progress: gems, levels, skills, towers, skins and stars? This cannot be undone.')){const k={snd:save.snd,mus:save.mus,vol:save.vol,dmg:save.dmg,shk:save.shk};save=Object.assign({gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}},k);fillSave();questsFresh();persist();inGame=false;buildPicker();buildSpells();scr('settings')}}
 $('m-settings').onclick=()=>scr('settings');
 $('startgame').onclick=startGame;
@@ -2889,16 +2907,20 @@ const twById=id=>st.tw.find(t=>t._id===id);
 function lbMsg(s){NET.msg=s;const el=$('lb-msg');if(el)el.textContent=s}
 
 /* --- Connection --- */
-function netOpen(then){
+// The co-op server. A copy of the game served from somewhere else (GitHub Pages, a file) connects to it directly.
+const MP_SERVER='wss://tower-defense1.onrender.com';
+function wakeMP(){if((location.protocol==='https:'?'wss://':'ws://')+location.host!==MP_SERVER)fetch(MP_SERVER.replace('wss:','https:')+'/healthz',{mode:'no-cors',cache:'no-store'}).catch(()=>{})}
+function netOpen(then,url){
   if(NET.ws&&NET.ws.readyState===1){then();return}
-  if(location.protocol==='file:'||!location.host){lbMsg('Online play needs the game’s web address. Open the game from its link, not from a file on your computer.');return}
+  url=url||(location.host&&/^https?:$/.test(location.protocol)?(location.protocol==='https:'?'wss://':'ws://')+location.host:MP_SERVER);
   lbMsg('Connecting… (a sleeping server can take up to a minute to wake up)');
-  let ws;try{ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host)}catch(e){lbMsg('Could not connect to the server.');return}
+  let ws;try{ws=new WebSocket(url)}catch(e){if(url!==MP_SERVER){netOpen(then,MP_SERVER);return}lbMsg('Could not connect to the server.');return}
   NET.ws=ws;
   let opened=false;
   ws.onopen=()=>{opened=true;lbMsg('');NET.ping=setInterval(()=>netSend({t:'ping'}),20000);then()};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}netMsg(m)};
-  ws.onclose=()=>{clearInterval(NET.ping);if(NET.ws===ws){NET.ws=null;if(!opened)NET.msg='Could not reach the multiplayer server. Open the game from its online link and try again.';netDown()}};
+  // No game server where the page came from: use the main one
+  ws.onclose=()=>{clearInterval(NET.ping);if(NET.ws===ws){NET.ws=null;if(!opened&&url!==MP_SERVER){netOpen(then,MP_SERVER);return}if(!opened)NET.msg='Could not reach the multiplayer server. Check your connection and try again.';netDown()}};
   ws.onerror=()=>{};
 }
 function netDown(){
@@ -2982,7 +3004,7 @@ function renderLobby(){
   for(let i=0;i<4;i++){const p=NET.players[i];
     slots.push(p?'<div class="lbp"><i style="background:'+PCOL[i]+'"></i><b>'+escH(p.name)+'</b>'+(p.host?'<em>Host</em>':'')+(p.id===NET.you?'<em class="me">You</em>':'')+(host&&!p.host?'<button class="lbx" data-act="kick" data-i="'+p.id+'" title="Remove player">✕</button>':'')+'</div>'
       :'<div class="lbp empty"><i></i><b>Waiting for a player…</b></div>')}
-  const link=location.origin+'/?room='+NET.code;
+  const link=(/^https?:$/.test(location.protocol)?location.origin+location.pathname:MP_SERVER.replace('wss:','https:')+'/')+'?room='+NET.code;
   let right;
   if(MP){
     right='<div class="lbc"><h3>Game in progress</h3><p class="note">Your team is fighting on '+escH(MAPS[MP.set.map].n)+'. You can return to the battle at any time.</p><button class="go" data-act="resume">Back to the game</button></div>';
@@ -3023,7 +3045,7 @@ function renderLobby(){
   lb.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.k==='sw'){const v=$('lb-swv');if(v)v.textContent=t.value}});
   lb.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='lb-code'){const j=lb.querySelector('[data-act=join]');if(j)j.click()}if(e.key==='Enter'&&e.target.id==='lb-chat'){chatSend(e.target.value);e.target.value=''}});
 })();
-$('m-mp').onclick=()=>scr('lobby');
+$('m-mp').onclick=()=>{scr('lobby');wakeMP()};
 
 /* --- Starting and leaving a game --- */
 function mpStart(){
@@ -3043,7 +3065,7 @@ function beginMP(S,players,host){
   $('spd').textContent='Speed 1×';$('spd').classList.remove('on');
   $('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n+' · Co-op';
   $('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;
-  closeMenu();mpHud(true);
+  closeMenu();mpHud(true);bgTick(host);
   if(host)sendSnap();
 }
 // Runs inside reset(): sets up the shared castle and every player's own purse
@@ -3070,7 +3092,7 @@ function mpHud(on){
   ['start','spd','pause','auto'].forEach(id=>{$(id).style.display=guest?'none':''});
   NET.barH='';
 }
-function mpExitGame(){
+function mpExitGame(){bgTick(false);
   MP=null;inGame=false;auto=false;
   $('again').textContent='Play again';$('tomenu').textContent='Main menu';
   $('auto').classList.remove('on');$('auto').textContent='Auto: Off';
@@ -3376,16 +3398,24 @@ function paintRun(){
   $('rmult').textContent=RUN.rm>1?'· Rewards ×'+RUN.rm.toFixed(2):'';
 }
 $('runopt').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const k=b.dataset.r;if(k==='en')RUN.en=!RUN.en;else RUN.mods[k]=!RUN.mods[k];paintRun()};
-setMap(0);buildPicker();reset();openMenu();
+setMap(0);buildPicker();reset();openMenu();if(coarse())$('phh').textContent='Tap a tile twice to build';
 let last=0,achT=0;
-function loop(ts){
+// One step of the game: logic, co-op updates and achievements (no drawing)
+function simStep(ts){
   const dt=Math.max(0,Math.min(.05,(ts-last)/1000||0));last=ts;tm=ts/1000;
   if(MP&&!MP.host){if(!st.over)guestStep(dt)}else if(!st.over&&!paused&&!st.pause)update(dt*st.spd);
   if(MP&&MP.host)mpTick();
   achT-=dt;if(achT<=0){achT=.5;checkAch()}
-  draw();ui();requestAnimationFrame(loop);
 }
+function loop(ts){simStep(ts);draw();ui();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
+// Co-op host: a hidden tab gets no animation frames, which froze the game for everyone.
+// A worker's timer keeps the host's game going (without drawing) while the tab is hidden.
+function bgTick(on){
+  if(on&&!NET.bg){try{NET.bg=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),50)'],{type:'text/javascript'})));NET.bg.onmessage=()=>{if(document.hidden&&MP&&MP.host)simStep(performance.now())}}catch(e){}}
+  else if(!on&&NET.bg){NET.bg.terminate();NET.bg=null}}
+// Leaving or reloading ends a co-op game for everyone, so the browser asks the host first
+addEventListener('beforeunload',e=>{if(MP&&MP.host&&inGame&&!st.over){e.preventDefault();e.returnValue=''}});
 </script>
 </body>
 </html>
