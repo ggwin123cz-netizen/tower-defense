@@ -814,7 +814,7 @@ const T={
   bnk:{n:'Bank',cost:150,r:0,d:0,cd:1,col:'#2ecc71',bank:1,gp:180},
   drn:{n:'Drone Bay',cost:180,r:160,d:9,cd:.45,col:'#26c6da',drone:1,gp:220}
 };
-const DESC={sip:'Cheap and rapid fire. Great early on.',del:'Heavy cannonballs that explode on impact.',mraz:'Icy shots that slow enemies down.',tesla:'Lightning that chains between enemies.',snip:'Huge range, always targets the toughest enemy.',pla:'Burns every enemy close to it.',dul:'Produces gold over time instead of attacking.',
+const DESC={sip:'Cheap and rapid fire. Great early on.',del:'Heavy cannonballs that explode on impact.',mraz:'Icy shots that slow enemies down.',tesla:'Lightning that chains between enemies.',snip:'Huge range, always targets the toughest enemy.',pla:'Burns every enemy close to it.',dul:'Produces gold during waves instead of attacking.',
   poi:'Toxic globs that poison a small group over time.',las:'A beam that heats up the longer it stays on one target.',mor:'Long-range artillery shells with a big blast.',rail:'Pierces through every enemy in a straight line.',mis:'Fires a salvo of homing missiles at several targets.',bea:'Boosts the damage of nearby towers. Ward upgrade protects them from freeze and stun.',vor:'Damages and pulls nearby enemies back along the path.',sto:'Calls lightning on random enemies and stuns them briefly.',
   bal:'Fires heavy bolts that pierce through several enemies.',boo:'Throws a boomerang that hits everything on the way out and back.',blu:'Short-range cone blast that knocks enemies back.',spk:'Built on the path. Shreds ground enemies that walk over it.',tar:'Lobs tar that leaves slowing, burning puddles on the path.',
   gat:'Spins up to a blistering fire rate the longer it shoots.',thr:'Roots nearby ground enemies in place with thorny vines.',flk:'Triple damage against flying enemies, half against ground ones.',bnk:'Pays interest on your gold after every wave.',drn:'Launches drones that patrol a wide area and shoot.'};
@@ -1154,6 +1154,11 @@ function stat0(t){const b=T[t.k],u=t.u;t.r=b.r*(1+.08*u.r)*(1+.04*sk('o3'));t.d=
   // New towers: pierce count, boomerang size, cone width, tar puddles, root time, drone count, bank interest, trap slow
   t.prc=3+u.z;t.brad=10+3*u.z;t.cone=(35+8*u.z)*Math.PI/180;t.tdur=4+.8*u.z;t.tsl=Math.min(.8,.45+.07*u.z);t.rdur=1.2+.3*u.z;t.ndr=1+(u.z>=2)+(u.z>=4);t.bint=.04+.012*u.d;t.bcap=40+25*u.d;t.barb=.1*u.z}
 function hasZ(t){const b=T[t.k];return !!(b.spl||b.slow||b.chain||b.psn||b.multi||b.vort||b.storm||b.buff||b.pierce||b.boom||b.cone||b.tar||b.root||b.drone||b.trap)}
+const UPN={
+  d:{sip:'Arrow damage',del:'Shell damage',mraz:'Frost damage',tesla:'Shock damage',snip:'Shot damage',pla:'Burn damage',dul:'Gold per payout',poi:'Poison damage',las:'Beam damage',mor:'Shell damage',rail:'Slug damage',mis:'Warhead damage',bea:'Boost',vor:'Crush damage',sto:'Lightning damage',bal:'Bolt damage',boo:'Blade damage',blu:'Pellet damage',spk:'Spike damage',tar:'Tar damage',gat:'Bullet damage',thr:'Thorn damage',flk:'Flak damage',bnk:'Interest',drn:'Drone damage'},
+  s:{sip:'Fire rate',del:'Reload speed',mraz:'Chill rate',tesla:'Zap rate',snip:'Reload speed',pla:'Burn rate',dul:'Faster generation',poi:'Spit rate',las:'Pulse rate',mor:'Reload speed',rail:'Charge speed',mis:'Launch rate',vor:'Pull rate',sto:'Storm rate',bal:'Reload speed',boo:'Throw rate',blu:'Reload speed',spk:'Snap rate',tar:'Lob rate',gat:'Fire rate',thr:'Growth rate',flk:'Fire rate',drn:'Launch rate'},
+  r:{sip:'Range',del:'Range',mraz:'Frost range',tesla:'Arc range',snip:'Scope range',pla:'Flame reach',poi:'Spit range',las:'Beam range',mor:'Artillery range',rail:'Rail range',mis:'Missile range',bea:'Aura range',vor:'Pull range',sto:'Storm range',bal:'Bolt range',boo:'Throw range',blu:'Blast reach',tar:'Tar range',gat:'Range',thr:'Vine reach',flk:'Flak range',drn:'Patrol range'}};
+function upName(t,s){return s==='z'?zName(t):(UPN[s]&&UPN[s][t.k])||STATS[s]}
 function zName(t){const b=T[t.k];return b.aa?'Shrapnel':b.multi?'Salvo':b.spl?'Blast':b.chain?'Chain':b.psn?'Toxin':b.vort?'Pull':b.storm?'Strikes':b.buff?'Ward':b.pierce?'Pierce':b.boom?'Blade size':b.cone?'Spread':b.tar?'Sticky':b.root?'Roots':b.drone?'Drones':b.trap?'Barbs':STATS.z}
 const bcost=k=>Math.max(1,Math.floor(T[k].cost*(1-.03*sk('e9'))));
 function upCost(t,s){return Math.floor(T[t.k].cost*.6*(1+.7*t.u[s])*(1-.05*sk('e3')))}
@@ -1295,7 +1300,7 @@ function update(dt){
     t.cd-=dt*(t.jm?.5:1)*(st.ovc>0?2:1);t.fl=Math.max(0,(t.fl||0)-dt*6);
     const b=T[t.k],dm=t.d*(1+(t.buff||0));
     if(b.buff||b.bank)continue;
-    if(b.gen){if(t.cd<=0){t.cd=t.cdv;const g0=Math.round(t.d);giveGold(t.ow,g0);st.ge+=g0;t.dmg=(t.dmg||0)+g0;t.fl=1;st.pt.push({x:t.x,y:t.y-14,vx:0,vy:-26,l:1,tx:'+'+g0});sfx('coin')}continue}
+    if(b.gen){if(!st.run){t.cd=Math.max(t.cd,t.cdv);continue}if(t.cd<=0){t.cd=t.cdv;const g0=Math.round(t.d);giveGold(t.ow,g0);st.ge+=g0;t.dmg=(t.dmg||0)+g0;t.fl=1;st.pt.push({x:t.x,y:t.y-14,vx:0,vy:-26,l:1,tx:'+'+g0});sfx('coin')}continue}
     if(b.trap){if(t.cd<=0){let hit=0;for(const x of st.en)if(!x.gone&&!isFly(x)&&Math.hypot(x.x-t.x,x.y-t.y)<=t.r){hurt(x,dm,t);hit=1;if(t.barb>0&&cc(x)){x.slow=Math.max(x.slow,.8);x.sf=Math.min(x.sf||1,1-t.barb)}}if(hit){t.cd=t.cdv;t.fl=1;sfx('sip')}}continue}
     if(b.root){if(t.cd<=0){const tg=inRange(t).filter(x=>!isFly(x));if(tg.length){t.cd=t.cdv;t.fl=1;for(const x of tg){hurt(x,dm,t);if(ccHold(x))x.root=Math.max(x.root||0,x.k==='tank'||x.elite?t.rdur*.5:t.rdur)}st.fx.push({x:t.x,y:t.y,r:rng(t),a:.8,c:'90,200,90'});sfx('poi')}}continue}
     {const a=pick(t);if(a)t.ang=Math.atan2(a.y-t.y,a.x-t.x)}
@@ -2500,7 +2505,7 @@ function ui0(){
     const r=cv.getBoundingClientRect(),k=r.width/(W*C),inf=$('info'),pw=inf.offsetWidth||244,ph=inf.offsetHeight||220,rt=r.left+t.x*k+30*k+pw<r.right,top=Math.max(r.top+4,Math.min(r.bottom-ph-4,r.top+t.y*k-ph/2));
     inf.className=rt?'r':'l';inf.style.left=(rt?r.left+t.x*k+30*k:r.left+t.x*k-30*k-pw)+'px';inf.style.top=top+'px';inf.style.setProperty('--ay',(r.top+t.y*k-top)+'px');
     for(const s in STATS){const b=$('u-'+s);b.hidden=(s==='z'&&!hasZ(t))||(s==='r'&&(B.gen||B.bank))||(s==='s'&&(B.buff||B.bank));if(b.hidden)continue;const m=t.u[s]>=MAXU;let pips='';for(let i=0;i<MAXU;i++)pips+=i<t.u[s]?'<i class="f"></i>':'<i></i>';
-      const hh='<span>'+(s==='z'?zName(t):s==='d'&&B.buff?'Boost':s==='d'&&B.bank?'Interest':STATS[s])+'</span><em>'+pips+'</em><strong>'+(m?'MAX':upCost(t,s))+'</strong>';if(b.dataset.h!==hh){b.dataset.h=hh;b.innerHTML=hh}b.disabled=m||goldOf()<upCost(t,s)}
+      const hh='<span>'+upName(t,s)+'</span><em>'+pips+'</em><strong>'+(m?'MAX':upCost(t,s))+'</strong>';if(b.dataset.h!==hh){b.dataset.h=hh;b.innerHTML=hh}b.disabled=m||goldOf()<upCost(t,s)}
     const ub=$('u-t');ub.hidden=!hasTarget(t);if(!ub.hidden){const h2='<span>Target</span><strong style="color:var(--fg);min-width:0">'+TGN[t.tg||'first']+' ⟳</strong>';if(ub.dataset.h!==h2){ub.dataset.h=h2;ub.innerHTML=h2}}
     $('sell').textContent='Sell for '+Math.floor(t.inv*refund());
   }
@@ -2643,7 +2648,7 @@ function renderRoster(){
     [...$('eroster').querySelectorAll('canvas')].forEach((c,i)=>eIcon(c,ELITE[i],ROLE.elite.z))}
 }
 function tRows(k){const b=T[k],r=[['Build cost',b.cost+' gold']];
-  if(b.gen)r.push(['Gold produced',b.d+' every '+b.cd+'s']);
+  if(b.gen)r.push(['Gold produced',b.d+' every '+b.cd+'s, during waves']);
   else if(b.buff)r.push(['Damage boost','+20%'],['Range',b.r]);
   else if(b.bank)r.push(['Interest per wave','4% of your gold'],['Interest cap',40+' gold']);
   else r.push(['Damage',b.d+(b.multi?' × 3 missiles':b.beam?' per tick, heats to ×3':b.pierce?', pierces 3 enemies':b.aa?' (×3 vs flying)':b.tar?' per second in tar':'')],['Attacks / second',(1/b.cd).toFixed(1)],['Range',b.r]);
