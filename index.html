@@ -872,7 +872,7 @@ const SAVE_KEY='td-save-v1',DEF_UN=['sip','del','mraz','pla','dul'];
 let save={gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}};
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&typeof s==='object')save=Object.assign(save,s)}catch(e){}
 const persist=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch(e){}};
-function fillSave(){save.stats=Object.assign({kills:0,bosses:0,spells:0,chests:0,built:0,elites:0,quests:0},save.stats||{});save.ach=save.ach||{};save.stars=save.stars||{};save.wins=save.wins||{};if(save.snd===undefined)save.snd=1;if(save.mus===undefined)save.mus=1;if(save.vol===undefined)save.vol=1;if(save.dmg===undefined)save.dmg=1;if(save.shk===undefined)save.shk=1;
+function fillSave(){save.stats=Object.assign({kills:0,bosses:0,spells:0,chests:0,built:0,elites:0,quests:0},save.stats||{});save.ach=save.ach||{};save.stars=save.stars||{};save.wins=save.wins||{};if(save.snd===undefined)save.snd=0;if(save.mus===undefined)save.mus=0;if(!save.mute1){save.snd=0;save.mus=0;save.mute1=1}if(save.vol===undefined)save.vol=1;if(save.dmg===undefined)save.dmg=1;if(save.shk===undefined)save.shk=1;
   save.skills=save.skills||{};
   // Older saves get a starting level based on the stars they already earned
   if(save.runes===undefined){const ts=Object.values(save.stars).reduce((a,v)=>a+v,0);save.lvl=1+Math.min(15,Math.floor(ts/3));save.xp=0;save.runes=2+save.lvl}}
