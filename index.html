@@ -161,6 +161,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .mmbox{width:min(1060px,100%);height:min(720px,100%);display:flex;flex-direction:column;background:rgba(15,20,27,.94);border:1px solid var(--line2);border-radius:18px;box-shadow:0 40px 100px rgba(0,0,0,.6);overflow:hidden}
 .mmtop{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
 .mmtop h1{font-size:22px}
+@media (max-width:600px){.mmtop{flex-wrap:wrap;gap:10px;padding:12px 14px}.mmtop .brand{flex:1 0 auto}.mmr{display:contents}.mmr .lvc{flex:1}.mmr .lvc span{flex:1;width:auto}}
 .scr{flex:1;min-height:0;overflow:auto;padding:24px}
 .sh{display:flex;align-items:center;gap:14px;margin-bottom:18px}
 .sh h2{margin:0;font:700 30px/1 "Barlow Condensed",Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase}
@@ -287,6 +288,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 #info::before{content:"";position:absolute;top:calc(var(--ay,50%) - 6px);width:12px;height:12px;background:#121922;transform:rotate(45deg)}
 #info.r::before{left:-7px;border-left:1px solid var(--line2);border-bottom:1px solid var(--line2)}
 #info.l::before{right:-7px;border-right:1px solid var(--line2);border-top:1px solid var(--line2)}
+#info.b::before{top:-7px;left:calc(var(--ax,50%) - 6px);border-left:1px solid var(--line2);border-top:1px solid var(--line2)}
 #in{display:flex;align-items:center;justify-content:space-between;font:700 21px/1 "Barlow Condensed",Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase}
 #in span{font:600 11px/1 Inter,sans-serif;letter-spacing:.05em;padding:4px 8px;border-radius:99px;background:rgba(76,141,255,.15);color:#9cc0ff}
 #dm{color:var(--mut);font-size:12px;padding-bottom:8px;margin-bottom:2px;border-bottom:1px solid var(--line)}
@@ -1216,10 +1218,12 @@ function callEarly(){const b=earlyBonus();if(!b||paused)return;
 function waveGo(){if(earlyBonus())callEarly();else startWave()}
 // What the next wave will contain (mirrors the spawn rules below)
 // Which enemy is the n-th of wave w (shared by spawning and the next-wave preview)
+// Elite slots step through the elite list; the step must share no factor with its length, or the same one or two repeat all wave
+const gcd=(a,b)=>b?gcd(b,a%b):a;
 function pickSpawn(w,n){let k='norm',E;const av=ABK.filter(a=>w>=AB[a].w);
   if(w>=8&&w%3===2&&n===2)return{k:'elite',E:ELITE[ELITE.length-1]};
   if(w%5===0&&n%6===5)k='tank';
-  else if(w>=8&&n%5===4){const ev=ELITE.filter(x=>w>=x.w&&x.ab!=='treasure');k='elite';E=ev[((n/5|0)*7+w)%ev.length]}
+  else if(w>=8&&n%5===4){const ev=ELITE.filter(x=>w>=x.w&&x.ab!=='treasure'),L=ev.length;let j=7;while(gcd(j,L)>1)j++;k='elite';E=ev[((n/5|0)*j+w)%L]}
   else if(av.length&&n%4===3){k='spec';E=MAPS[cur].x[av[((n>>2)+w)%av.length]]}
   else if(w>1&&n%3===2)k='fast';
   return{k,E:E||MAPS[cur].e[k]}}
@@ -2474,7 +2478,7 @@ function draw(){
   for(let i=0;i<4;i++){g.strokeStyle='rgba('+th.portal+','+(.85-i*.2)+')';g.lineWidth=2;g.beginPath();g.ellipse(4,wp[0].y,6+i*3+Math.sin(tm*3+i)*1.5,18+i*3,0,0,7);g.stroke()}
   for(const e of st.en)if(e.ab==='jam')cir(e.x,e.y,85,'rgba(190,120,255,.07)');
   const h=st.hover;
-  if(h&&!st.aim&&!st.over&&T[st.type]&&canBuild(st.type,h.x,h.y)){
+  if(h&&!st.sel&&!st.aim&&!st.over&&T[st.type]&&canBuild(st.type,h.x,h.y)){
     const ok=goldOf()>=bcost(st.type)&&mpCapOk(),hx=h.x*C+C/2,hy=h.y*C+C/2;rr(h.x*C+2,h.y*C+2,C-4,C-4,6,ok?'rgba(255,255,255,.22)':'rgba(255,70,80,.35)');
     if(T[st.type].r){g.setLineDash([5,4]);g.beginPath();g.arc(hx,hy,T[st.type].r,0,7);g.fillStyle=ok?'rgba(120,170,255,.12)':'rgba(255,70,80,.1)';g.fill();g.strokeStyle=ok?'rgba(200,220,255,.9)':'rgba(255,140,150,.9)';g.lineWidth=1.5;g.stroke();g.setLineDash([])}
     // Translucent preview of the tower that would be built here
@@ -2588,8 +2592,10 @@ function ui0(){
   if(t){
     const B=T[t.k],ih=B.n+'<span>Level '+tot(t)+(MP&&st.P[t.ow]?' · '+escH(st.P[t.ow].name):'')+'</span>';if($('in').dataset.h!==ih){$('in').dataset.h=ih;$('in').innerHTML=ih}
     $('dm').innerHTML=B.bank?'Interest <strong>'+(t.bint*100).toFixed(1)+'%</strong> (max '+t.bcap+') &nbsp;·&nbsp; Earned <strong>'+fmt(t.dmg||0)+'</strong>':B.gen?'Gold produced <strong>'+fmt(t.dmg||0)+'</strong>':B.buff?'Boost <strong>+'+Math.round(t.bd*100)+'%</strong> &nbsp;·&nbsp; Ward <strong>'+Math.round(t.wd*100)+'%</strong>':'Damage dealt <strong>'+fmt(t.dmg||0)+'</strong> &nbsp;·&nbsp; Kills <strong>'+(t.kills||0)+'</strong>';
-    const r=cv.getBoundingClientRect(),k=r.width/(W*C),inf=$('info'),pw=inf.offsetWidth||244,ph=inf.offsetHeight||220,rt=r.left+t.x*k+30*k+pw<r.right,top=Math.max(r.top+4,Math.min(r.bottom-ph-4,r.top+t.y*k-ph/2));
-    inf.className=rt?'r':'l';inf.style.left=(rt?r.left+t.x*k+30*k:r.left+t.x*k-30*k-pw)+'px';inf.style.top=top+'px';inf.style.setProperty('--ay',(r.top+t.y*k-top)+'px');
+    const r=cv.getBoundingClientRect(),k=r.width/(W*C),inf=$('info'),pw=inf.offsetWidth||244,ph=inf.offsetHeight||220,tx=r.left+t.x*k,ty=r.top+t.y*k,rt=tx+30*k+pw<r.right;
+    if(ph<=r.height&&(rt||tx-30*k-pw>=r.left)){const top=Math.max(r.top+4,Math.min(r.bottom-ph-4,ty-ph/2));inf.className=rt?'r':'l';inf.style.left=(rt?tx+30*k:tx-30*k-pw)+'px';inf.style.top=top+'px';inf.style.setProperty('--ay',(ty-top)+'px')}
+    // No room beside the tower, or the window is taller than the board (phones): under the board, pointing up at the tower
+    else{const left=Math.max(8,Math.min(innerWidth-pw-8,tx-pw/2));inf.className='b';inf.style.left=left+'px';inf.style.top=Math.max(8,Math.min(innerHeight-ph-8,r.bottom+10))+'px';inf.style.setProperty('--ax',(tx-left)+'px')}
     for(const s in STATS){const b=$('u-'+s);b.hidden=(s==='z'&&!hasZ(t))||(s==='r'&&(B.gen||B.bank))||(s==='s'&&(B.buff||B.bank));if(b.hidden)continue;const m=t.u[s]>=MAXU;let pips='';for(let i=0;i<MAXU;i++)pips+=i<t.u[s]?'<i class="f"></i>':'<i></i>';
       const hh='<span>'+upName(t,s)+'<small>'+upPrev(t,s)+'</small></span><em>'+pips+'</em><strong>'+(m?'MAX':upCost(t,s))+'</strong>';if(b.dataset.h!==hh){b.dataset.h=hh;b.innerHTML=hh}b.disabled=m||goldOf()<upCost(t,s)}
     const ub=$('u-t');ub.hidden=!hasTarget(t);if(!ub.hidden){const h2='<span>Target</span><strong style="color:var(--fg);min-width:0">'+TGN[t.tg||'first']+' ⟳</strong>';if(ub.dataset.h!==h2){ub.dataset.h=h2;ub.innerHTML=h2}}
@@ -2614,7 +2620,8 @@ cv.addEventListener('click',e=>{
   const p=cell(e);st.hover=p;
   const t=st.tw.find(t=>t.cx===p.x&&t.cy===p.y);
   if(t){st.sel=st.sel===t?null:t;return}
-  st.sel=null;
+  // With a tower's window open, a click on empty ground only closes it
+  if(st.sel){st.sel=null;return}
   if(!T[st.type]||!canBuild(st.type,p.x,p.y))return;
   const lim=()=>toast('Tower limit reached','Each player can build '+MP.set.cap+' towers. Sell one to build another.',null,'#ff5a6a');
   if(MP&&!mpCapOk()){lim();return}
