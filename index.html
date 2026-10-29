@@ -2701,7 +2701,7 @@ function tutEnd(){save.tips=1;persist();$('tut').hidden=true;tutHl(null)}
 
 /* ---------- Accounts: progress saved online (Firebase), so it follows the player to any device ---------- */
 // Public web settings of the Firebase project. Not a secret: the Firestore rules only let a player read and write their own save.
-const FB_CONFIG=null;
+const FB_CONFIG={apiKey:'AIzaSyCUGUrSRvwiPPHXePgly6LuVkTRwqYH9vQ',authDomain:'towerdefense-2fcf2.firebaseapp.com',projectId:'towerdefense-2fcf2'};
 // Players log in with a name. Firebase wants an e-mail, so the name becomes one on a domain that can never receive mail.
 const FB_SDK='https://www.gstatic.com/firebasejs/10.12.2/',ACC_MAIL='@players.invalid';
 function fbLoad(){
