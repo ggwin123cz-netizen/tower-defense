@@ -198,6 +198,17 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .mp span{display:flex;flex-direction:column;gap:2px;padding:0 2px 2px;font-size:11.5px;line-height:1.15;text-align:left}
 .mp small{color:var(--mut);font-size:10px;font-weight:500}
 #lays{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+/* Map maker: the player's own maps on the Play screen, and the editor */
+#cmaps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#cmaps .ly u{text-decoration:none;font-size:11px;font-weight:600;color:var(--acc);padding:2px 0}
+#cmaps .ly u:hover{color:#8fb8ff}
+.cmnew{justify-content:center;align-items:center!important;min-height:118px;gap:4px!important;border-style:dashed;text-align:center}
+.cmnew b{font-size:14px}.cmnew span{display:block!important;color:var(--mut);font-size:11.5px!important;padding:0!important}
+.edw{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start}
+#edcv{display:block;width:100%;height:auto;border-radius:12px;touch-action:none;cursor:crosshair;box-shadow:0 0 0 1px var(--line2),0 18px 40px rgba(0,0,0,.4)}
+.edtools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#ed-msg{min-height:34px;line-height:1.45}
+@media (max-width:900px){.edw{grid-template-columns:1fr}#cmaps{grid-template-columns:repeat(2,1fr)}}
 .ly{flex-direction:column;align-items:stretch;padding:6px;gap:6px}
 .ly canvas{display:block;width:100%;height:auto;border-radius:7px}
 .ly span{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:0 3px 3px;font-size:12.5px}
@@ -537,7 +548,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
         </div>
         <div class="tiles">
           <button class="tile res" id="m-resume" hidden><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#fff"/></svg></span><span><b>Resume</b><small id="m-rs"></small></span></button>
-          <button class="tile go" id="m-play"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#fff"/></svg></span><span><b>Play</b><small>Choose a world and difficulty</small></span></button>
+          <button class="tile go" id="m-play"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#fff"/></svg></span><span><b>Play</b><small>Choose a world, or build your own map</small></span></button>
           <button class="tile" id="m-mp"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7ff0da" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 14.2c2.8 0 5 2 5 5"/></svg></span><span><b>Multiplayer</b><small>Co-op for up to 4 players</small></span></button>
           <div class="grid2">
           <button class="tile" id="m-towers"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 21V9l2-1V4h2v2h2V4h2v2h2V4h2v4l2 1v12z" stroke="#9cc0ff" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span><b>Towers</b><small id="m-tc"></small></span></button>
@@ -562,6 +573,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
           <span class="lbl">Difficulty</span><div id="diff"></div>
           <span class="lbl">World <span id="totst" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div id="maps"></div>
           <span class="lbl">Battlefield <span id="lyname" style="text-transform:none;letter-spacing:0;color:var(--fg)"></span></span><div id="lays"></div>
+          <span class="lbl">Your maps <span style="text-transform:none;letter-spacing:0;color:var(--mut)">· half the gems and XP, no stars</span></span><div id="cmaps"></div>
           <span class="lbl">Run options <span id="rmult" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div class="runopt" id="runopt"></div>
           <button class="go" id="startgame">Start game</button>
         </div>
@@ -588,6 +600,22 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
     <section class="scr" id="s-account" hidden>
       <div class="sh"><button class="back" data-to="home">← Back</button><h2>Account</h2><p>Your progress, online and on every device you log in from.</p></div>
       <div id="accl"></div>
+    </section>
+    <section class="scr" id="s-editor" hidden>
+      <div class="sh"><button class="back" data-to="play">← Back</button><h2>Map maker</h2><p>Draw the path from the left edge to the castle on the right.</p></div>
+      <div class="edw">
+        <canvas id="edcv" width="1280" height="800" aria-label="Map editor"></canvas>
+        <div class="lbc">
+          <div class="lbf"><label>Name</label><input type="text" id="ed-n" maxlength="24" placeholder="My map" autocomplete="off"></div>
+          <div class="lbf"><label>World (look and enemies)</label><select id="ed-w"></select></div>
+          <div class="lbf"><label>Tool</label><div class="edtools"><button id="ed-tp">Path</button><button id="ed-tt">Trees</button></div></div>
+          <div class="edtools"><button id="ed-auto">Random trees</button><button id="ed-clear">Clear all</button></div>
+          <p class="lbmsg" id="ed-msg"></p>
+          <button class="go" id="ed-save">Save map</button>
+          <button id="ed-play">Save and play</button>
+          <div class="edtools"><button id="ed-share">Copy code</button><button id="ed-del" class="lbleave">Delete</button></div>
+        </div>
+      </div>
     </section>
     <section class="scr" id="s-settings" hidden>
       <div class="sh"><button class="back" data-to="home">← Back</button><h2>Settings</h2></div>
@@ -931,7 +959,7 @@ const persist=()=>{accDirty();persist0()};
 // Online account state (see Accounts below); declared here because saves happen while the page is still loading
 const ACC={user:null,name:'',n:0,t:0,at:0,busy:false,ask:0,err:'',loading:null,recheck:0};let FB=null;
 function fillSave(){save.stats=Object.assign({kills:0,bosses:0,spells:0,chests:0,built:0,elites:0,quests:0},save.stats||{});save.ach=save.ach||{};save.stars=save.stars||{};save.wins=save.wins||{};if(save.snd===undefined)save.snd=0;if(save.mus===undefined)save.mus=0;if(!save.mute1){save.snd=0;save.mus=0;save.mute1=1}if(save.tips===undefined)save.tips=save.tut||save.stats.built>0?1:0;if(save.vol===undefined)save.vol=1;if(save.dmg===undefined)save.dmg=1;if(save.shk===undefined)save.shk=1;
-  save.skills=save.skills||{};
+  save.skills=save.skills||{};save.maps=(Array.isArray(save.maps)?save.maps:[]).map(mapClean).filter(Boolean);
   // Older saves get a starting level based on the stars they already earned
   if(save.runes===undefined){const ts=Object.values(save.stars).reduce((a,v)=>a+v,0);save.lvl=1+Math.min(15,Math.floor(ts/3));save.xp=0;save.runes=2+save.lvl}}
 fillSave();
@@ -1118,7 +1146,7 @@ questsFresh();
 function hdr(){$('gems').textContent=save.gems;$('runes').textContent=save.runes;$('plv').textContent=save.lvl;$('pxp').style.width=(save.lvl>=MAXLV?100:save.xp/xpNeed(save.lvl)*100)+'%';$('lvc').title='Level '+save.lvl+(save.lvl<MAXLV?' · '+save.xp+' / '+xpNeed(save.lvl)+' XP':' · max level')}
 
 const road=new Set();
-function setMap(m,l=0){cur=m;lay=l;const L=MAPS[m].ly[l];route=L.r;wp=route.map(([x,y])=>({x:x*C+C/2,y:y*C+C/2}));deco=new Set(L.d);road.clear();
+function setMap(m,l=0,L0){cur=m;lay=l;const L=L0||MAPS[m].ly[l];route=L.r;wp=route.map(([x,y])=>({x:x*C+C/2,y:y*C+C/2}));deco=new Set(L.d);road.clear();
 for(let i=0;i<route.length-1;i++){const[a,b]=route[i],[c,d]=route[i+1],sx=Math.sign(c-a),sy=Math.sign(d-b);let x=a,y=b;for(;;){road.add(x+','+y);if(x===c&&y===d)break;x+=sx;y+=sy}}
 buildBG()}
 let st,MP=null,SKC=null;
@@ -1129,7 +1157,7 @@ const MODS=[
   {id:'poor',n:'Poor',d:'40% less starting gold and 20% less gold from enemies',b:.25},
   {id:'frail',n:'Frail',d:'Half the castle lives',b:.2}];
 const RUN={en:false,mods:{},sp:1,hp:1,gs:1,gk:1,lm:1,rm:1};
-function runCalc(){const m=RUN.mods;RUN.sp=m.swift?1.25:1;RUN.hp=m.tough?1.5:1;RUN.gs=m.poor?.6:1;RUN.gk=m.poor?.8:1;RUN.lm=m.frail?.5:1;RUN.rm=1+MODS.reduce((a,x)=>a+(m[x.id]?x.b:0),0)+(RUN.en?.1:0)} // MP: online co-op session (null when playing alone); SKC: skills of the player whose action is being handled
+function runCalc(){const m=RUN.mods;RUN.sp=m.swift?1.25:1;RUN.hp=m.tough?1.5:1;RUN.gs=m.poor?.6:1;RUN.gk=m.poor?.8:1;RUN.lm=m.frail?.5:1;RUN.rm=(1+MODS.reduce((a,x)=>a+(m[x.id]?x.b:0),0)+(RUN.en?.1:0))*((inGame?CUST:custSel())?.5:1)} // MP: online co-op session (null when playing alone); SKC: skills of the player whose action is being handled
 /* ---------- Skill tree (paid with Runes) ---------- */
 const sk=id=>{const s=SKC||save.skills;return(s&&s[id])||0};
 // Gold is kept per player in co-op (o = player id) and in one pool when playing alone
@@ -1446,7 +1474,7 @@ function update(dt){
     for(let w=st.wave-(st.early||0);w<=st.wave;w++){const p=payWave(w,ows);wb+=p.wb;ge+=p.ge;for(const o of ows)gp[o]+=p.gp[o]}
     st.early=0;
     if(st.wave<MAXW||RUN.en){st.clr={t:2.4,w:st.wave,g:wb,gm:ge,gp:MP?gp:undefined};sfx('clear')}if(st.wave>=10&&(!MP||MP.set.sw<=1))unlockAch('w10');
-    const bk=bkey(cur,lay,dif);if(!MP)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.en){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
+    const bk=bkey(cur,lay,dif);if(!MP&&!CUST)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.en&&!CUST){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
     if(st.wave>=MAXW&&!RUN.en){const vb=Math.round(40*gm*RUN.rm);st.gems+=vb;save.gems+=vb;mpEv('!g:'+vb);persist();end(true)}
     else{persist();if(auto)st.nxt=3}
   }
@@ -1496,8 +1524,8 @@ function leakBox(top){const el=$('ovlk');if(!top||!top.length){el.hidden=true;re
   el.innerHTML='<div class="lkl"><span class="lkh">Got through</span>'+top.map(x=>'<span><b>'+x.c+'×</b> '+escH(x.n)+'</span>').join('')+'</div><p class="lkt"><b>Tip</b>'+escH(top[0].n)+': '+escH(leakTip(top[0]))+'</p>';el.hidden=false}
 const STAR=on=>'<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21.1l1.5-7L2 9.3l7-.8z" fill="'+(on?'#ffd34d':'#252d3b')+'" stroke="'+(on?'#b8860b':'#3a4456')+'" stroke-width="1"/></svg>';
 function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
-  const D=DIFFS[dif],lost=st.lives0-st.lives,stars=MP?0:win?(lost===0?3:lost<=D.l*.3?2:1):0,bk=bkey(cur,lay,dif),old=save.stars[bk]||0,wo=MAPS.map((_,i)=>worldOpen(i));
-  if(win){if(!MP)save.stars[bk]=Math.max(old,stars);save.wins[cur]=1;unlockAch('win'+dif);if(lost===0)unlockAch('perf');sfx('win');questAdd('win',1)}else{shake(6);sfx('lose')}
+  const D=DIFFS[dif],lost=st.lives0-st.lives,stars=MP||CUST?0:win?(lost===0?3:lost<=D.l*.3?2:1):0,bk=bkey(cur,lay,dif),old=save.stars[bk]||0,wo=MAPS.map((_,i)=>worldOpen(i));
+  if(win){if(!MP&&!CUST)save.stars[bk]=Math.max(old,stars);if(!CUST){save.wins[cur]=1;unlockAch('win'+dif);if(lost===0)unlockAch('perf')}sfx('win');questAdd('win',1)}else{shake(6);sfx('lose')}
   questAdd('gold',st.ge-st.qge);st.qge=st.ge;
   // Rewards: XP (scaled by difficulty), a rune for every new star, plus level-up payouts
   const ns=Math.max(0,(win?stars:0)-old),xg=Math.round((Math.round(st.xp*[.8,1,1.3,1.7][dif]*.6)+(win?50*(dif+1):0))*RUN.rm),lv0=save.lvl,xp0=save.xp;save.runes+=ns;
@@ -1512,7 +1540,7 @@ function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
   $('ovxp').querySelector('.rw2').hidden=!(ups.length||ns);setTimeout(()=>{const i=$('ovxp').querySelector('.bar i');if(i)i.style.width=pTo+'%'},120);
   const mvp=st.tw.filter(t=>!T[t.k].gen&&!T[t.k].buff).sort((a,b)=>(b.dmg||0)-(a.dmg||0))[0];
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
-  $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win;
+  $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win||!!CUST;
   $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));
   $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(MP)mpOver(win)}
 let tm=0;
@@ -2442,9 +2470,24 @@ function castle(){
   const w=Math.sin(tm*5);g.fillStyle='#e74c3c';g.beginPath();g.moveTo(x+12,y-24);g.lineTo(x+26+w*2,y-19+w*1.5);g.lineTo(x+12,y-14);g.fill();
 }
 // Weather drawn over everything: light rays and bubbles underwater, snowfall in the mountains
+// Light over the whole board: slow sun shafts on daylight worlds, then a vignette that frames the action (stronger on dark worlds)
+const SUNNY=new Set(['grass','jungle','autumn','beach','ruins','candy','sky']),DIM=new Set(['haunt','cave','moon','lava','swamp','factory']);
+function lightFx(){const tn=MAPS[cur].th;
+  if(SUNNY.has(tn)){g.save();g.globalCompositeOperation='lighter';
+    const sh=cg('shaft',()=>{const l=g.createLinearGradient(-60,0,60,0);l.addColorStop(0,'rgba(255,240,200,0)');l.addColorStop(.5,'rgba(255,240,200,.075)');l.addColorStop(1,'rgba(255,240,200,0)');return l});
+    for(let i=0;i<3;i++){const x=((tm*6+i*260)%(W*C+400))-200;g.save();g.translate(x,-20);g.rotate(.45);g.globalAlpha=.6+.4*Math.sin(tm*.5+i*2);g.fillStyle=sh;g.fillRect(-60,0,120,H*C*1.6);g.restore()}
+    g.restore()}
+  const dim=DIM.has(tn);g.fillStyle=cg(dim?'vigD':'vigL',()=>{const r=g.createRadialGradient(W*C/2,H*C/2,H*C*.35,W*C/2,H*C/2,W*C*.62);r.addColorStop(0,'rgba(0,0,0,0)');r.addColorStop(1,'rgba(4,6,12,'+(dim?.42:.26)+')');return r});g.fillRect(0,0,W*C,H*C)}
 function ambient(){
   const tn=MAPS[cur].th;
-  if(tn==='sea'){
+  if(tn==='grass'){
+    // Pollen drifting in the breeze, and butterflies wandering over the meadow
+    for(let i=0;i<26;i++){const x=((i*149+tm*(10+i%4*4))%(W*C+40))-20,y=(i*71+Math.sin(tm*.9+i)*16+H*C)%(H*C);cir(x,y,.7+i%3*.4,'rgba(255,250,220,'+(.35+.3*Math.sin(tm*2+i))+')')}
+    const bc=['255,255,255','255,214,90','255,150,80','150,195,255'];
+    for(let i=0;i<5;i++){const t=tm*.35+i*1.9,x=W*C/2+Math.sin(t*1.3+i)*W*C*.42,y=H*C/2+Math.sin(t*.9+i*2.3)*H*C*.4,f=Math.abs(Math.sin(tm*14+i*3));
+      ell(x+3,y+12,2.6,1,'rgba(0,0,0,.14)');g.save();g.translate(x,y);g.rotate(Math.cos(t*1.3+i)*.6);
+      ell(-2.6*f-.4,0,2.8*f+.3,2.2,'rgba('+bc[i%4]+',.92)');ell(2.6*f+.4,0,2.8*f+.3,2.2,'rgba('+bc[i%4]+',.92)');g.fillStyle='rgba(40,30,20,.9)';g.fillRect(-.5,-2,1,4);g.restore()}
+  }else if(tn==='sea'){
     g.fillStyle='rgba(190,240,255,.05)';for(let i=0;i<5;i++){const x0=((i*190+tm*14)%1000)-180;g.beginPath();g.moveTo(x0,0);g.lineTo(x0+50,0);g.lineTo(x0-60,H*C);g.lineTo(x0-130,H*C);g.fill()}
     g.strokeStyle='rgba(220,250,255,.55)';g.lineWidth=1;for(let i=0;i<28;i++){const sp=18+i%5*7,y=H*C+10-((i*67+tm*sp)%(H*C+30)),x=(i*131)%(W*C)+Math.sin(tm*2+i)*4;g.beginPath();g.arc(x,y,1+i%3*.8,0,7);g.stroke()}
   }else if(tn==='mount'){
@@ -2584,7 +2627,7 @@ function draw(){
     else if(p.debris){g.globalAlpha=Math.max(0,p.l);g.fillStyle=p.c;g.fillRect(p.x-1.1,p.y-1.1,2.2,2.2)}
     else{g.globalAlpha=Math.max(0,p.l);cir(p.x,p.y,1+p.l*2.5,p.c)}
   }
-  g.globalAlpha=1;ambient();
+  g.globalAlpha=1;ambient();lightFx();
   if(st.tq.length){const q=st.tq[0],a=Math.max(0,Math.min(1,q.t,(4-q.t)*4)),w=300,x=W*C/2-w/2,y=12;g.globalAlpha=a;
     rr(x,y,w,40,8,'rgba(10,14,19,.88)');rr(x,y,4,40,2,'rgb('+q.c+')');g.textAlign='left';g.textBaseline='middle';
     g.font='700 9px Inter,sans-serif';g.fillStyle='rgb('+q.c+')';g.fillText('NEW ENEMY',x+14,y+12);g.font='700 15px '+FONT;g.fillStyle='#fff';g.fillText(q.n,x+14,y+27);
@@ -2670,7 +2713,7 @@ function paint(c,lw,fn){const o=g;g=c.getContext('2d');g.setTransform(1,0,0,1,0,
 const tIcon=(c,k,skin)=>paint(c,54,()=>drawTower({k,skin,u:{d:0,s:0,r:0,z:0},x:26,y:29,ang:-.6}));
 const fake=(E,z,x,y)=>({sh:E.s,col:E.c,c2:E.c2,c3:E.c3,hn:E.hn,ab:E.ab,z,x,y,ph:0,fa:0,icon:1,hp:1,mx:1,slow:0});
 const eIcon=(c,E,z)=>paint(c,42,()=>drawEnemy(fake(E,z,21,23)));
-function thumb(m,l,c){const x=c.getContext('2d'),s=c.width/(W*C),M=MAPS[m].ly[l],th=TH[MAPS[m].th];x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.width,c.height);x.scale(s,s);
+function thumb(m,l,c,L){const x=c.getContext('2d'),s=c.width/(W*C),M=L||MAPS[m].ly[l],th=TH[MAPS[m].th];x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.width,c.height);x.scale(s,s);
   const gr=x.createLinearGradient(0,0,0,H*C);gr.addColorStop(0,th.g[0]);gr.addColorStop(1,th.g[1]);x.fillStyle=gr;x.fillRect(0,0,W*C,H*C);x.lineJoin='round';
   const P=()=>{x.beginPath();M.r.forEach(([a,b],i)=>{const px=a*C+C/2,py=b*C+C/2;i?x.lineTo(px,py):x.moveTo(px,py)})};
   P();x.strokeStyle=th.road[0];x.lineWidth=C+8;x.stroke();P();x.strokeStyle=th.road[2];x.lineWidth=C-2;x.stroke();
@@ -2682,6 +2725,98 @@ function buildPicker(){
   $('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" title="${T[k].n}: ${DESC[k]}"><canvas width="68" height="68"></canvas><span>${T[k].n}<b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
   AV.forEach(k=>{tIcon($('t-'+k).querySelector('canvas'),k);$('t-'+k).onclick=()=>{st.type=k;st.sel=null}});
 }
+
+/* ---------- Map maker: players draw their own battlefields ---------- */
+// Custom maps live in save.maps as {id,n,w,r,d}: route corners and tree tiles like the built-in layouts, so the game plays them unchanged.
+// CUST is the custom map being played (null on built-in maps); cSel the one picked on the Play screen.
+let CUST=null,cSel=null;
+const ED={open:false,m:null,p:[],d:new Set(),w:0,tool:'p',down:false,paint:true,dirty:false,hov:null,msg:'',keep:null,cv:null};
+const custSel=()=>cSel&&(save.maps||[]).find(x=>x.id===cSel)||null;
+// Path tiles in walking order <-> route corners; a finished path enters at x=-1 and leaves at x=W into the castle
+function cellsToRoute(p,open){const pts=[[-1,p[0][1]],...p];if(!open)pts.push([W,p[p.length-1][1]]);const r=[pts[0]];
+  for(let i=1;i<pts.length-1;i++){const[a,b]=pts[i-1],[c,d]=pts[i],[e,f]=pts[i+1];if(c-a!==e-c||d-b!==f-d)r.push(pts[i])}r.push(pts[pts.length-1]);return r}
+function routeCells(r){const o=[];for(let i=0;i<r.length-1;i++){const[a,b]=r[i],[c,d]=r[i+1],sx=Math.sign(c-a),sy=Math.sign(d-b);let x=a,y=b;
+  for(;;){const l=o[o.length-1];if(x>=0&&x<W&&!(l&&l[0]===x&&l[1]===y))o.push([x,y]);if(x===c&&y===d)break;x+=sx;y+=sy}}return o}
+// A map from a save, another device or a friend's code: keep it only if it is a real, playable map
+function mapClean(m){
+  if(!m||typeof m!=='object')return null;const w=m.w|0,r=m.r;
+  if(!(w>=0&&w<MAPS.length)||!Array.isArray(r)||r.length<3||r.length>160)return null;
+  for(let i=0;i<r.length;i++){const q=r[i];if(!Array.isArray(q)||q.length!==2||!Number.isInteger(q[0])||!Number.isInteger(q[1])||q[1]<0||q[1]>=H||q[0]<-1||q[0]>W)return null;
+    if(i&&(q[0]!==r[i-1][0])===(q[1]!==r[i-1][1]))return null} // every step goes straight and somewhere
+  const n=r.length;if(r[0][0]!==-1||r[1][1]!==r[0][1]||r[n-1][0]!==W||r[n-2][1]!==r[n-1][1]||r.slice(1,-1).some(q=>q[0]<0||q[0]>=W))return null;
+  const p=routeCells(r),seen=new Set(p.map(c=>c[0]+','+c[1]));if(seen.size!==p.length||p[0][0]!==0||p[p.length-1][0]!==W-1)return null;
+  const d=[...new Set((Array.isArray(m.d)?m.d:[]).filter(k=>typeof k==='string'&&/^\d{1,2},\d$/.test(k)&&+k.split(',')[0]<W&&!seen.has(k)))].slice(0,100);
+  return{id:typeof m.id==='string'&&m.id?m.id.slice(0,20):Date.now().toString(36),n:String(m.n||'Custom map').slice(0,24),w,r:r.map(q=>[q[0],q[1]]),d}}
+function renderCustom(){const el=$('cmaps');if(!el)return;const ms=save.maps;
+  el.innerHTML=ms.map(m=>'<button class="ly'+(m.id===cSel?' on':'')+'" data-c="'+escH(m.id)+'"><canvas width="320" height="200"></canvas><span>'+escH(m.n)+'<small>'+MAPS[m.w].n+'</small></span><em><u data-e="'+escH(m.id)+'">Edit map</u></em></button>').join('')
+    +'<button class="ly cmnew" data-new="1"><b>+ Build a map</b><span>Draw your own path</span></button><button class="ly cmnew" data-imp="1"><b>Paste a map code</b><span>Play a friend’s map</span></button>';
+  [...el.querySelectorAll('[data-c] canvas')].forEach((c,i)=>thumb(ms[i].w,0,c,ms[i]))}
+function mapCode(m){return 'TDM1:'+btoa(unescape(encodeURIComponent(JSON.stringify({n:m.n,w:m.w,r:m.r,d:m.d}))))}
+function mapImport(){const c=(prompt('Paste the map code:')||'').trim();if(!c)return;let m=null;
+  try{if(c.slice(0,5)==='TDM1:')m=mapClean(JSON.parse(decodeURIComponent(escape(atob(c.slice(5))))))}catch(e){}
+  if(!m){toast('That code did not work','Copy the whole map code and try again',null,'#ff5a6a');return}
+  if(save.maps.length>=30){toast('Too many maps','You can keep up to 30. Delete one first.',null,'#ff5a6a');return}
+  m.id=Date.now().toString(36);save.maps.push(m);cSel=m.id;persist();renderLays();renderRoster();toast('Map added',m.n+' is ready to play',null,'#38d68a')}
+// The editor draws its preview with the board renderer, which reads the current map from globals:
+// those are swapped in while editing and put back afterwards, so a game paused in the menu is untouched.
+function edOpen(m){
+  if(MP){toast('Not during co-op','Leave the co-op game to build maps',null,'#f4c152');return}
+  if(!ED.open){ED.keep={cur,lay,route,wp,deco,road:[...road]};ED.open=true}
+  ED.m=m||null;ED.p=m?routeCells(m.r):[];ED.d=new Set(m?m.d:[]);ED.w=m?m.w:(worldOpen(mapI)?mapI:0);ED.dirty=false;ED.msg='';ED.hov=null;
+  $('ed-n').value=m?m.n:'';$('ed-w').innerHTML=MAPS.map((M,i)=>worldOpen(i)||i===ED.w?'<option value="'+i+'"'+(i===ED.w?' selected':'')+'>'+M.n+'</option>':'').join('');
+  $('ed-share').hidden=$('ed-del').hidden=!m;edTool('p');scr('editor');edDraw()}
+function edClose(){ED.open=false;ED.down=false;const k=ED.keep;ED.keep=null;if(!k)return;cur=k.cur;lay=k.lay;route=k.route;wp=k.wp;deco=k.deco;road.clear();k.road.forEach(x=>road.add(x));buildBG()}
+function edTool(t){ED.tool=t;$('ed-tp').classList.toggle('on',t==='p');$('ed-tt').classList.toggle('on',t==='t');if(ED.open)edPaint()}
+const edDone=()=>ED.p.length>0&&ED.p[ED.p.length-1][0]===W-1;
+// Rebuild the board picture after the map changed, then draw the editing guides on top
+function edDraw(){const p=ED.p;cur=ED.w;deco=ED.d;road.clear();p.forEach(q=>road.add(q[0]+','+q[1]));
+  wp=(p.length?cellsToRoute(p,!edDone()):[]).map(([a,b])=>({x:a*C+C/2,y:b*C+C/2}));buildBG();
+  const k=ED.cv||(ED.cv=document.createElement('canvas'));k.width=1280;k.height=800;k.getContext('2d').drawImage(bg,0,0,1280,800);edPaint()}
+function edPaint(){if(!ED.open)return;if(!ED.cv)return edDraw();const c=$('edcv'),x=c.getContext('2d'),p=ED.p,done=edDone();
+  x.setTransform(1,0,0,1,0,0);x.drawImage(ED.cv,0,0);x.setTransform(c.width/(W*C),0,0,c.height/(H*C),0,0);
+  x.strokeStyle='rgba(255,255,255,.13)';x.lineWidth=1;x.beginPath();for(let i=1;i<W;i++){x.moveTo(i*C,0);x.lineTo(i*C,H*C)}for(let j=1;j<H;j++){x.moveTo(0,j*C);x.lineTo(W*C,j*C)}x.stroke();
+  const tint=(a,b,col)=>{x.fillStyle=col;x.fillRect(a*C+3,b*C+3,C-6,C-6)};
+  // Where the path can go next
+  if(ED.tool==='p'){if(!p.length)for(let j=0;j<H;j++)tint(0,j,'rgba(90,220,130,.3)');
+    else if(!done){const[lx,ly]=p[p.length-1];[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const a=lx+dx,b=ly+dy;if(a>=0&&a<W&&b>=0&&b<H&&!road.has(a+','+b))tint(a,b,'rgba(90,220,130,.3)')})}}
+  // Walking direction
+  x.fillStyle='rgba(255,255,255,.6)';p.forEach(([a,b],i)=>{if(i%2===0){x.beginPath();x.arc(a*C+C/2,b*C+C/2,2.6,0,7);x.fill()}});
+  const mark=([a,b],col,t)=>{const cx=a*C+C/2,cy=b*C+C/2;x.lineWidth=3;x.strokeStyle=col;x.beginPath();x.arc(cx,cy,15,0,7);x.stroke();
+    x.font='700 12px '+FONT;x.textAlign='center';x.textBaseline='bottom';x.lineWidth=3;x.strokeStyle='rgba(10,14,19,.85)';const ty=b>0?cy-18:cy+31;x.strokeText(t,cx,ty);x.fillStyle=col;x.fillText(t,cx,ty)};
+  if(p.length)mark(p[0],'#5ee08a','Start');if(done)mark(p[p.length-1],'#f4c152','Castle');else if(p.length)mark(p[p.length-1],'#ffffff','Keep going');
+  if(ED.hov){const[a,b]=ED.hov;x.lineWidth=2;x.strokeStyle=ED.tool==='t'?'rgba(140,220,120,.9)':'rgba(255,255,255,.85)';x.strokeRect(a*C+2,b*C+2,C-4,C-4)}
+  $('ed-msg').textContent=ED.msg||(!p.length?'Start on the left edge: drag through the green tiles toward the right edge.':!done?'Path: '+p.length+' tiles. Keep going until you reach the right edge.':'Path: '+p.length+' tiles. Ready to save! Tap a path tile to cut the path back there.')}
+function edCell(e){const r=$('edcv').getBoundingClientRect();return[Math.floor((e.clientX-r.left)/r.width*W),Math.floor((e.clientY-r.top)/r.height*H)]}
+// Path: drag from its end to extend it (straight runs fill in), drag back to undo, tap a path tile to cut back to it. Trees: tap or drag to add or remove.
+function edApply(a,b,first){if(a<0||b<0||a>=W||b>=H)return;const k=a+','+b,p=ED.p;ED.msg='';
+  if(ED.tool==='t'){if(road.has(k))return;if(first)ED.paint=!ED.d.has(k);if(ED.paint===ED.d.has(k))return;if(ED.paint)ED.d.add(k);else ED.d.delete(k);ED.dirty=true;return edDraw()}
+  const i=p.findIndex(q=>q[0]===a&&q[1]===b);
+  if(i>=0){if((first||i===p.length-2)&&i<p.length-1){p.length=i+1;ED.dirty=true;edDraw()}return}
+  if(!p.length){if(a!==0){ED.msg='The path starts on the left edge, in the green column.';return edPaint()}p.push([a,b]);ED.d.delete(k)}
+  else{const[lx,ly]=p[p.length-1];if(a!==lx&&b!==ly)return;const sx=Math.sign(a-lx),sy=Math.sign(b-ly);let x=lx,y=ly,n=0;
+    while(x!==a||y!==b){x+=sx;y+=sy;if(road.has(x+','+y))break;p.push([x,y]);road.add(x+','+y);ED.d.delete(x+','+y);n++}if(!n)return}
+  ED.dirty=true;edDraw()}
+function edSave(){const p=ED.p;if(!edDone()){ED.msg='The path must reach the right edge, where the castle stands.';edPaint();return null}
+  const ms=save.maps,i=ED.m?ms.findIndex(x=>x.id===ED.m.id):-1;
+  if(i<0&&ms.length>=30){ED.msg='You can keep up to 30 maps. Delete one first.';edPaint();return null}
+  const m={id:ED.m?ED.m.id:Date.now().toString(36),n:($('ed-n').value.trim()||'My map '+(ms.length+(i<0?1:0))).slice(0,24),w:ED.w,r:cellsToRoute(p),d:[...ED.d].filter(k=>!road.has(k))};
+  if(i>=0)ms[i]=m;else ms.push(m);ED.m=m;ED.dirty=false;cSel=m.id;persist();$('ed-share').hidden=$('ed-del').hidden=false;
+  toast('Map saved',m.n+' is in Your maps on the Play screen',null,'#38d68a');return m}
+(function(){const cv=$('edcv');
+  cv.addEventListener('pointerdown',e=>{e.preventDefault();ED.down=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}const[a,b]=edCell(e);ED.hov=[a,b];edApply(a,b,true)});
+  cv.addEventListener('pointermove',e=>{const c=edCell(e);if(ED.hov&&ED.hov[0]===c[0]&&ED.hov[1]===c[1])return;ED.hov=c;if(ED.down)edApply(c[0],c[1],false);else edPaint()});
+  const up=()=>{ED.down=false};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);cv.addEventListener('pointerleave',()=>{ED.hov=null;if(!ED.down)edPaint()});
+  $('ed-tp').onclick=()=>edTool('p');$('ed-tt').onclick=()=>edTool('t');
+  $('ed-w').onchange=e=>{ED.w=+e.target.value;ED.dirty=true;edDraw()};$('ed-n').oninput=()=>{ED.dirty=true};
+  $('ed-auto').onclick=()=>{ED.d=new Set(ED.p.length?genDeco(cellsToRoute(ED.p,!edDone()),Date.now()%9973):[]);if(!ED.p.length)ED.msg='Draw the path first, then add trees.';ED.dirty=true;edDraw()};
+  $('ed-clear').onclick=()=>{if(ED.p.length&&!confirm('Clear the whole path and all trees?'))return;ED.p=[];ED.d=new Set();ED.dirty=true;edDraw()};
+  $('ed-save').onclick=()=>{edSave()};
+  $('ed-play').onclick=()=>{if(edSave())startGame()};
+  $('ed-share').onclick=()=>{if(!ED.m)return;const c=mapCode(ED.m);(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast('Map code copied','Send it to a friend. They paste it on the Play screen.',null,'#38d68a'),()=>prompt('Copy this map code:',c))};
+  $('ed-del').onclick=()=>{if(!ED.m||!confirm('Delete '+ED.m.n+'?'))return;save.maps=save.maps.filter(x=>x.id!==ED.m.id);if(cSel===ED.m.id)cSel=null;persist();ED.dirty=false;scr('play')};
+  $('cmaps').onclick=e=>{const ed=e.target.closest('[data-e]');if(ed){const m=save.maps.find(x=>x.id===ed.dataset.e);if(m)edOpen(m);return}
+    const b=e.target.closest('[data-c],[data-new],[data-imp]');if(!b)return;if(b.dataset.new){edOpen(null);return}if(b.dataset.imp){mapImport();return}
+    cSel=cSel===b.dataset.c?null:b.dataset.c;renderLays();renderRoster()}})();
 
 /* ---------- First-game tips (single player, until finished or skipped) ---------- */
 const TUT=[
@@ -2785,7 +2920,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&ACC.user&&
 
 /* ---------- Main menu ---------- */
 let selT='sip',skT='sip';
-function scr(id){['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount})[id]()}
+function scr(id){if(ED.open&&id!=='editor'){if(ED.dirty&&!confirm('Leave without saving your map?'))return;edClose()}['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account','editor'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount,editor:edPaint})[id]()}
 function renderSettings(){const tg=(k,n,d)=>'<div class="setr"><div class="tx"><b>'+n+'</b><small>'+d+'</small></div><button data-t="'+k+'" class="'+(save[k]?'on':'')+'">'+(save[k]?'On':'Off')+'</button></div>';
   $('setl').innerHTML=tg('snd','Sound effects','Shots, hits and spell sounds')+tg('mus','Music','Background music')+'<div class="setr"><div class="tx"><b>Master volume</b><small>'+Math.round(save.vol*100)+'%</small></div><input type="range" id="vol" min="0" max="100" value="'+Math.round(save.vol*100)+'"></div>'+tg('dmg','Damage numbers','Floating numbers for big hits and crits')+tg('shk','Screen shake','Camera shake on explosions and leaks')+'<div class="setr"><div class="tx"><b>Fullscreen</b><small>Also available with the F key</small></div><button id="sfs">Toggle</button></div><div class="setr"><div class="tx"><b>Refund skill tree</b><small>Get all spent runes back</small></div><button id="srs">Refund</button></div><div class="setr"><div class="tx"><b>Move your progress</b><small>Copy a code here, then paste it on another device or another link of the game</small></div><button id="sexp">Copy code</button><button id="simp">Paste code</button></div><div class="setr dng"><div class="tx"><b>Reset all progress</b><small>Deletes gems, levels, skills, towers, skins and stars</small></div><button id="m-reset2">Reset</button></div>';
   $('setl').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;if(k==='snd')setSnd(!save.snd);else if(k==='mus')setMus(!save.mus);else{save[k]=save[k]?0:1;persist()}renderSettings()});
@@ -2830,9 +2965,9 @@ function renderQuests(){
 function renderAch(){const dn=ACH.filter(a=>save.ach[a.id]);$('achsum').textContent=dn.length+' of '+ACH.length+' unlocked · '+dn.reduce((s,a)=>s+a.g,0)+' gems earned';
   $('achs').innerHTML=ACH.map(a=>{const d=!!save.ach[a.id],p=a.p&&!d?a.p():null;return'<div class="ach'+(d?' done':'')+'"><span class="ti">'+(d?TROPHY:TROPHY.replace(/#ffd34d/g,'#4a5568'))+'</span><div class="tx"><b>'+a.n+'</b><small>'+a.d+(p?' · '+fmt(Math.min(p[0],p[1]))+' / '+fmt(p[1]):'')+'</small>'+(p?'<div class="pg"><i style="width:'+Math.min(100,p[0]/p[1]*100)+'%"></i></div>':'')+'</div><span class="rw">'+(d?'✓ Done':'+'+a.g+' '+GEM)+'</span></div>'}).join('')}
 function openMenu(){paused=!MP;st.sel=null;$('mm').hidden=false;scr('home');if(ACC.recheck&&!inGame){ACC.recheck=0;accReconcile()}}
-function closeMenu(){$('mm').hidden=true;paused=false}
+function closeMenu(){if(ED.open)edClose();$('mm').hidden=true;paused=false}
 function renderHome(){
-  $('m-resume').hidden=!inGame;if(inGame)$('m-rs').textContent=MAPS[cur].n+' · '+DIFFS[dif].n+' · wave '+st.wave+' of '+MAXW;
+  $('m-resume').hidden=!inGame;if(inGame)$('m-rs').textContent=(CUST?CUST.n:MAPS[cur].n)+' · '+DIFFS[dif].n+' · wave '+st.wave+' of '+MAXW;
   $('m-tc').textContent=save.un.length+' of '+KEYS.length+' towers unlocked';
   const owned=Object.values(save.sk).reduce((a,v)=>a+v.length,0);$('m-sc').textContent=owned+' of '+(KEYS.length*SKN)+' skins collected';
   const cheap=RARK.filter(r=>chestPool(r).length&&save.gems>=RAR[r].ch).length;$('m-cc').textContent=cheap?cheap+' chest'+(cheap>1?'s':'')+' ready to open':'Open chests for random skins';
@@ -2854,10 +2989,11 @@ function renderHome(){
 function paintDiff(){if(!difOpen(dif))dif=1;[...$('diff').children].forEach((b,i)=>{b.classList.toggle('on',i===dif);const o=difOpen(i);b.classList.toggle('lock',!o);b.querySelector('em').innerHTML=o?'Gems ×'+DIFFS[i].gm:LOCK+' Level '+DIFLV[i]})}
 // Start button explains what is still locked
 function paintStart(){const b=$('startgame'),ts=totStars();let why='';
-  if(!worldOpen(mapI))why='Collect '+(worldNeed(mapI)-ts)+' more ★ to unlock '+MAPS[mapI].n;
+  if(custSel()){if(!difOpen(dif))why='Reach level '+DIFLV[dif]+' for '+DIFFS[dif].n}
+  else if(!worldOpen(mapI))why='Collect '+(worldNeed(mapI)-ts)+' more ★ to unlock '+MAPS[mapI].n;
   else if(!layOpen(mapI,layI))why='Win '+MAPS[mapI].ly[layI-1].n+' first';
   else if(!difOpen(dif))why='Reach level '+DIFLV[dif]+' for '+DIFFS[dif].n;
-  b.disabled=!!why;b.textContent=why||'Start game'}
+  b.disabled=!!why;b.textContent=why||(custSel()?'Play '+custSel().n:'Start game')}
 const starStr=n=>'<i class="stz">'+'★'.repeat(n)+'<u>'+'★'.repeat(3-n)+'</u></i>';
 // World cards show total stars over all 3 layouts for the chosen difficulty
 function paintMaps(){const tot=totStars();[...$('maps').children].forEach((b,i)=>{b.classList.toggle('on',i===mapI);const o=worldOpen(i);b.classList.toggle('lock',!o);let lk=b.querySelector('.lk2');
@@ -2865,11 +3001,11 @@ function paintMaps(){const tot=totStars();[...$('maps').children].forEach((b,i)=
     let ts=0;for(let l=0;l<MAPS[i].ly.length;l++)ts+=save.stars[bkey(i,l,dif)]||0;b.querySelector('small').innerHTML=o?'<i class="stz">★</i> '+ts+' / '+MAPS[i].ly.length*3:'Need '+(worldNeed(i)-tot)+' more ★'});
   $('totst').textContent='★ '+tot+' collected';renderLays()}
 function renderLays(){const M=MAPS[mapI];if(layI>=M.ly.length)layI=0;$('lyname').textContent='· '+M.n;
-  $('lays').innerHTML=M.ly.map((l,j)=>{const sr=save.stars[bkey(mapI,j,dif)]||0,bw=save.best[bkey(mapI,j,dif)],o=layOpen(mapI,j);return'<button class="ly'+(j===layI?' on':'')+(o?'':' lock')+'" data-l="'+j+'"><canvas width="320" height="200"></canvas>'+(o?'':'<span class="lk2">'+LOCK+' Win '+M.ly[j-1].n+'</span>')+'<span>'+l.n+'<small class="'+l.len+'">'+l.len+' path</small></span><em>'+(sr?starStr(sr):bw?'Best wave '+bw+' / '+DIFFS[dif].w:'Not played yet')+'</em></button>'}).join('');
-  [...$('lays').querySelectorAll('canvas')].forEach((c,j)=>thumb(mapI,j,c));paintStart()}
+  $('lays').innerHTML=M.ly.map((l,j)=>{const sr=save.stars[bkey(mapI,j,dif)]||0,bw=save.best[bkey(mapI,j,dif)],o=layOpen(mapI,j);return'<button class="ly'+(j===layI&&!custSel()?' on':'')+(o?'':' lock')+'" data-l="'+j+'"><canvas width="320" height="200"></canvas>'+(o?'':'<span class="lk2">'+LOCK+' Win '+M.ly[j-1].n+'</span>')+'<span>'+l.n+'<small class="'+l.len+'">'+l.len+' path</small></span><em>'+(sr?starStr(sr):bw?'Best wave '+bw+' / '+DIFFS[dif].w:'Not played yet')+'</em></button>'}).join('');
+  [...$('lays').querySelectorAll('canvas')].forEach((c,j)=>thumb(mapI,j,c));renderCustom();paintStart()}
 function renderPlay(){paintDiff();paintMaps();renderRoster();paintRun()}
 function renderRoster(){
-  const M=MAPS[mapI];$('rname').textContent=M.n;
+  const cm=custSel(),M=MAPS[cm?cm.w:mapI];$('rname').textContent=M.n;
   const list=[['norm',M.e.norm],['fast',M.e.fast],['tank',M.e.tank],...ABK.map(a=>['spec',M.x[a]])];
   $('roster').innerHTML=list.map(([k,E])=>'<div class="fo"><canvas width="80" height="80"></canvas><div><b>'+E.n+'</b><small>'+(E.ab?'<i style="background:rgb('+AB[E.ab].col+')"></i>'+AB[E.ab].n+' · from wave '+AB[E.ab].w:ROLE[k].n+(k==='tank'?' · every 5th wave':''))+'</small></div></div>').join('');
   [...$('roster').querySelectorAll('canvas')].forEach((c,i)=>eIcon(c,list[i][1],ROLE[list[i][0]].z));
@@ -2946,7 +3082,7 @@ function showReveal(){const s=SK[CH.id],R=RAR[CH.r],more=chestPool(CH.r).length&
 function closeChest(){CH=null;$('chm').hidden=true;scr('chests')}
 $('chc').onclick=()=>{if(CH&&!CH.done)CH.t0=performance.now()-(CH_T+.9)*1000};
 
-function startGame(){if(!worldOpen(mapI)||!layOpen(mapI,layI)||!difOpen(dif))return;runCalc();setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;closeMenu()}
+function startGame(){if(ED.open)edClose();CUST=custSel();if(!CUST&&(!worldOpen(mapI)||!layOpen(mapI,layI))||!difOpen(dif))return;runCalc();if(CUST)setMap(CUST.w,0,CUST);else setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;closeMenu()}
 // Spell bar: the three base spells plus any learned in the skill tree
 function buildSpells(){const L=SPELLS.filter(spellOn);$('spells').innerHTML=L.map(s=>'<button class="sp" id="sp-'+s.k+'" title="'+s.n+' ('+s.key+'): '+s.d+'" style="--sc:rgb('+s.col+')">'+s.ic+'<span>'+s.n+'</span><kbd>'+s.key+'</kbd><i class="cd"></i><em></em></button>').join('');
 L.forEach(s=>$('sp-'+s.k).onclick=()=>castSpell(s.k))}
@@ -2962,8 +3098,8 @@ $('diff').innerHTML=DIFFS.map((d,i)=>'<button data-d="'+i+'"><b>'+d.n+'</b><smal
 $('diff').onclick=e=>{const b=e.target.closest('[data-d]');if(b){if(!difOpen(+b.dataset.d)){toast(DIFFS[+b.dataset.d].n+' is locked','Reach player level '+DIFLV[+b.dataset.d]+' to play it',LOCK.replace(/13/g,'20'),'#8592a3');return}dif=+b.dataset.d;paintDiff();paintMaps()}};
 $('maps').innerHTML=MAPS.map((m,i)=>'<button class="mp" data-i="'+i+'"><canvas width="200" height="125"></canvas><span>'+m.n+'<small></small></span></button>').join('');
 [...$('maps').children].forEach((b,i)=>thumb(i,0,b.querySelector('canvas')));
-$('maps').onclick=e=>{const b=e.target.closest('[data-i]');if(b){mapI=+b.dataset.i;paintMaps();renderRoster()}};
-$('lays').onclick=e=>{const b=e.target.closest('[data-l]');if(b){layI=+b.dataset.l;renderLays()}};
+$('maps').onclick=e=>{const b=e.target.closest('[data-i]');if(b){mapI=+b.dataset.i;cSel=null;paintMaps();renderRoster()}};
+$('lays').onclick=e=>{const b=e.target.closest('[data-l]');if(b){layI=+b.dataset.l;cSel=null;renderLays();renderRoster()}};
 document.querySelectorAll('.back').forEach(b=>b.onclick=()=>scr(b.dataset.to));
 $('m-play').onclick=()=>scr('play');$('m-towers').onclick=()=>scr('towers');$('m-skins').onclick=()=>scr('skins');$('m-chests').onclick=()=>scr('chests');$('m-skills').onclick=()=>scr('skills');$('m-quests').onclick=()=>scr('quests');$('m-resume').onclick=closeMenu;
 // Progress lives in this browser only; a code moves it to another device or another link of the game
@@ -2979,7 +3115,7 @@ $('m-settings').onclick=()=>scr('settings');$('m-account').onclick=()=>scr('acco
 $('startgame').onclick=startGame;
 $('menu').onclick=openMenu;
 $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()};
-$('again').onclick=()=>{if(MP){mpBackToLobby();return}mapI=cur;layI=lay;startGame()};
+$('again').onclick=()=>{if(MP){mpBackToLobby();return}if(!CUST){mapI=cur;layI=lay}startGame()};
 $('start').onclick=waveGo;$('tutx').onclick=tutEnd;$('tutok').onclick=tutEnd;
 $('auto').onclick=()=>{if(MP&&!MP.host)return;auto=!auto;$('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');if(auto&&!st.run&&!st.over)startWave()};
 $('fs').onclick=()=>{const d=document;try{(d.fullscreenElement?d.exitFullscreen():d.documentElement.requestFullscreen()).catch(()=>{})}catch(e){}};
@@ -3169,7 +3305,7 @@ function mpStart(){
 function beginMP(S,players,host){
   MP={host,id:NET.you,set:S,players:players.map((p,i)=>Object.assign({},p,{col:PCOL[i%4]})),evq:new Set(),evs:[],kd:[]};
   NET.last=new Map();NET.live={};NET.map={en:new Map(),tw:new Map(),bl:new Map(),zones:new Map(),met:new Map()};NET.barH='';NET.snapT=tm;
-  mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
+  CUST=null;mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
   setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';
   $('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');
   $('spd').textContent='Speed 1×';$('spd').classList.remove('on');
