@@ -725,7 +725,7 @@ const FONT='"Barlow Condensed",Inter,sans-serif';
 let LK=1,route,wp,deco,dif=1,auto=false,mapI=0,layI=0,cur=0,lay=0,MAXW=20,paused=true,inGame=false,AV=[];
 // Save keys for best wave / stars; layout 1 keeps the old key so earlier progress still counts
 const bkey=(m,l,d)=>l?m+'.'+l+'-'+d:m+'-'+d;
-const DIFFS=[{n:'Easy',h:.7,r:1.25,l:30,g:230,c:.85,w:20,gm:1},{n:'Normal',h:1,r:1,l:20,g:160,c:1,w:25,gm:1.5},{n:'Hard',h:1.5,r:.85,l:12,g:140,c:1.2,w:30,gm:2},{n:'Insane',h:2.3,r:.7,l:5,g:120,c:1.4,w:35,gm:3}];
+const DIFFS=[{n:'Easy',h:.7,r:1.25,l:30,g:230,c:.85,w:20,gm:1},{n:'Normal',h:1,r:1,l:20,g:160,c:1,w:25,gm:1.5},{n:'Hard',h:1.38,r:.85,l:12,g:140,c:1.2,w:30,gm:2},{n:'Insane',h:2.2,r:.7,l:5,g:120,c:1.4,w:35,gm:3}];
 const GEM='<svg width="12" height="12" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#b57bff"/></svg>';
 const LOCK='<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" fill="#8592a3"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#8592a3" stroke-width="2"/></svg>';
 const COIN='<svg width="11" height="11" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#f4c152"/><circle cx="8" cy="8" r="4.3" fill="none" stroke="#a87a22" stroke-width="1.5"/></svg>';
@@ -1368,7 +1368,9 @@ const spellOn=s=>!s.req||sk(s.req)>0;
 const SPK={};SPELLS.forEach(s=>SPK[s.k]=s);
 const dnMax=()=>save.dmg===0?0:28;
 const shake=v=>{if(save.shk===0)return;st.shake=Math.min(8,Math.max(st.shake,v))};
-const TGN={first:'First',last:'Last',strong:'Strongest',close:'Closest'},TGO=['first','last','strong','close'];
+const TGN={first:'First',last:'Last',strong:'Strongest',close:'Closest',sup:'Support'},TGO=['first','last','strong','close','sup'];
+// Support targeting goes for the enemies that make the others stronger (healers, shielders, drummers, summoners, tower-stoppers)
+const SUPAB=new Set(['heal','shield','haste','summon','jam','freeze','stun','fog','spores','emp']);
 const hasTarget=t=>{const b=T[t.k];return !(b.gen||b.buff||b.aura||b.vort||b.storm||b.multi||b.bank||b.trap||b.root||b.drone)};
 const MAXU=5;
 const STATS={d:'Damage',s:'Speed',r:'Range',z:'Slow'};
@@ -1553,7 +1555,7 @@ function prio(e){const p=wp[Math.min(e.i,wp.length-1)];return e.i*1e4-Math.hypot
 // Targeting modes: first along the path, last, most health, or nearest
 const canHit=e=>!e.gone&&!e.hid&&!e.bur&&!(e.egg>0);
 const rng=t=>t.r*(t.rm||1)*(evx('fog')?.88:1); // Fog Beasts and fog shrink tower range
-function pick(t){let best=null,bs=-1e9;const m=t.tg||'first',R=rng(t),aa=T[t.k].aa;for(const e of st.en){if(!canHit(e))continue;const d=Math.hypot(e.x-t.x,e.y-t.y);if(d<=R){let s=m==='first'?prio(e):m==='last'?-prio(e):m==='strong'?e.hp:-d;if(aa&&isFly(e))s+=1e7;if(s>bs){bs=s;best=e}}}return best}
+function pick(t){let best=null,bs=-1e9;const m=t.tg||'first',R=rng(t),aa=T[t.k].aa;for(const e of st.en){if(!canHit(e))continue;const d=Math.hypot(e.x-t.x,e.y-t.y);if(d<=R){let s=m==='first'?prio(e):m==='last'?-prio(e):m==='strong'?e.hp:m==='sup'?(SUPAB.has(e.ab)?1e6:0)+prio(e):-d;if(aa&&isFly(e))s+=1e7;if(s>bs){bs=s;best=e}}}return best}
 function inRange(t){const R=rng(t);return st.en.filter(e=>canHit(e)&&Math.hypot(e.x-t.x,e.y-t.y)<=R)}
 // Move an enemy forward along the path (Phantom teleport); never past the last waypoint
 function advance(e,d){while(d>0&&e.i<wp.length-1){const p=wp[e.i],dx=p.x-e.x,dy=p.y-e.y,l=Math.hypot(dx,dy);if(l>=d){e.x+=dx/l*d;e.y+=dy/l*d;return}e.x=p.x;e.y=p.y;d-=l;e.i++}}
@@ -1596,15 +1598,15 @@ function update(dt){
     // Slows stack, but an enemy always keeps at least 20% of its speed
     const s=e.sp*Math.max(.2,(e.slow>0&&cc(e)?(e.sf||.5):1)*e.tzs*(st.twp>0?.4:1))*(e.hst?1.4:1)*(st.run&&st.ev?(st.ev==='rain'?.85:st.ev==='wind'?1.1:st.ev==='snow'?.8:1):1)*(e.ab==='berserk'?1+1.3*(1-Math.max(0,e.hp)/e.mx):1)*(e.bur?1.5:1)*dt;
     e.slow-=dt;if(e.hf>0)e.hf-=dt*6;if(e.ice>0)e.ice-=dt;
-    DOT=1;if(e.pt>0){e.pt-=dt;hurt(e,e.pd*dt,e.pl)}if(e.brn>0){e.brn-=dt;hurt(e,e.bdps*dt,e.bsrc)}DOT=0;if(e.chl>0)e.chl-=dt;if(e.cbt>0)e.cbt-=dt;
+    DOT=1;if(e.pt>0){e.pt-=dt;hurt(e,e.pd*dt,e.pl)}if(e.brn>0){e.brn-=dt;hurt(e,e.bdps*dt,e.bsrc)}DOT=0;if(e.chl>0)e.chl-=dt;if(e.cbt>0)e.cbt-=dt;if(e.hlt>0)e.hlt-=dt;if(e.slt>0)e.slt-=dt; // one heal per 2s and one shield per 4s, however many supporters are near
     if(e.ab==='regen'&&e.hp>0)e.hp=Math.min(e.mx,e.hp+e.mx*(e.k==='tank'?.012:.035)*dt);if(e.hard>0)e.hard-=dt;
     if(e.ab==='stealth'){e.cl=(e.cl||e.ph)+dt;e.hid=(e.cl%4)<2.4}
     if(e.ab==='burrow'){e.cl=(e.cl||e.ph)+dt;const was=!!e.bur;e.bur=(e.cl%6)>3.8;if(was!==e.bur)burst(e.x,e.y+4,'#a08060',7)}
     if(e.ab&&AB[e.ab].cd){e.at-=dt;if(e.at<=0){const A=AB[e.ab];e.at=A.cd;
       if(e.ab==='freeze'){let hit=0;for(const t of st.tw)if(Math.hypot(t.x-e.x,t.y-e.y)<=75){disable(t,'frz',1.5);hit=1}if(hit)st.fx.push({x:e.x,y:e.y,r:75,a:.9,c:A.col});else e.at=.4}
       else if(e.ab==='stun'){let bt=null,bd=100;for(const t of st.tw){const d=Math.hypot(t.x-e.x,t.y-e.y);if(d<bd){bd=d;bt=t}}if(bt){disable(bt,'stn',1);st.zap.push({a:e.x,b:e.y,c:bt.x,d:bt.y,l:1,col:'#ffe066'})}else e.at=.4}
-      else if(e.ab==='heal'){for(const x of st.en)if(Math.hypot(x.x-e.x,x.y-e.y)<=70)x.hp=Math.min(x.mx,x.hp+x.mx*(x.k==='tank'?.03:.1));st.fx.push({x:e.x,y:e.y,r:70,a:.7,c:A.col})}
-      else if(e.ab==='shield'){for(const x of st.en)if(Math.hypot(x.x-e.x,x.y-e.y)<=70)x.shd=Math.max(x.shd||0,x.mx*(x.k==='tank'?.1:.3));st.fx.push({x:e.x,y:e.y,r:70,a:.7,c:A.col})}
+      else if(e.ab==='heal'){for(const x of st.en)if(!(x.hlt>0)&&Math.hypot(x.x-e.x,x.y-e.y)<=70){x.hp=Math.min(x.mx,x.hp+x.mx*(x.k==='tank'?.03:.1));x.hlt=2}st.fx.push({x:e.x,y:e.y,r:70,a:.7,c:A.col})}
+      else if(e.ab==='shield'){for(const x of st.en)if(!(x.slt>0)&&Math.hypot(x.x-e.x,x.y-e.y)<=70){x.shd=Math.max(x.shd||0,x.mx*(x.k==='tank'?.1:.3));x.slt=4}st.fx.push({x:e.x,y:e.y,r:70,a:.7,c:A.col})}
       else if(e.ab==='blink'){const ox=e.x,oy=e.y;advance(e,75);st.fx.push({x:ox,y:oy,r:16,a:.9,c:A.col},{x:e.x,y:e.y,r:18,a:.9,c:A.col});burst(ox,oy,'#c58bff',6);burst(e.x,e.y,'#c58bff',8)}
       else if(e.ab==='summon'){const M=MAPS[cur].e.norm;for(const s2 of[-1,1])pend.push({k:'norm',nm:e.nm,from:'summon',sh:M.s,col:M.c,c2:M.c2,ph:Math.random()*6,i:e.i,x:e.x+s2*7,y:e.y-s2*5,hp:e.mx*(e.k==='tank'?.05:.15),mx:e.mx*(e.k==='tank'?.05:.15),sp:62,rw:1,z:7,slow:0,mini:1,born:.35});st.fx.push({x:e.x,y:e.y,r:26,a:.8,c:A.col})}
       else if(e.ab==='charge'){const ox=e.x,oy=e.y;advance(e,70);burst(ox,oy,'#ffb070',10);let bt=null,bd=130;for(const t of st.tw){const d=Math.hypot(t.x-e.x,t.y-e.y);if(d<bd){bd=d;bt=t}}if(bt){disable(bt,'stn',1.2);st.zap.push({a:e.x,b:e.y,c:bt.x,d:bt.y,l:1,col:'#ffb070'})}st.fx.push({x:e.x,y:e.y,r:40,a:1,c:A.col});shake(3)}
@@ -2716,6 +2718,7 @@ function drawEnemy(e){
   if(e.slow>0){g.strokeStyle='rgba(120,210,255,.9)';g.lineWidth=2;g.beginPath();g.arc(e.x,e.y-2,z+3,0,7);g.stroke()}
   if(e.icon)return;
   if(e.elite)star(e.x-z-8,e.y-z-8-(fly?4:0),3.6,'#ffd34d');
+  if(SUPAB.has(e.ab)&&e.k!=='tank'){const bx=e.x+z+7,by=e.y-z-8-(fly?4:0);cir(bx,by,4,'rgba(10,14,19,.85)');cir(bx,by,3,'rgb('+AB[e.ab].col+')');g.strokeStyle='#fff';g.lineWidth=1.2;g.beginPath();g.moveTo(bx-1.7,by);g.lineTo(bx+1.7,by);g.moveTo(bx,by-1.7);g.lineTo(bx,by+1.7);g.stroke()} // supporters get a badge so they are easy to spot
   if(e.k==='tank'&&!e.mini){const cx=e.x-z-7,cy=e.y-z-7-(fly?4:0);g.beginPath();g.moveTo(cx-6,cy+3);g.lineTo(cx-6,cy-3);g.lineTo(cx-3,cy);g.lineTo(cx,cy-5);g.lineTo(cx+3,cy);g.lineTo(cx+6,cy-3);g.lineTo(cx+6,cy+3);g.closePath();g.fillStyle='#ffd34d';g.fill();g.strokeStyle='#7a5512';g.lineWidth=1;g.stroke();cir(cx,cy+1,1.2,'#ff5a6a')}
   if(e.hard>0){g.strokeStyle='rgba(220,230,240,.95)';g.lineWidth=3;g.beginPath();g.arc(e.x,e.y-2,z+4,0,7);g.stroke();g.strokeStyle='rgba(120,140,160,.8)';g.lineWidth=1;g.beginPath();for(let i=0;i<6;i++){const an=i*1.047+tm;g.moveTo(e.x+Math.cos(an)*(z+1),e.y-2+Math.sin(an)*(z+1));g.lineTo(e.x+Math.cos(an)*(z+7),e.y-2+Math.sin(an)*(z+7))}g.stroke()}
   if(e.root>0){g.strokeStyle='#4caf50';g.lineWidth=1.6;for(let i=0;i<3;i++){const an=i*2.1+tm;g.beginPath();g.moveTo(e.x+Math.cos(an)*z,e.y+z*.6);g.quadraticCurveTo(e.x+Math.cos(an+1)*z*.6,e.y-z*.3,e.x+Math.cos(an+1.6)*z*.9,e.y+z*.2);g.stroke()}}
