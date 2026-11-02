@@ -153,6 +153,15 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .row2 button{padding:13px}
 #ov .menu{margin:auto}
 /* End-of-game card: which enemies got through, plus a tip */
+#ovr{display:grid;gap:8px;margin-top:12px;text-align:left}
+#ovr div{padding:0}#ovr .rc{padding:10px 12px}
+#ovr .rc{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}#ovr .rc.w{grid-column:1/-1}
+#ovr h4{margin:0 0 7px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+#ovr .br{display:grid;grid-template-columns:84px 1fr 40px;align-items:center;gap:6px;font-size:11.5px;margin:3px 0}
+#ovr .br span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#ovr .br i{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,#4c8dff,#7ff0da)}#ovr .br b{text-align:right;font-weight:600;font-size:11px}
+#ovr .lv{display:flex;align-items:flex-end;gap:2px;height:40px}#ovr .lv i{flex:1;border-radius:2px 2px 0 0;background:rgba(255,255,255,.1);min-height:2px}#ovr .lv i.l{background:var(--life)}
+#ovr .lx{display:flex;justify-content:space-between;font-size:10px;color:var(--mut);margin-top:3px}
+#ovr p{margin:0;font-size:12px;color:var(--mut);line-height:1.6}#ovr p b{color:var(--fg);font-weight:600}
 .leak{margin-top:12px;padding:11px 14px;border-radius:12px;background:rgba(255,90,106,.07);border:1px solid rgba(255,90,106,.28);text-align:left}
 .leak .lkl{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:13px}
 .leak .lkh{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
@@ -529,6 +538,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
     <div class="stars" id="ovst"></div>
     <div class="estats" id="oves"></div>
     <div class="leak" id="ovlk" hidden></div>
+    <div id="ovr" hidden></div>
     <div class="xpr" id="ovxp"></div>
     <div class="earn"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#b57bff"/><path d="M2 9h20M8 3l4 18 4-18" stroke="#ecdcff" stroke-width="1" fill="none" opacity=".6"/></svg>+<b id="earn">0</b> gems earned</div>
     <div class="row2"><button id="tomenu">Main menu</button><button class="go" id="again">Play again</button></div>
@@ -1298,7 +1308,7 @@ const skOpen=s=>!s.req||s.req.every(([id,r])=>sk(id)>=r);
 const skNeed=s=>(s.req||[]).filter(([id,r])=>sk(id)<r).map(([id,r])=>SKI[id].n+' '+r).join(', ');
 const skCost=(s,r)=>s.c+Math.floor(r/2);
 function reset(){const D=DIFFS[dif];MAXW=RUN.ch?CHW:D.w;st={gold:Math.round((D.g+30*sk('e1')+35*mastTier('e'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
-  scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0,early:0,cs:{},n0:Math.random(),hero:null,hsel:false,ev:null,nev:null,evt:0,wq:0,lk:{},tut:0,pend:null};
+  scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0,early:0,cs:{},dk:{},cc:{},lwv:[],n0:Math.random(),hero:null,hsel:false,ev:null,nev:null,evt:0,wq:0,lk:{},tut:0,pend:null};
   if(RUN.ch&&RUN.ch.t.lives)st.lives=RUN.ch.t.lives;
   st.hero=heroNew();
   st.lives0=st.lives;SPELLS.forEach(s=>st.scd[s.k]=0);if(MP)mpAfterReset();$('ov').hidden=true;if(auto&&!(MP&&!MP.host))st.nxt=2}
@@ -1449,7 +1459,7 @@ const COMBO=[
 ];
 const CMB={};COMBO.forEach(c=>CMB[c.id]=c);const DCOMBO=COMBO.filter(c=>c.on);
 // A combo just worked: announce it the first time in a game, and float its name over the enemy now and then
-function comboHit(c,e){if(!st.cs[c.id]){st.cs[c.id]=1;st.tq.push({t:3.5,n:'Combo: '+c.n,d:c.d,c:c.c});save.combos=save.combos||{};if(!save.combos[c.id]){save.combos[c.id]=1;persist()}}
+function comboHit(c,e){if(st.cc)st.cc[c.id]=(st.cc[c.id]||0)+1;if(!st.cs[c.id]){st.cs[c.id]=1;st.tq.push({t:3.5,n:'Combo: '+c.n,d:c.d,c:c.c});save.combos=save.combos||{};if(!save.combos[c.id]){save.combos[c.id]=1;persist()}}
   if(e&&!(e.cbt>0)&&st.pt.length<500){e.cbt=1.2;st.pt.push({x:e.x,y:e.y-e.z-16,vx:0,vy:-30,l:.9,tx:c.n.toUpperCase(),col:'rgb('+c.c+')',sm:1})}}
 const tCombos=k=>COMBO.filter(c=>c.tw.includes(k));
 function hasZ(t){const b=T[t.k];return !!(b.spl||b.slow||b.chain||b.psn||b.multi||b.vort||b.storm||b.buff||b.pierce||b.boom||b.cone||b.tar||b.root||b.drone||b.trap)}
@@ -1546,7 +1556,7 @@ function hurt0(e,d,t){
   if(e.hard>0)d*=.3;
   if(t&&(t.k==='pla'||t.k==='tar'||(DOT&&e.brn>0&&t===e.bsrc))&&evx('rain'))d*=.6;
   if(e.ab==='armor'&&!(t&&t.ap))d*=t?Math.min(1,.55+.15*sk('o8')):.55;
-  if(e.shd>0&&!(t&&t.ap)){const ab=Math.min(e.shd,d);e.shd-=ab;d-=ab}const a=Math.min(d,Math.max(0,e.hp));e.hp-=d;if(t){t.dmg=(t.dmg||0)+a;e.lh=t}
+  if(e.shd>0&&!(t&&t.ap)){const ab=Math.min(e.shd,d);e.shd-=ab;d-=ab}const a=Math.min(d,Math.max(0,e.hp));e.hp-=d;if(t){t.dmg=(t.dmg||0)+a;e.lh=t;if(T[t.k]&&st.dk)st.dk[t.k]=(st.dk[t.k]||0)+a}
   e.hf=Math.min(1,(e.hf||0)+Math.min(.8,d/e.mx*3));
   if(crit&&st.dnc<dnMax()){st.dnc++;st.pt.push({x:e.x+(Math.random()-.5)*8,y:e.y-e.z-10,vx:(Math.random()-.5)*20,vy:-55,l:1,tx:fmt(d)+'!',dn:2});return}
   // Floating damage numbers for big hits only (capped so they never flood the screen)
@@ -1713,7 +1723,7 @@ function update(dt){
     st.run=false;const ows=MP?Object.keys(st.P).map(Number):[undefined],gp={},gm=DIFFS[dif].gm;let wb=0,ge=0;ows.forEach(o=>gp[o]=0);
     // A wave that was called early is paid out together with the wave that followed it
     for(let w=st.wave-(st.early||0);w<=st.wave;w++){const p=payWave(w,ows);wb+=p.wb;ge+=p.ge;for(const o of ows)gp[o]+=p.gp[o]}
-    st.early=0;heroXp(2);if(st.ev){save.stats.evw=(save.stats.evw||0)+1;st.ev=null}st.nev=rollEv(st.wave+1);
+    st.early=0;heroXp(2);if(st.lwv)st.lwv[st.wave-1]=st.lives;if(st.ev){save.stats.evw=(save.stats.evw||0)+1;st.ev=null}st.nev=rollEv(st.wave+1);
     if(st.wave<MAXW||RUN.en){const pf=st.lives>=(st.lw??st.lives)?5+st.wave:0;if(pf){for(const o of ows){giveGold(o,pf);gp[o]+=pf}wb+=pf;st.ge+=pf}st.clr={t:2.4,w:st.wave,g:wb,gm:ge,pf,gp:MP?gp:undefined};sfx('clear')}if(st.wave>=10&&(!MP||MP.set.sw<=1))unlockAch('w10');
     const bk=bkey(cur,lay,dif);if(!MP&&!CUST&&!RUN.dly&&!RUN.ch)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.dly)dlyWave();if(RUN.en&&!CUST&&!RUN.dly){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
     if(st.wave>=MAXW&&!RUN.en){const vb=Math.round(40*gm*RUN.rm);st.gems+=vb;save.gems+=vb;mpEv('!g:'+vb);persist();end(true)}
@@ -1761,6 +1771,14 @@ function leakTip(L){const tw=k=>T[k].n+(AV.includes(k)?'':' (unlock it in Towers
   if(LTIP[L.ab])return fill(LTIP[L.ab]);
   if(L.k==='fast')return fill('It’s fast and runs past your towers. Slow it down with {mraz}.');
   return 'Build towers where the path bends (enemies stay in range longer there) and upgrade their damage.'}
+// Battle report on the end screen: damage by tower type, lives over the waves, combos and the hero
+function repBox(){const el=$('ovr'),dk=Object.entries(st.dk||{}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,6);if(!dk.length&&!st.hero){el.hidden=true;return}
+  const mx=dk.length?dk[0][1]:1,tot=dk.reduce((a,x)=>a+x[1],0)||1;let h='<div class="rc"><h4>Damage by tower</h4>'+(dk.length?dk.map(([k,v])=>'<div class="br"><span>'+T[k].n+'</span><i style="width:'+Math.max(3,v/mx*100)+'%"></i><b>'+Math.round(v/tot*100)+'%</b></div>').join(''):'<p>No towers built.</p>')+'</div>';
+  const W0=st.wave,lv=[];let prev=st.lives0;for(let w=1;w<=W0;w++){const L=w===W0&&st.lwv[w-1]===undefined?st.lives:st.lwv[w-1]??prev;lv.push(Math.max(0,prev-L));prev=L}const ml=Math.max(1,...lv),lost=lv.reduce((a,b)=>a+b,0);
+  h+='<div class="rc"><h4>Lives lost by wave</h4>'+(lost?'<div class="lv">'+lv.map((x,i)=>'<i class="'+(x?'l':'')+'" style="height:'+(x?Math.max(12,x/ml*100):4)+'%" title="Wave '+(i+1)+': '+x+'"></i>').join('')+'</div><div class="lx"><span>Wave 1</span><span>'+lost+' lost</span><span>Wave '+W0+'</span></div>':'<p><b>Flawless!</b> Nothing reached the castle.</p>')+'</div>';
+  const cc=Object.entries(st.cc||{}).sort((a,b)=>b[1]-a[1]),H0=st.hero&&HERO[st.hero.k];
+  h+='<div class="rc w"><h4>Combos and hero</h4><p>'+(cc.length?'Combos: '+cc.map(([id,n])=>'<b>'+CMB[id].n+'</b> ×'+fmt(n)).join(', '):'No combos this time. Try Frost with a Cannon, or Poison with a Tesla.')+(H0?'<br>'+H0.n+': level <b>'+st.hero.lv+'</b> · <b>'+(st.hero.kills||0)+'</b> kills · <b>'+fmt(st.hero.dmg||0)+'</b> damage':'')+'</p></div>';
+  el.innerHTML=h;el.hidden=false}
 function leakBox(top){const el=$('ovlk');if(!top||!top.length){el.hidden=true;return}
   el.innerHTML='<div class="lkl"><span class="lkh">Got through</span>'+top.map(x=>'<span><b>'+x.c+'×</b> '+escH(x.n)+'</span>').join('')+'</div><p class="lkt"><b>Tip</b>'+escH(top[0].n)+': '+escH(leakTip(top[0]))+'</p>';el.hidden=false}
 const STAR=on=>'<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21.1l1.5-7L2 9.3l7-.8z" fill="'+(on?'#ffd34d':'#252d3b')+'" stroke="'+(on?'#b8860b':'#3a4456')+'" stroke-width="1"/></svg>';
@@ -1782,7 +1800,7 @@ function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
   const mvp=st.tw.filter(t=>!T[t.k].gen&&!T[t.k].buff).sort((a,b)=>(b.dmg||0)-(a.dmg||0))[0];
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
   $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win||!!CUST;
-  $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));
+  $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));repBox();
   $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(RUN.dly)dlyEnd();if(RUN.ch)chEnd(win);if(MP)mpOver(win)}
 let tm=0;
 const cir=(x,y,r,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill()};
@@ -3126,7 +3144,21 @@ const TUT=[
   {t:'Start the first wave',d:()=>'Build one or two more towers, then press Start wave (or Space). Enemies follow the path to your castle.',hl:'start',done:()=>st.wave>0},
   {t:'Upgrade your towers',d:()=>'Every enemy that reaches the castle costs a life. Click a tower to upgrade it with the gold you earn.',done:()=>!!st.sel||st.wave>1},
   {t:'Spells help in a pinch',d:()=>'Meteor (Z), Blizzard (X) and Gold Rush (C) recharge over time. Good luck!',hl:'spells',ok:1,done:()=>st.wave>2}];
+// Feature tips: after the first-game tutorial, each of these shows once (save.ft) the first time it matters
+const FTIP=[
+  {id:'hero',t:'Your hero',when:()=>st.hero&&st.wave>=1,d:()=>{const H0=HERO[st.hero.k];return H0.n+' fights beside your towers and levels up. Click '+(st.hero.k==='rg'?'her':'him')+' (or press L), then click where to go. Press K for '+H0.ab.n+'.'},hl:'herob',done:()=>st.hsel||(st.hero&&st.hero.tx!=null)},
+  {id:'boss',t:'Boss wave next',when:()=>st.wave===4&&!st.run,d:()=>{const B=MAPS[cur].e.tank;return'Every 5th wave brings the '+B.n+(B.ab?' — '+BOSSN[B.ab]+': '+AB[B.ab].n.toLowerCase():'')+'. A boss that reaches the castle costs 2 lives.'},ok:1},
+  {id:'wx',t:'Weather ahead',when:()=>st.nev&&!st.run,d:()=>'The next wave brings '+EV[st.nev].n+': '+EV[st.nev].d.charAt(0).toLowerCase()+EV[st.nev].d.slice(1)+'. Coming events show in the wave preview.',hl:'nextw',ok:1},
+  {id:'sup',t:'Healers and shielders',when:()=>st.en.some(e=>e.ab==='heal'||e.ab==='shield'),d:()=>'Enemies with a + badge make the others tougher. Select a tower and set its target to Support to take them out first.',ok:1},
+  {id:'combo',t:'Tower combos',when:()=>st.tw.length>=4&&st.wave>=3,d:()=>'Some towers work together: Frost + Cannon (Shatter), Poison + Tesla (Conductor), Tar + Flame (Wildfire) and more. Select a tower to see its combos.',ok:1},
+  {id:'spec',t:'Specialize a tower',when:()=>st.tw.some(t=>t.sp===undefined&&SPEC[t.k]&&tot(t)>=SPLV),d:()=>'A tower reached level '+SPLV+'. Select it and pick one of two paths at the bottom of its panel.',done:()=>st.tw.some(t=>t.sp!==undefined)}];
+function ftTick(el){save.ft=save.ft||{};
+  if(st.ftc&&(save.ft[st.ftc.id]||(st.ftc.done&&st.ftc.done()))){save.ft[st.ftc.id]=1;persist();st.ftc=null}
+  if(!st.ftc){const f=FTIP.find(f=>!save.ft[f.id]&&(!MP||f.id!=='hero')&&f.when());if(!f){if(!el.hidden){el.hidden=true;tutHl(null)}return}st.ftc=f}
+  const f=st.ftc,d=f.d(),k='f|'+f.id+'|'+d;if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent='Tip';$('tutt').textContent=f.t;$('tutd').textContent=d;$('tutok').hidden=false;tutHl(f.hl)}
+  if(el.hidden){el.hidden=false;tutHl(f.hl)}}
 function tutTick(){const el=$('tut');
+  if(save.tips&&inGame&&!st.over&&$('mm').hidden){ftTick(el);return}
   if(MP||save.tips||!inGame||st.over||!$('mm').hidden){if(!el.hidden){el.hidden=true;tutHl(null)}return}
   while(st.tut<TUT.length&&TUT[st.tut].done())st.tut++;
   if(st.tut>=TUT.length){tutEnd();return}
@@ -3525,7 +3557,7 @@ $('startgame').onclick=startGame;
 $('menu').onclick=openMenu;
 $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()};
 $('again').onclick=()=>{if(MP){mpBackToLobby();return}if(RUN.dly){dailyStart();return}if(RUN.ch){chStart(RUN.ch.m,RUN.ch.l);return}if(!CUST){mapI=cur;layI=lay}startGame()};
-$('start').onclick=waveGo;$('tutx').onclick=tutEnd;$('tutok').onclick=tutEnd;
+$('start').onclick=waveGo;$('tutx').onclick=()=>{if(save.tips){save.ft=save.ft||{};FTIP.forEach(f=>save.ft[f.id]=1);persist();st.ftc=null}else tutEnd()};$('tutok').onclick=()=>{if(st.ftc){save.ft=save.ft||{};save.ft[st.ftc.id]=1;persist();st.ftc=null;$('tut').hidden=true;tutHl(null)}else tutEnd()};
 $('auto').onclick=()=>{if(MP&&!MP.host)return;auto=!auto;$('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');if(auto&&!st.run&&!st.over)startWave()};
 $('fs').onclick=()=>{const d=document;try{(d.fullscreenElement?d.exitFullscreen():d.documentElement.requestFullscreen()).catch(()=>{})}catch(e){}};
 $('spd').onclick=()=>{if(MP&&!MP.host)return;st.spd=st.spd%3+1;$('spd').textContent='Speed '+st.spd+'×';$('spd').classList.toggle('on',st.spd>1)};
@@ -3767,7 +3799,7 @@ function mpOver(win){
   mpToAll({c:'over',win:win?1:0,wave:st.wave,kills:st.kills,ge:st.ge,xp:st.xp,lost:st.lives0-st.lives,lk:leakTop(st.lk)});
   mpOverButtons();
 }
-function mpEndGuest(d){
+function mpEndGuest(d){$('ovr').hidden=true;
   if(st.over)return;
   st.over=true;inGame=false;st.aim=null;
   const win=!!d.win,D=DIFFS[dif];
