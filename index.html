@@ -1790,7 +1790,7 @@ function update(dt){
     if(b.free===2){const pu=b.u;b.u+=dt/1.1;if(pu<.5&&b.u>=.5)b.hit.clear();const u=Math.min(1,b.u),f=b.L*Math.sin(Math.PI*u),lat=b.L*.32*Math.sin(2*Math.PI*u),c=Math.cos(b.an),s2=Math.sin(b.an);b.x=b.ox+c*f-s2*lat;b.y=b.oy+s2*f+c*lat;
       for(const e of st.en){if(!canHit(e)||b.hit.has(e))continue;if(Math.hypot(e.x-b.x,e.y-b.y)<e.z+b.rad){b.hit.add(e);hurt(e,b.d,b.o)}}if(b.u>=1){b.done=true;b.o.bf=0}continue}
     if(b.t.hp<=0||b.t.gone){b.done=true;continue}
-    const dx=b.t.x-b.x,dy=b.t.y-b.y,d=Math.hypot(dx,dy),s=(b.k==='snip'?900:b.lob?210:b.k==='mis'?300:b.k==='gat'?720:b.k==='drn'||b.k==='flk'?540:380)*dt;
+    const dx=b.t.x-b.x,dy=b.t.y-b.y,d=Math.hypot(dx,dy),s=blSpd(b)*dt;
     if(d<=s+4){
       b.done=true;
       if(b.spl){for(const e of st.en)if(Math.hypot(e.x-b.t.x,e.y-b.t.y)<=b.spl)hurt(e,b.d*(b.aa?(isFly(e)?b.aa:b.aag?1:.5):1),b.o);boomFx(b.t.x,b.t.y,b.spl,b.lob?1:b.k==='mis'||b.aa?.4:.6);if(b.lob){sfx('boom');shake(2.5)}else if(b.k==='del')shake(.8)}
@@ -1836,6 +1836,7 @@ function update(dt){
   }
 }
 // End-of-wave payout for wave w: clear bonus, Bank interest, economy skills, XP, quests and gems
+const blSpd=b=>b.k==='snip'?900:b.lob?210:b.k==='mis'?300:b.k==='gat'?720:b.k==='drn'||b.k==='flk'?540:380; // shot speed, px per second
 function payWave(w,ows){let wb=15+w*2;const ex={};ows.forEach(o=>ex[o]=0);
   // Interest: from Bank towers and the Interest skill
   for(const t of st.tw)if(T[t.k].bank&&!(t.frz>0)){const v=Math.round(Math.min(goldOf(t.ow)*t.bint,t.bcap));if(v>0){ex[t.ow]+=v;t.dmg=(t.dmg||0)+v;t.fl=1;st.pt.push({x:t.x,y:t.y-16,vx:0,vy:-24,l:1.4,tx:'+'+v})}}
@@ -4077,25 +4078,37 @@ function sellAs(o,t){
 
 /* --- Host: send the game state to the guests (about 15 times a second) --- */
 function mpTick(){if(tm-NET.lastT>=.066)sendSnap()}
-function snapEnt(o,track){
-  const id=eid(o),prev=NET.last.get(id),cur={};let out=null;
-  for(const k in o){
-    if(k.charCodeAt(0)===95)continue;
-    let v=o[k];const ty=typeof v;let c;
-    if(ty==='number'){v=Math.round(v*10)/10;c=v}
-    else if(ty==='string'||ty==='boolean'||v===null)c=v;
-    else if(k==='u'){c=JSON.stringify(v)}
-    else continue;
-    cur[k]=c;
-    if(!prev||prev[k]!==c)(out||(out={_:id}))[k]=v;
-  }
-  return{out,cur,id};
+// What guests get of each kind of object (n = new to them). Only what they draw: host-only timers stay out, effects travel as
+// flag bits, positions as whole pixels, and shots and puddles are sent once and then moved or counted down by the guests.
+const p3=v=>v>0?Number(v.toPrecision(3)):0,a1=v=>Math.round((v||0)*10)/10;
+const ENF=[['slow',1],['ice',2],['stun',4],['pt',8],['brn',16],['root',32],['hard',256],['egg',1024]];
+const SER={
+  en:(e,n)=>{let f=0;for(const [k,b] of ENF)if(e[k]>0)f|=b;if(e.hid)f|=64;if(e.bur)f|=128;if(e.tzs<1)f|=512;if(e.hf>.3)f|=4096;
+    const o={x:Math.round(e.x),y:Math.round(e.y),hp:Math.max(0,Math.ceil(e.hp)),f,i:e.i,shd:e.shd>0?Math.ceil(e.shd):0};
+    if(n){o.k=e.k;o.nm=e.nm;o.sh=e.sh;o.col=e.col;if(e.c2)o.c2=e.c2;if(e.c3)o.c3=e.c3;if(e.hn)o.hn=e.hn;if(e.ab)o.ab=e.ab;o.z=e.z;o.mx=Math.ceil(e.mx);if(e.elite)o.elite=1;if(e.mini)o.mini=1;if(e.from)o.from=e.from;o.ph=a1(e.ph);if(e.born>0)o.born=a1(e.born)}
+    return o},
+  tw:(t,n)=>{let f=0;if(t.frz>0)f|=1;if(t.stn>0)f|=2;if(t.jm)f|=4;if((t.rm||1)<1)f|=8;if(t.buff>0)f|=16;if(t.fl>.55)f|=32;if(t.bf)f|=64;
+    const o={ang:a1(t.ang),f,dmg:p3(t.dmg||0),kills:t.kills||0,u:t.u,tg:t.tg||'first',inv:Math.round(t.inv||0)};if(t.sp!==undefined)o.sp=t.sp;
+    const B=T[t.k];if(B.beam){o.heat=Math.round((t.heat||0)*2)/2;o.bti=t.bt?eid(t.bt):0}if(B.spin)o.spin=a1(t.spin);
+    if(n){o.k=t.k;o.cx=t.cx;o.cy=t.cy;o.x=t.x;o.y=t.y;if(t.ow!==undefined)o.ow=t.ow;if(t.skin)o.skin=t.skin}
+    return o},
+  bl:(b,n)=>{if(!n)return{};const o={x:Math.round(b.x),y:Math.round(b.y),k:b.k};if(b.col)o.col=b.col;if(b.t)o.ti=eid(b.t);if(b.lob){o.lob=1;o.sd=Math.round(b.sd||0)}if(b.a!==undefined)o.a=a1(b.a);
+    if(b.free===1){o.free=1;o.vx=Math.round(b.vx*1000)/1000;o.vy=Math.round(b.vy*1000)/1000}else if(b.free===2){o.free=2;o.ox=b.ox;o.oy=b.oy;o.an=b.an;o.L=Math.round(b.L);o.u=b.u}
+    return o},
+  zones:(z,n)=>n?{x:Math.round(z.x),y:Math.round(z.y),r:Math.round(z.r),t:a1(z.t),mx:a1(z.mx),sl:z.sl,fire:z.fire||0,ig:z.ig||0}:{ig:z.ig||0},
+  met:(m,n)=>n?{x:Math.round(m.x),y:Math.round(m.y),t:a1(m.t),R:Math.round(m.R||80)}:{},
+  heroes:(h,n)=>{const o={x:Math.round(h.x),y:Math.round(h.y),lv:h.lv,xp:h.xp,acd:Math.ceil(h.acd||0),kills:h.kills||0,dmg:p3(h.dmg||0),ang:a1(h.ang),tx:h.tx==null?null:Math.round(h.tx),ty:h.ty==null?null:Math.round(h.ty),sw:h.sw>.5?1:0};
+    if(n){o.k=h.k;o.hero=1;if(h.ow!==undefined)o.ow=h.ow}return o}};
+function snapEnt(o,kind){
+  const id=eid(o),prev=NET.last.get(id),src=SER[kind](o,!prev),cur={};let out=null;
+  for(const k in src){const v=src[k],c=v!==null&&typeof v==='object'?JSON.stringify(v):v;cur[k]=c;if(!prev||prev[k]!==c)(out||(out={_:id}))[k]=v}
+  if(!out&&!prev)out={_:id};return{out,cur,id};
 }
 function syncList(name,arr,d,refs){
   const ids=new Set(),list=[],live=NET.live[name]||(NET.live[name]=new Set());
   for(const o of arr){
     if(refs)refs(o);
-    const r=snapEnt(o);ids.add(r.id);
+    const r=snapEnt(o,name);ids.add(r.id);
     if(r.out)list.push(r.out);
     NET.last.set(r.id,r.cur);
   }
@@ -4119,13 +4132,18 @@ function sendSnap(){if(!MP||!MP.host||!NET.code)return;NET.lastT=tm;mpToAll(snap
 // Everything a guest needs to draw the game; full = the whole state instead of the changes since the last update
 function snapData(full){
   const sl=NET.last,sv=NET.live;if(full){NET.last=new Map();NET.live={}}
-  const d={c:'s',q:st.q,w:st.wave,r:st.run?1:0,lv:st.lives,k:st.kills,pa:st.pause?1:0,sp:st.spd,ge:st.ge,gm:st.gems,
-    wx:st.ev||0,nwx:st.nev||0,ovc:r1(st.ovc),mid:r1(st.mid),twp:r1(st.twp),hu:r1(st.hurt),sh:r1(st.shake),ban:r1(st.ban),
-    fl:st.flash?{c:st.flash.c,a:r1(st.flash.a*10)/10}:null,clr:st.clr&&st.clr.t>0?st.clr:null,tq:st.tq.slice(0,1),P:{}};
-  for(const id in st.P){const p=st.P[id],s={};for(const k in p.scd)s[k]=r1(p.scd[k]);d.P[id]={g:Math.round(p.gold),s,x:p.gone?1:0,n:p.name,k:p.col}}
+  const d={c:'s',q:st.q,w:st.wave,r:st.run?1:0,lv:st.lives,k:st.kills,pa:st.pause?1:0,sp:st.spd,ge:st.ge,gm:st.gems,wx:st.ev||0,nwx:st.nev||0};
+  // Timers the guests count down themselves are sent when they jump up (a spell, a hit, a banner), or always in a full snapshot
+  const TP=NET.top||(NET.top={}),up=(k,v)=>{if(full||v>(TP[k]||0)+.05)d[k]=r1(v);if(!full)TP[k]=v};
+  up('ovc',st.ovc);up('mid',st.mid);up('twp',st.twp);up('hu',st.hurt);up('sh',st.shake);up('ban',st.ban);
+  if(st.flash&&(full||!st.flash._s)){d.fl={c:st.flash.c,a:r1(st.flash.a)};if(!full)st.flash._s=1}
+  if(st.clr&&st.clr.t>0&&(full||!st.clr._s)){d.clr=Object.assign({},st.clr);delete d.clr._s;if(!full)st.clr._s=1}
+  const tk=st.tq.length?st.tq[0].n+'|'+st.tq[0].d:'';if(full||tk!==TP.tq){d.tq=st.tq.slice(0,1).map(q=>({t:r1(q.t),n:q.n,d:q.d,c:q.c}));if(!full)TP.tq=tk}
+  const P={};for(const id in st.P){const p=st.P[id],s={};for(const k in p.scd)s[k]=Math.ceil(p.scd[k]);P[id]={g:Math.round(p.gold),s,x:p.gone?1:0,n:p.name,k:p.col}}
+  const ps=JSON.stringify(P);if(full||ps!==TP.P){d.P=P;if(!full)TP.P=ps}
   syncList('en',st.en,d);
-  syncList('tw',st.tw,d,t=>{t.bti=t.bt?eid(t.bt):0});
-  syncList('bl',st.bl,d,b=>{b.ti=b.t?eid(b.t):0;b.oi=b.o?eid(b.o):0});
+  syncList('tw',st.tw,d);
+  syncList('bl',st.bl,d);
   syncList('zones',st.zones,d);
   syncList('met',st.met,d);
   syncList('heroes',st.heroes,d);
@@ -4141,16 +4159,21 @@ function snapData(full){
 /* --- Guest: draw the host's state --- */
 function guestMsg(d){if(d.c==='s')applySnap(d);else if(d.c==='over')mpEndGuest(d)}
 function applyList(kind,list,rem,smooth){
-  const M=NET.map[kind];
+  const M=NET.map[kind],now=performance.now()/1000;
   if(rem)for(const id of rem){const o=M.get(id);if(o){o._x=1;M.delete(id)}}
   if(list)for(const u of list){
-    let o=M.get(u._);
-    if(!o){o={_id:u._};M.set(u._,o);st[kind].push(o);if(smooth&&u.x!==undefined){o.x=u.x;o.y=u.y}}
+    let o=M.get(u._),nw=false;
+    if(!o){o={_id:u._};M.set(u._,o);st[kind].push(o);nw=true;if(smooth&&u.x!==undefined){o.x=u.x;o.y=u.y}}
+    if(smooth&&!nw&&(u.x!==undefined||u.y!==undefined)){o._fx=o.x;o._fy=o.y;o._tx=u.x!==undefined?u.x:(o._tx??o.x);o._ty=u.y!==undefined?u.y:(o._ty??o.y);o._t0=now}
+    const uOld=o.u&&JSON.stringify(o.u),f0=o.f||0;
     for(const k in u){
-      if(k==='_')continue;
-      if(smooth&&(k==='x'||k==='y')){o[k==='x'?'_tx':'_ty']=u[k];continue}
+      if(k==='_'||(smooth&&!nw&&(k==='x'||k==='y')))continue;
       o[k]=u[k];
     }
+    if('f' in u)guestFlags(kind,o,f0,nw);
+    if(kind==='tw'&&'u' in u&&!nw&&JSON.stringify(u.u)!==uOld)o.pop=1;
+    if(kind==='tw'&&(nw||'u' in u||'sp' in u)&&T[o.k])stat(o); // range, damage and the rest are worked out here instead of sent
+    if(kind==='heroes'&&u.sw)o.sw=1;
     if(o.ti!==undefined){const t=NET.map.en.get(o.ti);if(t)o.t=t}
     if(o.oi!==undefined){const t=NET.map.tw.get(o.oi);if(t)o.o=t}
     if(o.bti!==undefined)o.bt=o.bti?(NET.map.en.get(o.bti)||null):null;
@@ -4160,16 +4183,18 @@ function applyList(kind,list,rem,smooth){
 function applySnap(d){
   NET.snapT=tm;st.q=d.q||0;
   st.wave=d.w;st.run=!!d.r;st.lives=d.lv;st.kills=d.k;st.pause=!!d.pa;st.spd=d.sp;st.ge=d.ge;st.gems=d.gm;
-  st.ev=d.wx||null;st.nev=d.nwx||null;st.ovc=d.ovc;st.mid=d.mid;st.twp=d.twp;st.hurt=Math.max(st.hurt,d.hu);st.shake=Math.max(st.shake,d.sh);st.ban=d.ban;
+  st.ev=d.wx||null;st.nev=d.nwx||null;if('ovc' in d)st.ovc=d.ovc;if('mid' in d)st.mid=d.mid;if('twp' in d)st.twp=d.twp;if('hu' in d)st.hurt=Math.max(st.hurt,d.hu);if('sh' in d)st.shake=Math.max(st.shake,d.sh);if('ban' in d)st.ban=d.ban;
   if(d.fl)st.flash=d.fl;if(d.clr)st.clr=d.clr;
-  st.tq=d.tq||[];
-  for(const id in d.P){const q=d.P[id];let p=st.P[id];if(!p)p=st.P[id]={id:+id,name:q.n||'Player',col:q.k||PCOL[0],gold:0,scd:{},skills:{},eq:{},un:[],gone:false};p.gold=q.g;p.name=q.n||p.name;p.gone=!!q.x;if(+id===MP.id)for(const k in q.s)st.scd[k]=q.s[k]}
+  if(d.tq)st.tq=d.tq;
+  // How often snapshots arrive, so positions glide from one to the next in that time
+  const now=performance.now()/1000;if(NET.rt){const g=Math.min(.25,Math.max(.03,now-NET.rt));NET.iv=(NET.iv||.066)*.8+g*.2}NET.rt=now;
+  if(d.P)for(const id in d.P){const q=d.P[id];let p=st.P[id];if(!p)p=st.P[id]={id:+id,name:q.n||'Player',col:q.k||PCOL[0],gold:0,scd:{},skills:{},eq:{},un:[],gone:false};p.gold=q.g;p.name=q.n||p.name;p.gone=!!q.x;if(+id===MP.id)for(const k in q.s)st.scd[k]=q.s[k]}
   // Enemies that were defeated get a short death effect before they disappear
   if(d.kd)for(const[id,boss]of d.kd){const e=NET.map.en.get(id);if(!e)continue;
     if(boss){burst(e.x,e.y,e.col,20);shake(5)}else{if(st.corpses.length<40)st.corpses.push({e,t:.32});burst(e.x,e.y,e.col,8)}}
   applyList('en',d.en,d.enx,true);
   applyList('tw',d.tw,d.twx,false);
-  applyList('bl',d.bl,d.blx,true);
+  applyList('bl',d.bl,d.blx,false);
   applyList('zones',d.zones,d.zonesx,false);
   applyList('met',d.met,d.metx,false);
   applyList('heroes',d.heroes,d.heroesx,true);st.hero=st.heroes.find(h=>h.ow===MP.id)||null;
@@ -4186,12 +4211,24 @@ function applySnap(d){
     else if(s[1]==='w'){const w=+s.slice(3);questAdd('wave',1);if(w>=10)unlockAch('w10')}
   }
 }
+// Guests turn the flag bits back into the fields the drawing code looks at
+function guestFlags(kind,o,f0,nw){const f=o.f;
+  if(kind==='en'){for(const [k,b] of ENF)o[k]=f&b?1:0;o.hid=!!(f&64);o.bur=!!(f&128);o.tzs=f&512?.5:1;if(f&4096&&!(f0&4096))o.hf=.7}
+  else if(kind==='tw'){o.frz=f&1?1:0;o.stn=f&2?1:0;o.jm=!!(f&4);o.rm=f&8?.7:1;o.buff=f&16?.2:0;o.bf=f&64?1:0;if(f&32&&(!(f0&32)||nw))o.fl=1}}
 function guestStep(dt){
-  const k=1-Math.exp(-dt*20);
-  for(const arr of[st.en,st.bl,st.heroes])for(const e of arr)if(e._tx!==undefined){
-    const dx=e._tx-e.x,dy=e._ty-e.y;
-    if(dx*dx+dy*dy>3600){e.x=e._tx;e.y=e._ty}else{e.x+=dx*k;e.y+=dy*k}
-  }
+  // Enemies and heroes glide in a straight line from where they were drawn to the newest position, over one snapshot interval
+  const now=performance.now()/1000,iv=NET.iv||.066;
+  for(const arr of[st.en,st.heroes])for(const e of arr)if(e._t0!==undefined){
+    const dx=e._tx-e._fx,dy=e._ty-e._fy;if(dx*dx+dy*dy>3600){e.x=e._tx;e.y=e._ty;continue}
+    const u=Math.min(1,(now-e._t0)/iv);const px=e.x;e.x=e._fx+dx*u;e.y=e._fy+dy*u;if(arr===st.heroes&&Math.abs(e.x-px)>.05)e.walk=(e.walk||0)+dt}
+  for(const e of st.en){if(e.born>0)e.born-=dt;if(e.hf>0)e.hf-=dt*6}
+  for(const t of st.tw){if(t.fl>0)t.fl=Math.max(0,t.fl-dt*6);if(t.pop>0)t.pop=Math.max(0,t.pop-dt*2.2);if(T[t.k]&&T[t.k].drone)t.da=(t.da||0)+dt*1.6}
+  for(const h of st.heroes)if(h.sw>0)h.sw-=dt*4;
+  // Shots fly on the guest's own screen: straight (Ballista), out and back (Boomerang) or after their target
+  for(const b of st.bl){
+    if(b.free===1){const v=520*dt;b.x+=b.vx*v;b.y+=b.vy*v;continue}
+    if(b.free===2){b.u=(b.u||0)+dt/1.1;const u=Math.min(1,b.u),f=b.L*Math.sin(Math.PI*u),lat=b.L*.32*Math.sin(2*Math.PI*u),c=Math.cos(b.an),s2=Math.sin(b.an);b.x=b.ox+c*f-s2*lat;b.y=b.oy+s2*f+c*lat;continue}
+    const t=b.t;if(!t||t._x)continue;const dx=t.x-b.x,dy=t.y-b.y,d=Math.hypot(dx,dy),v=blSpd(b)*dt;if(d<=v+4){b.x=t.x;b.y=t.y}else{b.x+=dx/d*v;b.y+=dy/d*v;b.a=Math.atan2(dy,dx)}}
   for(const z of st.zones)z.t-=dt;st.zones=st.zones.filter(z=>z.t>0);
   for(const m of st.met)m.t-=dt;
   for(const c in st.scd)st.scd[c]=Math.max(0,st.scd[c]-dt);
