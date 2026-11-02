@@ -1,5 +1,6 @@
 rules_version = '2';
-// Firestore rules for online saves: each player can only read and write their own save, saves/{their user id}.
+// Firestore rules for online saves (each player can only read and write their own save, saves/{their user id})
+// and the daily challenge leaderboard.
 // Paste this in the Firebase console: Firestore Database > Rules > Publish.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -9,6 +10,15 @@ service cloud.firestore {
         && request.resource.data.data is string
         && request.resource.data.data.size() < 100000
         && request.resource.data.rev is int;
+    }
+    // Daily challenge leaderboard: anyone can read it, players can only write their own score, and only raise it
+    match /daily/{day}/scores/{uid} {
+      allow read: if true;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.n is string && request.resource.data.n.size() <= 24
+        && request.resource.data.w is int && request.resource.data.w >= 0 && request.resource.data.w <= 1000
+        && request.resource.data.s is int
+        && (resource == null || request.resource.data.s > resource.data.s);
     }
   }
 }

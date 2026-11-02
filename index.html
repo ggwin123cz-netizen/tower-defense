@@ -206,6 +206,18 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .cmnew b{font-size:14px}.cmnew span{display:block!important;color:var(--mut);font-size:11.5px!important;padding:0!important}
 .edw{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start}
 #edcv{display:block;width:100%;height:auto;border-radius:12px;touch-action:none;cursor:crosshair;box-shadow:0 0 0 1px var(--line2),0 18px 40px rgba(0,0,0,.4)}
+.dly{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+.dly canvas.dmap{width:100%;aspect-ratio:16/10;border-radius:10px;border:1px solid var(--line);display:block}
+.dtw,.dmods{display:flex;flex-wrap:wrap;gap:6px}
+.dtw span{display:flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-size:12.5px;font-weight:600}
+.dtw canvas{width:30px;height:30px}
+.dmods span{padding:5px 10px;border-radius:99px;font-size:12px;font-weight:600;background:rgba(255,90,106,.12);border:1px solid rgba(255,90,106,.35);color:#ffb3bb}
+.dlr{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--line);font-size:13.5px}
+.dlr i{font-style:normal;color:var(--mut);font-weight:700}.dlr.t1 i{color:#ffd34d}.dlr.t2 i{color:#d0d8e4}.dlr.t3 i{color:#e0a36a}
+.dlr b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.dlr span{color:var(--wave);font-weight:700}
+.dlr.me{background:rgba(76,141,255,.14);border-radius:8px}
+@media (max-width:900px){.dly{grid-template-columns:1fr}}
 .edtools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 #ed-msg{min-height:34px;line-height:1.45}
 @media (max-width:900px){.edw{grid-template-columns:1fr}#cmaps{grid-template-columns:repeat(2,1fr)}}
@@ -549,6 +561,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
         <div class="tiles">
           <button class="tile res" id="m-resume" hidden><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#fff"/></svg></span><span><b>Resume</b><small id="m-rs"></small></span></button>
           <button class="tile go" id="m-play"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="#fff"/></svg></span><span><b>Play</b><small>Choose a world, or build your own map</small></span></button>
+          <button class="tile" id="m-daily"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffcf6b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M12 12l1.1 2.2 2.4.3-1.8 1.6.5 2.4-2.2-1.2-2.2 1.2.5-2.4-1.8-1.6 2.4-.3z" fill="#ffcf6b" stroke="none"/></svg></span><span><b>Daily challenge</b><small id="m-dc"></small></span><span class="badge" id="m-db" hidden>!</span></button>
           <button class="tile" id="m-mp"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7ff0da" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 14.2c2.8 0 5 2 5 5"/></svg></span><span><b>Multiplayer</b><small>Co-op for up to 4 players</small></span></button>
           <div class="grid2">
           <button class="tile" id="m-towers"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 21V9l2-1V4h2v2h2V4h2v2h2V4h2v4l2 1v12z" stroke="#9cc0ff" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span><b>Towers</b><small id="m-tc"></small></span></button>
@@ -638,6 +651,11 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
       <span class="lbl">Daily quests</span><div class="quests" id="quests"></div>
       <span class="lbl">Level rewards · <span id="lvnow" style="text-transform:none;letter-spacing:0;color:var(--fg)"></span></span><div class="lvtrack" id="lvtrack"></div>
       <p class="note">Earn XP by defeating enemies and clearing waves. Earn Runes by levelling up, collecting new stars and finishing quests.</p>
+    </section>
+
+    <section class="scr" id="s-daily" hidden>
+      <div class="sh"><button class="back" data-to="home">← Back</button><h2>Daily challenge</h2><p>The same battlefield, rules and towers for every player today. How far can you get?</p></div>
+      <div class="dly"><div class="lbc" id="dcard"></div><div class="lbc" id="dboard"></div></div>
     </section>
 
     <section class="scr" id="s-skins" hidden>
@@ -1072,6 +1090,8 @@ const ACH=[
   {id:'world',n:'World Traveller',d:'Win on all '+MAPS.length+' worlds',g:250,p:()=>[Object.keys(save.wins).length,MAPS.length]},
   {id:'build15',n:'Architect',d:'Have 15 towers on the map at once',g:30,ok:()=>inGame&&st.tw.length>=15},
   {id:'lvl10',n:'Fully Loaded',d:'Upgrade one tower to level 10',g:40,ok:()=>inGame&&st.tw.some(t=>tot(t)>=10)},
+  {id:'dly15',n:'Daily Defender',d:'Reach wave 15 in a daily challenge',g:50,ok:()=>inGame&&RUN.dly&&st.wave>=15},
+  {id:'dly7',n:'Regular',d:'Play the daily challenge 7 days in a row',g:80,p:()=>[(save.daily||{}).str||0,7]},
   {id:'end25',n:'No End in Sight',d:'Reach wave 25 in Endless mode',g:60,ok:()=>inGame&&RUN.en&&st.wave>=25},
   {id:'rich',n:'Hoarder',d:'Hold 2,000 gold at once',g:30,ok:()=>inGame&&goldOf()>=2000},
   {id:'spell25',n:'Spellcaster',d:'Cast 25 spells',g:40,p:()=>[save.stats.spells,25]},
@@ -1156,7 +1176,7 @@ const MODS=[
   {id:'tough',n:'Tough',d:'Enemies have 50% more health',b:.3},
   {id:'poor',n:'Poor',d:'40% less starting gold and 20% less gold from enemies',b:.25},
   {id:'frail',n:'Frail',d:'Half the castle lives',b:.2}];
-const RUN={en:false,mods:{},sp:1,hp:1,gs:1,gk:1,lm:1,rm:1};
+const RUN={en:false,dly:null,mods:{},sp:1,hp:1,gs:1,gk:1,lm:1,rm:1};
 function runCalc(){const m=RUN.mods;RUN.sp=m.swift?1.25:1;RUN.hp=m.tough?1.5:1;RUN.gs=m.poor?.6:1;RUN.gk=m.poor?.8:1;RUN.lm=m.frail?.5:1;RUN.rm=(1+MODS.reduce((a,x)=>a+(m[x.id]?x.b:0),0)+(RUN.en?.1:0))*((inGame?CUST:custSel())?.5:1)} // MP: online co-op session (null when playing alone); SKC: skills of the player whose action is being handled
 /* ---------- Skill tree (paid with Runes) ---------- */
 const sk=id=>{const s=SKC||save.skills;return(s&&s[id])||0};
@@ -1474,7 +1494,7 @@ function update(dt){
     for(let w=st.wave-(st.early||0);w<=st.wave;w++){const p=payWave(w,ows);wb+=p.wb;ge+=p.ge;for(const o of ows)gp[o]+=p.gp[o]}
     st.early=0;
     if(st.wave<MAXW||RUN.en){const pf=st.lives>=(st.lw??st.lives)?5+st.wave:0;if(pf){for(const o of ows){giveGold(o,pf);gp[o]+=pf}wb+=pf;st.ge+=pf}st.clr={t:2.4,w:st.wave,g:wb,gm:ge,pf,gp:MP?gp:undefined};sfx('clear')}if(st.wave>=10&&(!MP||MP.set.sw<=1))unlockAch('w10');
-    const bk=bkey(cur,lay,dif);if(!MP&&!CUST)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.en&&!CUST){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
+    const bk=bkey(cur,lay,dif);if(!MP&&!CUST&&!RUN.dly)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.dly)dlyWave();if(RUN.en&&!CUST&&!RUN.dly){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
     if(st.wave>=MAXW&&!RUN.en){const vb=Math.round(40*gm*RUN.rm);st.gems+=vb;save.gems+=vb;mpEv('!g:'+vb);persist();end(true)}
     else{persist();if(auto)st.nxt=3}
   }
@@ -1542,7 +1562,7 @@ function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
   $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win||!!CUST;
   $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));
-  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(MP)mpOver(win)}
+  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(RUN.dly)dlyEnd();if(MP)mpOver(win)}
 let tm=0;
 const cir=(x,y,r,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill()};
 const ell=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,7);g.fill()};
@@ -2725,7 +2745,7 @@ function thumb(m,l,c,L){const x=c.getContext('2d'),s=c.width/(W*C),M=L||MAPS[m].
 
 // In-game tower picker: only unlocked towers
 function buildPicker(){
-  AV=KEYS.filter(k=>(MP&&MP.set.ut)||save.un.includes(k));
+  AV=RUN.dly?dailyOf(RUN.dly).tw:KEYS.filter(k=>(MP&&MP.set.ut)||save.un.includes(k));
   $('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" title="${T[k].n}: ${DESC[k]}"><canvas width="68" height="68"></canvas><span>${T[k].n}<b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
   AV.forEach(k=>{tIcon($('t-'+k).querySelector('canvas'),k);$('t-'+k).onclick=()=>{st.type=k;st.sel=null}});
 }
@@ -2924,7 +2944,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&ACC.user&&
 
 /* ---------- Main menu ---------- */
 let selT='sip',skT='sip';
-function scr(id){if(ED.open&&id!=='editor'){if(ED.dirty&&!confirm('Leave without saving your map?'))return;edClose()}['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account','editor'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount,editor:edPaint})[id]()}
+function scr(id){if(ED.open&&id!=='editor'){if(ED.dirty&&!confirm('Leave without saving your map?'))return;edClose()}['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account','editor','daily'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount,editor:edPaint,daily:renderDaily})[id]()}
 function renderSettings(){const tg=(k,n,d)=>'<div class="setr"><div class="tx"><b>'+n+'</b><small>'+d+'</small></div><button data-t="'+k+'" class="'+(save[k]?'on':'')+'">'+(save[k]?'On':'Off')+'</button></div>';
   $('setl').innerHTML=tg('snd','Sound effects','Shots, hits and spell sounds')+tg('mus','Music','Background music')+'<div class="setr"><div class="tx"><b>Master volume</b><small>'+Math.round(save.vol*100)+'%</small></div><input type="range" id="vol" min="0" max="100" value="'+Math.round(save.vol*100)+'"></div>'+tg('dmg','Damage numbers','Floating numbers for big hits and crits')+tg('shk','Screen shake','Camera shake on explosions and leaks')+'<div class="setr"><div class="tx"><b>Fullscreen</b><small>Also available with the F key</small></div><button id="sfs">Toggle</button></div><div class="setr"><div class="tx"><b>Refund skill tree</b><small>Get all spent runes back</small></div><button id="srs">Refund</button></div><div class="setr"><div class="tx"><b>Move your progress</b><small>Copy a code here, then paste it on another device or another link of the game</small></div><button id="sexp">Copy code</button><button id="simp">Paste code</button></div><div class="setr dng"><div class="tx"><b>Reset all progress</b><small>Deletes gems, levels, skills, towers, skins and stars</small></div><button id="m-reset2">Reset</button></div>';
   $('setl').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;if(k==='snd')setSnd(!save.snd);else if(k==='mus')setMus(!save.mus);else{save[k]=save[k]?0:1;persist()}renderSettings()});
@@ -2968,10 +2988,11 @@ function renderQuests(){
     return'<div class="lvt'+(i?'':' next')+'"><b>'+l+'</b><small>+'+lvRunes(l)+' '+RUNE+'</small><small>+'+lvGems(l)+' '+GEM+'</small>'+tw.map(k=>'<small class="u">'+T[k].n+'</small>').join('')+df.map(n=>'<small class="u">'+n+' mode</small>').join('')+'</div>'}).join('')||'<p class="note">Max level reached!</p>'}
 function renderAch(){const dn=ACH.filter(a=>save.ach[a.id]);$('achsum').textContent=dn.length+' of '+ACH.length+' unlocked · '+dn.reduce((s,a)=>s+a.g,0)+' gems earned';
   $('achs').innerHTML=ACH.map(a=>{const d=!!save.ach[a.id],p=a.p&&!d?a.p():null;return'<div class="ach'+(d?' done':'')+'"><span class="ti">'+(d?TROPHY:TROPHY.replace(/#ffd34d/g,'#4a5568'))+'</span><div class="tx"><b>'+a.n+'</b><small>'+a.d+(p?' · '+fmt(Math.min(p[0],p[1]))+' / '+fmt(p[1]):'')+'</small>'+(p?'<div class="pg"><i style="width:'+Math.min(100,p[0]/p[1]*100)+'%"></i></div>':'')+'</div><span class="rw">'+(d?'✓ Done':'+'+a.g+' '+GEM)+'</span></div>'}).join('')}
-function openMenu(){paused=!MP;st.sel=null;$('mm').hidden=false;scr('home');if(ACC.recheck&&!inGame){ACC.recheck=0;accReconcile()}}
-function closeMenu(){if(ED.open)edClose();$('mm').hidden=true;paused=false}
+function openMenu(){paused=!MP;if(RUN.dly){if(!DLY.m)dlySwap();if(!inGame){RUN.dly=null;DLY.keep=null;DLY.m=0}}st.sel=null;$('mm').hidden=false;scr('home');if(ACC.recheck&&!inGame){ACC.recheck=0;accReconcile()}}
+function closeMenu(){if(ED.open)edClose();if(RUN.dly&&DLY.m)dlySwap();$('mm').hidden=true;paused=false}
 function renderHome(){
-  $('m-resume').hidden=!inGame;if(inGame)$('m-rs').textContent=(CUST?CUST.n:MAPS[cur].n)+' · '+DIFFS[dif].n+' · wave '+st.wave+' of '+MAXW;
+  $('m-resume').hidden=!inGame;if(inGame)$('m-rs').textContent=RUN.dly?'Daily challenge · wave '+st.wave:(CUST?CUST.n:MAPS[cur].n)+' · '+DIFFS[dif].n+' · wave '+st.wave+' of '+MAXW;
+  {const D=dailyOf(utcDay()),o=save.daily&&save.daily.d===D.k?save.daily:null;$('m-dc').textContent=MAPS[D.m].n+' · '+(o&&o.b?'best today: wave '+o.b:'new challenge today');$('m-db').hidden=!!(save.daily&&save.daily.last===D.k)}
   $('m-tc').textContent=save.un.length+' of '+KEYS.length+' towers unlocked';
   const owned=Object.values(save.sk).reduce((a,v)=>a+v.length,0);$('m-sc').textContent=owned+' of '+(KEYS.length*SKN)+' skins collected';
   const cheap=RARK.filter(r=>chestPool(r).length&&save.gems>=RAR[r].ch).length;$('m-cc').textContent=cheap?cheap+' chest'+(cheap>1?'s':'')+' ready to open':'Open chests for random skins';
@@ -3086,7 +3107,7 @@ function showReveal(){const s=SK[CH.id],R=RAR[CH.r],more=chestPool(CH.r).length&
 function closeChest(){CH=null;$('chm').hidden=true;scr('chests')}
 $('chc').onclick=()=>{if(CH&&!CH.done)CH.t0=performance.now()-(CH_T+.9)*1000};
 
-function startGame(){if(ED.open)edClose();CUST=custSel();if(!CUST&&(!worldOpen(mapI)||!layOpen(mapI,layI))||!difOpen(dif))return;runCalc();if(CUST)setMap(CUST.w,0,CUST);else setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;closeMenu()}
+function startGame(){if(ED.open)edClose();CUST=custSel();if(!CUST&&(!worldOpen(mapI)||!layOpen(mapI,layI))||!difOpen(dif))return;RUN.dly=null;DLY.keep=null;DLY.m=0;runCalc();if(CUST)setMap(CUST.w,0,CUST);else setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;closeMenu()}
 // Spell bar: the three base spells plus any learned in the skill tree
 function buildSpells(){const L=SPELLS.filter(spellOn);$('spells').innerHTML=L.map(s=>'<button class="sp" id="sp-'+s.k+'" title="'+s.n+' ('+s.key+'): '+s.d+'" style="--sc:rgb('+s.col+')">'+s.ic+'<span>'+s.n+'</span><kbd>'+s.key+'</kbd><i class="cd"></i><em></em></button>').join('');
 L.forEach(s=>$('sp-'+s.k).onclick=()=>castSpell(s.k))}
@@ -3105,8 +3126,71 @@ $('maps').innerHTML=MAPS.map((m,i)=>'<button class="mp" data-i="'+i+'"><canvas w
 $('maps').onclick=e=>{const b=e.target.closest('[data-i]');if(b){mapI=+b.dataset.i;cSel=null;paintMaps();renderRoster()}};
 $('lays').onclick=e=>{const b=e.target.closest('[data-l]');if(b){layI=+b.dataset.l;cSel=null;renderLays();renderRoster()}};
 document.querySelectorAll('.back').forEach(b=>b.onclick=()=>scr(b.dataset.to));
-$('m-play').onclick=()=>scr('play');$('m-towers').onclick=()=>scr('towers');$('m-skins').onclick=()=>scr('skins');$('m-chests').onclick=()=>scr('chests');$('m-skills').onclick=()=>scr('skills');$('m-quests').onclick=()=>scr('quests');$('m-resume').onclick=closeMenu;
+$('m-play').onclick=()=>scr('play');$('m-daily').onclick=()=>scr('daily');$('m-towers').onclick=()=>scr('towers');$('m-skins').onclick=()=>scr('skins');$('m-chests').onclick=()=>scr('chests');$('m-skills').onclick=()=>scr('skills');$('m-quests').onclick=()=>scr('quests');$('m-resume').onclick=closeMenu;
 // Progress lives in this browser only; a code moves it to another device or another link of the game
+/* ---------- Daily challenge: the same battlefield, rules and towers for every player each day ---------- */
+// The challenge comes from the date (UTC), so everyone gets the same one without a server. Runs are endless on Normal and
+// score the wave reached, with kills breaking ties. Logged-in players go on the day's board: Firestore daily/{day}/scores/{uid}.
+// save.daily: d = day of the record, b = best wave, s = best score, sent/su = score already on the board and for which account,
+// rw = waves already paid in gems, str = days played in a row, last = last day played.
+const DLY={m:0,keep:null,lb:null,lbDay:'',lbAt:0,err:''},DLY_GEMS=3,DLY_MAX=90;
+const utcDay=(t=Date.now())=>new Date(t).toISOString().slice(0,10);
+function dailyOf(k){let h=2166136261;for(const c of k)h=Math.imul(h^c.charCodeAt(0),16777619);
+  const r=()=>{h=Math.imul(h^h>>>15,h|1);h^=h+Math.imul(h^h>>>7,h|61);return((h^h>>>14)>>>0)/4294967296};
+  const pick=(a,n)=>{a=a.slice();const o=[];while(o.length<n&&a.length)o.push(a.splice(Math.floor(r()*a.length),1)[0]);return o};
+  const m=Math.floor(r()*MAPS.length),l=Math.floor(r()*MAPS[m].ly.length),mods=pick(MODS.map(x=>x.id),1+Math.floor(r()*2));
+  const sup=KEYS.filter(k=>T[k].gen||T[k].buff||T[k].bank),tw=[...pick(KEYS.filter(k=>!sup.includes(k)),5),...pick(sup,1)];
+  return{k,m,l,mods,tw:KEYS.filter(k=>tw.includes(k))}}
+function dlySave(){const t=utcDay(),o=save.daily;if(o&&o.d===t)return o;return save.daily={d:t,b:0,s:0,sent:0,rw:0,str:o?o.str||0:0,last:o?o.last||'':''}}
+const dlyScore=()=>st.wave*1e4+Math.min(9999,st.kills||0);
+// While the menu is open during a daily run, the Play screen's own difficulty and run options are back in place; Resume swaps the daily ones in again
+function dlySwap(){const k=DLY.keep;DLY.keep={dif,en:RUN.en,mods:RUN.mods};dif=k.dif;RUN.en=k.en;RUN.mods=k.mods;DLY.m^=1;runCalc()}
+function dailyStart(){const D=dailyOf(utcDay()),o=dlySave();if(ED.open)edClose();
+  if(o.last!==D.k){o.str=o.last===utcDay(Date.now()-864e5)?(o.str||0)+1:1;o.last=D.k;const b=10+5*Math.min(o.str-1,6);save.gems+=b;persist();
+    setTimeout(()=>toast(o.str>1?o.str+' days in a row!':'Daily challenge','Streak bonus: +'+b+' gems',GEM.replace(/12/g,'20'),'#b57bff'),500)}
+  if(!RUN.dly||DLY.m)DLY.keep={dif,en:RUN.en,mods:RUN.mods};DLY.m=0;
+  CUST=null;RUN.dly=D.k;dif=1;RUN.en=true;RUN.mods={};D.mods.forEach(x=>RUN.mods[x]=true);inGame=true;runCalc();
+  setMap(D.m,D.l);buildPicker();buildSpells();reset();nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');
+  $('sub').textContent='Daily challenge · '+MAPS[D.m].ly[D.l].n;$('sub').title=MAPS[D.m].n+' · '+MAPS[D.m].ly[D.l].n+' · '+D.mods.map(id=>MODS.find(x=>x.id===id).n).join(', ');closeMenu()}
+function dlyRec(){if(RUN.dly!==utcDay())return null;const o=dlySave(),s=dlyScore();o.b=Math.max(o.b,st.wave);o.s=Math.max(o.s,s);return o}
+// After each cleared wave: keep the best and pay gems for waves not paid yet today
+function dlyWave(){const o=dlyRec();if(!o)return;const pay=Math.min(DLY_MAX,st.wave*DLY_GEMS)-Math.min(DLY_MAX,(o.rw||0)*DLY_GEMS);
+  if(pay>0){o.rw=st.wave;st.gems+=pay;save.gems+=pay;if(st.clr)st.clr.gm+=pay}}
+function dlyEnd(){const o=dlyRec();persist();$('ovt').textContent='Daily challenge';
+  $('ovs').textContent='The castle fell on wave '+st.wave+'.'+(o?' Your best today: wave '+o.b+'.':'');dlySend()}
+// Put today's best on the board. The rules only accept a higher score, so a failed send is simply tried again later.
+async function dlySend(){const o=save.daily,u=ACC.user;if(!o||!o.s||o.d!==utcDay()||!u||!FB||o.s<=(o.su===u.uid?o.sent||0:0))return;
+  const s=o.s;try{await FB.F.setDoc(FB.F.doc(FB.db,'daily',o.d,'scores',u.uid),{n:ACC.name,w:Math.floor(s/1e4),s,at:FB.F.serverTimestamp()});o.sent=s;o.su=u.uid;DLY.lbAt=0;persist()}catch(e){}}
+async function dlyBoard(){const d=utcDay();
+  if(DLY.lbDay===d&&Date.now()-DLY.lbAt<60000){dlyPaintBoard();return}
+  if(DLY.lbDay!==d)DLY.lb=null;DLY.err='';dlyPaintBoard();
+  try{await fbLoad();await dlySend();const F=FB.F,q=await F.getDocs(F.query(F.collection(FB.db,'daily',d,'scores'),F.orderBy('s','desc'),F.limit(20)));
+    DLY.lb=q.docs.map(x=>Object.assign({id:x.id},x.data()));DLY.lbDay=d;DLY.lbAt=Date.now()}
+  catch(e){DLY.err=e&&e.code==='permission-denied'?'The leaderboard is not switched on yet.':'Could not load the leaderboard. Check your connection.'}
+  dlyPaintBoard()}
+function dlyPaintBoard(){if($('s-daily').hidden)return;const d=utcDay(),L=DLY.lbDay===d?DLY.lb:null,uid=ACC.user&&ACC.user.uid,o=save.daily&&save.daily.d===d?save.daily:null;
+  let h='<h3>Today’s best</h3>';
+  if(!FB_CONFIG)h+='<p class="lbmsg" style="color:var(--mut)">There is no online leaderboard in this copy of the game.</p>';
+  else if(!L)h+='<p class="lbmsg">'+(DLY.err||'Loading…')+'</p>';
+  else if(!L.length)h+='<p class="lbmsg" style="color:var(--mut)">Nobody is on the board yet. Be the first!</p>';
+  else h+='<div>'+L.map((r,i)=>'<div class="dlr'+(i<3?' t'+(i+1):'')+(r.id===uid?' me':'')+'"><i>'+(i+1)+'</i><b>'+escH(r.n||'?')+'</b><span>wave '+(r.w|0)+'</span></div>').join('')+'</div>';
+  if(o&&o.b&&!(L&&L.some(r=>r.id===uid)))h+='<div class="dlr me"><i>–</i><b>'+(ACC.user?escH(ACC.name):'You')+'</b><span>wave '+o.b+'</span></div>';
+  if(FB_CONFIG)h+=ACC.user?'<p class="note" style="margin:0">Your best run of the day counts. A new board starts at midnight (UTC).</p>':'<p class="note" style="margin:0">Log in to put your name on the board.</p><button id="d-acc">Log in or sign up</button>';
+  $('dboard').innerHTML=h;const b=$('d-acc');if(b)b.onclick=()=>scr('account')}
+function renderDaily(){const D=dailyOf(utcDay()),M=MAPS[D.m],sd=save.daily||{},o=sd.d===D.k?sd:null,earned=o?Math.min(DLY_MAX,(o.rw||0)*DLY_GEMS):0;
+  const ms=864e5-Date.now()%864e5,str=sd.last===D.k||sd.last===utcDay(Date.now()-864e5)?sd.str||0:0,nb=10+5*Math.min(sd.last===D.k?str-1:str,6);
+  $('dcard').innerHTML='<canvas class="dmap" width="640" height="400"></canvas>'
+    +lbRow('Battlefield',escH(M.n)+' · '+escH(M.ly[D.l].n))+lbRow('Mode',DIFFS[1].n+' · endless')
+    +'<div class="lbf"><label>Today’s rules</label><div class="dmods">'+D.mods.map(id=>{const x=MODS.find(m=>m.id===id);return'<span>'+x.n+' · '+x.d+'</span>'}).join('')+'</div></div>'
+    +'<div class="lbf"><label>Everyone builds with these towers today</label><div class="dtw">'+D.tw.map(k=>'<span title="'+escH(DESC[k])+'"><canvas width="60" height="60"></canvas>'+T[k].n+'</span>').join('')+'</div></div>'
+    +lbRow('Your best today',o&&o.b?'wave '+o.b:'not played yet')
+    +lbRow('Gems today',earned+' of '+DLY_MAX+' <small style="color:var(--mut);font-weight:500">· '+DLY_GEMS+' per wave</small>')
+    +lbRow('Streak',str?str+' day'+(str>1?'s':''):'—')
+    +'<button class="go" id="d-go">'+(o&&o.b?'Try again':'Play today’s challenge')+(sd.last===D.k?'':' · +'+nb+' gems')+'</button>'
+    +'<p class="note" style="margin:0">A new challenge in '+Math.floor(ms/36e5)+' h '+Math.floor(ms%36e5/6e4)+' min. Play every day to grow your streak bonus.</p>';
+  thumb(D.m,D.l,$('dcard').querySelector('canvas'));[...$('dcard').querySelectorAll('.dtw canvas')].forEach((c,i)=>tIcon(c,D.tw[i]));
+  $('d-go').onclick=dailyStart;dlyBoard()}
+
 function saveExport(){const c='TD1:'+btoa(unescape(encodeURIComponent(accData())));
   (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast('Progress code copied','On the other device open Settings and press Paste code',null,'#38d68a'),()=>prompt('Copy this progress code:',c))}
 function saveImport(){const c=(prompt('Paste your progress code:')||'').trim();if(!c)return;let s=null;
@@ -3119,7 +3203,7 @@ $('m-settings').onclick=()=>scr('settings');$('m-account').onclick=()=>scr('acco
 $('startgame').onclick=startGame;
 $('menu').onclick=openMenu;
 $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()};
-$('again').onclick=()=>{if(MP){mpBackToLobby();return}if(!CUST){mapI=cur;layI=lay}startGame()};
+$('again').onclick=()=>{if(MP){mpBackToLobby();return}if(RUN.dly){dailyStart();return}if(!CUST){mapI=cur;layI=lay}startGame()};
 $('start').onclick=waveGo;$('tutx').onclick=tutEnd;$('tutok').onclick=tutEnd;
 $('auto').onclick=()=>{if(MP&&!MP.host)return;auto=!auto;$('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');if(auto&&!st.run&&!st.over)startWave()};
 $('fs').onclick=()=>{const d=document;try{(d.fullscreenElement?d.exitFullscreen():d.documentElement.requestFullscreen()).catch(()=>{})}catch(e){}};
@@ -3309,7 +3393,7 @@ function mpStart(){
 function beginMP(S,players,host){
   MP={host,id:NET.you,set:S,players:players.map((p,i)=>Object.assign({},p,{col:PCOL[i%4]})),evq:new Set(),evs:[],kd:[]};
   NET.last=new Map();NET.live={};NET.map={en:new Map(),tw:new Map(),bl:new Map(),zones:new Map(),met:new Map()};NET.barH='';NET.snapT=tm;
-  CUST=null;mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
+  CUST=null;RUN.dly=null;DLY.keep=null;DLY.m=0;mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
   setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';
   $('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');
   $('spd').textContent='Speed 1×';$('spd').classList.remove('on');
