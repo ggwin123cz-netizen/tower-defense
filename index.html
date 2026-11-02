@@ -218,6 +218,14 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .dlr span{color:var(--wave);font-weight:700}
 .dlr.me{background:rgba(76,141,255,.14);border-radius:8px}
 @media (max-width:900px){.dly{grid-template-columns:1fr}}
+.chc{display:flex;align-items:center;gap:14px;padding:12px 14px;margin-bottom:16px;border-radius:12px;background:linear-gradient(90deg,rgba(255,170,60,.12),rgba(255,170,60,.03));border:1px solid rgba(255,170,60,.35)}
+.chc.done{background:linear-gradient(90deg,rgba(56,214,138,.12),rgba(56,214,138,.03));border-color:rgba(56,214,138,.35)}
+.chc .tr{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:rgba(255,170,60,.18)}.chc.done .tr{background:rgba(56,214,138,.18)}
+.chc div{flex:1;min-width:0}.chc b{display:block;font-size:14px}.chc small{display:block;margin-top:3px;color:var(--mut);font-size:12px}
+.chc button{flex:none;padding:9px 14px;font-size:13px}
+.ly .chk{position:absolute;top:8px;left:8px;padding:3px 7px;border-radius:99px;background:rgba(10,14,19,.8);color:#ffc56b;font-size:11px;font-weight:700}.ly .chk.d{color:#5ef2a0}
+@media (max-width:600px){.chc{flex-wrap:wrap}.chc button{width:100%}}
+.spells button.off{opacity:.35;pointer-events:none}
 .edtools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 #ed-msg{min-height:34px;line-height:1.45}
 @media (max-width:900px){.edw{grid-template-columns:1fr}#cmaps{grid-template-columns:repeat(2,1fr)}}
@@ -600,6 +608,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
           <span class="lbl">Difficulty</span><div id="diff"></div>
           <span class="lbl">World <span id="totst" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div id="maps"></div>
           <span class="lbl">Battlefield <span id="lyname" style="text-transform:none;letter-spacing:0;color:var(--fg)"></span></span><div id="lays"></div>
+          <span class="lbl">Challenge <span id="chname" style="text-transform:none;letter-spacing:0;color:var(--fg)"></span></span><div id="chal"></div>
           <span class="lbl">Your maps <span style="text-transform:none;letter-spacing:0;color:var(--mut)">· half the gems and XP, no stars</span></span><div id="cmaps"></div>
           <span class="lbl">Run options <span id="rmult" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div class="runopt" id="runopt"></div>
           <button class="go" id="startgame">Start game</button>
@@ -1122,6 +1131,8 @@ const ACH=[
   {id:'dly7',n:'Regular',d:'Play the daily challenge 7 days in a row',g:80,p:()=>[(save.daily||{}).str||0,7]},
   {id:'spec1',n:'Specialist',d:'Give a tower its specialization',g:30,ok:()=>inGame&&st.tw.some(t=>t.sp!==undefined)},
   {id:'combo6',n:'Combo Master',d:'Trigger all 6 tower combos',g:80,p:()=>[Object.keys(save.combos||{}).length,6]},
+  {id:'chal1',n:'Challenger',d:'Complete a battlefield challenge',g:30,p:()=>[Object.keys(save.chal||{}).length,1]},
+  {id:'chal15',n:'Rule Breaker',d:'Complete 15 battlefield challenges',g:120,p:()=>[Object.keys(save.chal||{}).length,15]},
   {id:'end25',n:'No End in Sight',d:'Reach wave 25 in Endless mode',g:60,ok:()=>inGame&&RUN.en&&st.wave>=25},
   {id:'rich',n:'Hoarder',d:'Hold 2,000 gold at once',g:30,ok:()=>inGame&&goldOf()>=2000},
   {id:'spell25',n:'Spellcaster',d:'Cast 25 spells',g:40,p:()=>[save.stats.spells,25]},
@@ -1206,7 +1217,7 @@ const MODS=[
   {id:'tough',n:'Tough',d:'Enemies have 50% more health',b:.3},
   {id:'poor',n:'Poor',d:'40% less starting gold and 20% less gold from enemies',b:.25},
   {id:'frail',n:'Frail',d:'Half the castle lives',b:.2}];
-const RUN={en:false,dly:null,mods:{},sp:1,hp:1,gs:1,gk:1,lm:1,rm:1};
+const RUN={en:false,dly:null,ch:null,mods:{},sp:1,hp:1,gs:1,gk:1,lm:1,rm:1};
 function runCalc(){const m=RUN.mods;RUN.sp=m.swift?1.25:1;RUN.hp=m.tough?1.5:1;RUN.gs=m.poor?.6:1;RUN.gk=m.poor?.8:1;RUN.lm=m.frail?.5:1;RUN.rm=(1+MODS.reduce((a,x)=>a+(m[x.id]?x.b:0),0)+(RUN.en?.1:0))*((inGame?CUST:custSel())?.5:1)} // MP: online co-op session (null when playing alone); SKC: skills of the player whose action is being handled
 /* ---------- Skill tree (paid with Runes) ---------- */
 const sk=id=>{const s=SKC||save.skills;return(s&&s[id])||0};
@@ -1264,8 +1275,9 @@ const mastTier=b=>{const sv=SKC||save.skills||{};let p=0;for(const n of SKT)if(n
 const skOpen=s=>!s.req||s.req.every(([id,r])=>sk(id)>=r);
 const skNeed=s=>(s.req||[]).filter(([id,r])=>sk(id)<r).map(([id,r])=>SKI[id].n+' '+r).join(', ');
 const skCost=(s,r)=>s.c+Math.floor(r/2);
-function reset(){const D=DIFFS[dif];MAXW=D.w;st={gold:Math.round((D.g+30*sk('e1')+35*mastTier('e'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
+function reset(){const D=DIFFS[dif];MAXW=RUN.ch?CHW:D.w;st={gold:Math.round((D.g+30*sk('e1')+35*mastTier('e'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
   scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0,early:0,cs:{},wq:0,lk:{},tut:0,pend:null};
+  if(RUN.ch&&RUN.ch.t.lives)st.lives=RUN.ch.t.lives;
   st.lives0=st.lives;SPELLS.forEach(s=>st.scd[s.k]=0);if(MP)mpAfterReset();$('ov').hidden=true;if(auto&&!(MP&&!MP.host))st.nxt=2}
 // Spells: active abilities on a cooldown (seconds of game time)
 const SPELLS=[
@@ -1415,7 +1427,7 @@ function castSpell(k,who,ax,ay){
   if(MP&&!MP.host){if(!inGame||st.over||st.scd[k]>0||!spellOn(SPK[k]))return;if(k==='met'){st.aim=st.aim==='met'?null:'met';return}mpSend({c:'cast',k});return}
   withSk(MP?(who===undefined?MP.id:who):undefined,()=>castSpell0(k,who,ax,ay))}
 function castSpell0(k,who,ax,ay){const me=!MP||who===undefined||who===MP.id,scd=me?st.scd:st.P[who].scd;
-  if(!inGame||st.over||paused||scd[k]>0||!spellOn(SPK[k]))return;
+  if(!inGame||st.over||paused||scd[k]>0||!spellOn(SPK[k])||chNoSpell())return;
   if(k==='met'){if(ax!==undefined)dropMeteor(ax,ay,who);else st.aim=st.aim==='met'?null:'met';return}
   scd[k]=spellCd(k)*(Math.random()<.12*sk('m11')?.4:1);if(me){save.stats.spells++;questAdd('spell',1)}
   if(k==='frz'){const fd=4+.7*sk('m3');for(const e of st.en){if(!cc(e))continue;const d=e.k==='tank'?fd*.6:fd;e.ice=Math.max(e.ice||0,d);e.stun=Math.max(e.stun||0,d);if(sk('m8'))e.slow=Math.max(e.slow||0,d+1.2*sk('m8'))}st.flash={c:'170,225,255',a:.55};sfx('freeze')}
@@ -1426,7 +1438,7 @@ function castSpell0(k,who,ax,ay){const me=!MP||who===undefined||who===MP.id,scd=
 function dropMeteor(x,y,who){
   if(MP&&!MP.host){st.aim=null;if(st.scd.met>0)return;mpSend({c:'cast',k:'met',x,y});return}
   const me=!MP||who===undefined||who===MP.id,scd=me?st.scd:st.P[who].scd;if(me)st.aim=null;
-  withSk(me?undefined:who,()=>{if(scd.met>0)return;scd.met=spellCd('met')*(Math.random()<.12*sk('m11')?.4:1);if(me){save.stats.spells++;questAdd('spell',1)}st.met.push({x,y,t:.75,R:80*(1+.06*sk('m2')),mk:1+.25*sk('m2'),fk:1+.4*sk('m7')});sfx('meteor')})}
+  withSk(me?undefined:who,()=>{if(scd.met>0||chNoSpell())return;scd.met=spellCd('met')*(Math.random()<.12*sk('m11')?.4:1);if(me){save.stats.spells++;questAdd('spell',1)}st.met.push({x,y,t:.75,R:80*(1+.06*sk('m2')),mk:1+.25*sk('m2'),fk:1+.4*sk('m7')});sfx('meteor')})}
 function spawn(){
   const w=st.wave,n=st.n++,{k,E}=pickSpawn(w,n);
   const D=DIFFS[dif],hp=(18+w*w*1.25+w*10)*D.h*(E.hm||1)*(st.hpm||1)*LK*RUN.hp,rw=Math.max(1,Math.round((4+Math.floor(w/2.5))*D.r)),o=ROLE[k];
@@ -1623,7 +1635,7 @@ function update(dt){
     for(let w=st.wave-(st.early||0);w<=st.wave;w++){const p=payWave(w,ows);wb+=p.wb;ge+=p.ge;for(const o of ows)gp[o]+=p.gp[o]}
     st.early=0;
     if(st.wave<MAXW||RUN.en){const pf=st.lives>=(st.lw??st.lives)?5+st.wave:0;if(pf){for(const o of ows){giveGold(o,pf);gp[o]+=pf}wb+=pf;st.ge+=pf}st.clr={t:2.4,w:st.wave,g:wb,gm:ge,pf,gp:MP?gp:undefined};sfx('clear')}if(st.wave>=10&&(!MP||MP.set.sw<=1))unlockAch('w10');
-    const bk=bkey(cur,lay,dif);if(!MP&&!CUST&&!RUN.dly)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.dly)dlyWave();if(RUN.en&&!CUST&&!RUN.dly){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
+    const bk=bkey(cur,lay,dif);if(!MP&&!CUST&&!RUN.dly&&!RUN.ch)save.best[bk]=Math.max(save.best[bk]||0,st.wave);if(RUN.dly)dlyWave();if(RUN.en&&!CUST&&!RUN.dly){save.endless=save.endless||{};if((save.endless[bk]||0)<st.wave)save.endless[bk]=st.wave}
     if(st.wave>=MAXW&&!RUN.en){const vb=Math.round(40*gm*RUN.rm);st.gems+=vb;save.gems+=vb;mpEv('!g:'+vb);persist();end(true)}
     else{persist();if(auto)st.nxt=3}
   }
@@ -1673,8 +1685,8 @@ function leakBox(top){const el=$('ovlk');if(!top||!top.length){el.hidden=true;re
   el.innerHTML='<div class="lkl"><span class="lkh">Got through</span>'+top.map(x=>'<span><b>'+x.c+'×</b> '+escH(x.n)+'</span>').join('')+'</div><p class="lkt"><b>Tip</b>'+escH(top[0].n)+': '+escH(leakTip(top[0]))+'</p>';el.hidden=false}
 const STAR=on=>'<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21.1l1.5-7L2 9.3l7-.8z" fill="'+(on?'#ffd34d':'#252d3b')+'" stroke="'+(on?'#b8860b':'#3a4456')+'" stroke-width="1"/></svg>';
 function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
-  const D=DIFFS[dif],lost=st.lives0-st.lives,stars=MP||CUST?0:win?(lost===0?3:lost<=D.l*.3?2:1):0,bk=bkey(cur,lay,dif),old=save.stars[bk]||0,wo=MAPS.map((_,i)=>worldOpen(i));
-  if(win){if(!MP&&!CUST)save.stars[bk]=Math.max(old,stars);if(!CUST){save.wins[cur]=1;unlockAch('win'+dif);if(lost===0)unlockAch('perf')}sfx('win');questAdd('win',1)}else{shake(6);sfx('lose')}
+  const D=DIFFS[dif],lost=st.lives0-st.lives,stars=MP||CUST||RUN.ch?0:win?(lost===0?3:lost<=D.l*.3?2:1):0,bk=bkey(cur,lay,dif),old=save.stars[bk]||0,wo=MAPS.map((_,i)=>worldOpen(i));
+  if(win){if(!MP&&!CUST&&!RUN.ch)save.stars[bk]=Math.max(old,stars);if(!CUST&&!RUN.ch){save.wins[cur]=1;unlockAch('win'+dif);if(lost===0)unlockAch('perf')}sfx('win');questAdd('win',1)}else{shake(6);sfx('lose')}
   questAdd('gold',st.ge-st.qge);st.qge=st.ge;
   // Rewards: XP (scaled by difficulty), a rune for every new star, plus level-up payouts
   const ns=Math.max(0,(win?stars:0)-old),xg=Math.round((Math.round(st.xp*[.8,1,1.3,1.7][dif]*.6)+(win?50*(dif+1):0))*RUN.rm),lv0=save.lvl,xp0=save.xp;save.runes+=ns;
@@ -1691,7 +1703,7 @@ function end(win){st.over=true;inGame=false;st.aim=null;st.pause=false;
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
   $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win||!!CUST;
   $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));
-  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(RUN.dly)dlyEnd();if(MP)mpOver(win)}
+  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(RUN.dly)dlyEnd();if(RUN.ch)chEnd(win);if(MP)mpOver(win)}
 let tm=0;
 const cir=(x,y,r,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill()};
 const ell=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,7);g.fill()};
@@ -2818,7 +2830,7 @@ function ui0(){
   $('lives').parentElement.classList.toggle('low',st.lives>0&&st.lives<=Math.max(3,DIFFS[dif].l*.25));
   const eb=earlyBonus(),sb=$('start'),sh=eb?'<svg width="14" height="14" viewBox="0 0 24 24"><path d="M3 5l8 7-8 7zM12 5l8 7-8 7z" fill="currentColor"/></svg>Call wave '+(st.wave+1)+' early <b>+'+eb+'</b>':'<svg width="14" height="14" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg>Start wave';
   sb.disabled=st.over||(st.run&&!eb);sb.classList.toggle('early',!!eb);if(sb.dataset.h!==sh){sb.dataset.h=sh;sb.innerHTML=sh+'<kbd>Space</kbd>';sb.title=eb?'Start the next wave now for bonus gold. The sooner you call it, the bigger the bonus.':''}
-  for(const s of SPELLS){const b=$('sp-'+s.k),r=st.scd[s.k];if(!b)continue;b.style.setProperty('--p',r/s.cd);const tx=r>0?Math.ceil(r):'',em=b.querySelector('em');if(em.textContent!=String(tx))em.textContent=tx;b.classList.toggle('ready',r<=0&&inGame&&!st.over);b.classList.toggle('aim',st.aim===s.k)}
+  for(const s of SPELLS){const b=$('sp-'+s.k),r=st.scd[s.k];if(!b)continue;b.style.setProperty('--p',r/s.cd);const tx=r>0?Math.ceil(r):'',em=b.querySelector('em');if(em.textContent!=String(tx))em.textContent=tx;b.classList.toggle('ready',r<=0&&inGame&&!st.over&&!chNoSpell());b.classList.toggle('off',chNoSpell());b.classList.toggle('aim',st.aim===s.k)}
   $('pause').textContent=st.pause?'Resume':'Pause';$('pause').classList.toggle('on',!!st.pause);
   renderNext();
   AV.forEach(k=>{const b=$('t-'+k);if(!b)return;b.classList.toggle('on',st.type===k);b.classList.toggle('poor',goldOf()<bcost(k))});
@@ -2831,7 +2843,7 @@ function ui0(){
     // No room beside the tower, or the window is taller than the board (phones): under the board, pointing up at the tower
     else{const left=Math.max(8,Math.min(innerWidth-pw-8,tx-pw/2));inf.className='b';inf.style.left=left+'px';inf.style.top=Math.max(8,Math.min(innerHeight-ph-8,r.bottom+10))+'px';inf.style.setProperty('--ax',(tx-left)+'px')}
     for(const s in STATS){const b=$('u-'+s);b.hidden=(s==='z'&&!hasZ(t))||(s==='r'&&(B.gen||B.bank))||(s==='s'&&(B.buff||B.bank));if(b.hidden)continue;const m=t.u[s]>=MAXU;let pips='';for(let i=0;i<MAXU;i++)pips+=i<t.u[s]?'<i class="f"></i>':'<i></i>';
-      const hh='<span>'+upName(t,s)+'<small>'+upPrev(t,s)+'</small></span><em>'+pips+'</em><strong>'+(m?'MAX':upCost(t,s))+'</strong>';if(b.dataset.h!==hh){b.dataset.h=hh;b.innerHTML=hh}b.disabled=m||goldOf()<upCost(t,s)}
+      const hh='<span>'+upName(t,s)+'<small>'+upPrev(t,s)+'</small></span><em>'+pips+'</em><strong>'+(m?'MAX':upCost(t,s))+'</strong>';if(b.dataset.h!==hh){b.dataset.h=hh;b.innerHTML=hh}b.disabled=m||goldOf()<upCost(t,s)||tot(t)>=chMaxLv()}
     const ub=$('u-t');ub.hidden=!hasTarget(t);if(!ub.hidden){const h2='<span>Target</span><strong style="color:var(--fg);min-width:0">'+TGN[t.tg||'first']+' ⟳</strong>';if(ub.dataset.h!==h2){ub.dataset.h=h2;ub.innerHTML=h2}}
     {const S=SPEC[t.k],el=$('u-sp');let h='';
       if(S){if(t.sp!==undefined){const x=S[t.sp];h='<div class="spd'+(t.sp?' b':'')+'"><b>★ '+x.n+'</b><small>'+x.d+'</small></div>'}
@@ -2888,7 +2900,7 @@ function thumb(m,l,c,L){const x=c.getContext('2d'),s=c.width/(W*C),M=L||MAPS[m].
 
 // In-game tower picker: only unlocked towers
 function buildPicker(){
-  AV=RUN.dly?dailyOf(RUN.dly).tw:KEYS.filter(k=>(MP&&MP.set.ut)||save.un.includes(k));
+  AV=RUN.ch&&RUN.ch.t.only?KEYS.filter(k=>RUN.ch.t.only.includes(k)):RUN.dly?dailyOf(RUN.dly).tw:KEYS.filter(k=>(MP&&MP.set.ut)||save.un.includes(k));
   $('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" title="${T[k].n}: ${DESC[k]}"><canvas width="68" height="68"></canvas><span>${T[k].n}<b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
   AV.forEach(k=>{tIcon($('t-'+k).querySelector('canvas'),k);$('t-'+k).onclick=()=>{st.type=k;st.sel=null}});
 }
@@ -3131,10 +3143,10 @@ function renderQuests(){
     return'<div class="lvt'+(i?'':' next')+'"><b>'+l+'</b><small>+'+lvRunes(l)+' '+RUNE+'</small><small>+'+lvGems(l)+' '+GEM+'</small>'+tw.map(k=>'<small class="u">'+T[k].n+'</small>').join('')+df.map(n=>'<small class="u">'+n+' mode</small>').join('')+'</div>'}).join('')||'<p class="note">Max level reached!</p>'}
 function renderAch(){const dn=ACH.filter(a=>save.ach[a.id]);$('achsum').textContent=dn.length+' of '+ACH.length+' unlocked · '+dn.reduce((s,a)=>s+a.g,0)+' gems earned';
   $('achs').innerHTML=ACH.map(a=>{const d=!!save.ach[a.id],p=a.p&&!d?a.p():null;return'<div class="ach'+(d?' done':'')+'"><span class="ti">'+(d?TROPHY:TROPHY.replace(/#ffd34d/g,'#4a5568'))+'</span><div class="tx"><b>'+a.n+'</b><small>'+a.d+(p?' · '+fmt(Math.min(p[0],p[1]))+' / '+fmt(p[1]):'')+'</small>'+(p?'<div class="pg"><i style="width:'+Math.min(100,p[0]/p[1]*100)+'%"></i></div>':'')+'</div><span class="rw">'+(d?'✓ Done':'+'+a.g+' '+GEM)+'</span></div>'}).join('')}
-function openMenu(){paused=!MP;if(RUN.dly){if(!DLY.m)dlySwap();if(!inGame){RUN.dly=null;DLY.keep=null;DLY.m=0}}st.sel=null;$('mm').hidden=false;scr('home');if(ACC.recheck&&!inGame){ACC.recheck=0;accReconcile()}}
-function closeMenu(){if(ED.open)edClose();if(RUN.dly&&DLY.m)dlySwap();$('mm').hidden=true;paused=false}
+function openMenu(){paused=!MP;if(spRun()){if(!DLY.m)dlySwap();if(!inGame){RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0}}st.sel=null;$('mm').hidden=false;scr('home');if(ACC.recheck&&!inGame){ACC.recheck=0;accReconcile()}}
+function closeMenu(){if(ED.open)edClose();if(spRun()&&DLY.m)dlySwap();$('mm').hidden=true;paused=false}
 function renderHome(){
-  $('m-resume').hidden=!inGame;if(inGame)$('m-rs').textContent=RUN.dly?'Daily challenge · wave '+st.wave:(CUST?CUST.n:MAPS[cur].n)+' · '+DIFFS[dif].n+' · wave '+st.wave+' of '+MAXW;
+  $('m-resume').hidden=!inGame;if(inGame)$('m-rs').textContent=RUN.ch?'Challenge · '+RUN.ch.t.n+' · wave '+st.wave+' of '+CHW:RUN.dly?'Daily challenge · wave '+st.wave:(CUST?CUST.n:MAPS[cur].n)+' · '+DIFFS[dif].n+' · wave '+st.wave+' of '+MAXW;
   {const D=dailyOf(utcDay()),o=save.daily&&save.daily.d===D.k?save.daily:null;$('m-dc').textContent=MAPS[D.m].n+' · '+(o&&o.b?'best today: wave '+o.b:'new challenge today');$('m-db').hidden=!!(save.daily&&save.daily.last===D.k)}
   $('m-tc').textContent=save.un.length+' of '+KEYS.length+' towers unlocked';
   const owned=Object.values(save.sk).reduce((a,v)=>a+v.length,0);$('m-sc').textContent=owned+' of '+(KEYS.length*SKN)+' skins collected';
@@ -3169,8 +3181,8 @@ function paintMaps(){const tot=totStars();[...$('maps').children].forEach((b,i)=
     let ts=0;for(let l=0;l<MAPS[i].ly.length;l++)ts+=save.stars[bkey(i,l,dif)]||0;b.querySelector('small').innerHTML=o?'<i class="stz">★</i> '+ts+' / '+MAPS[i].ly.length*3:'Need '+(worldNeed(i)-tot)+' more ★'});
   $('totst').textContent='★ '+tot+' collected';renderLays()}
 function renderLays(){const M=MAPS[mapI];if(layI>=M.ly.length)layI=0;$('lyname').textContent='· '+M.n;
-  $('lays').innerHTML=M.ly.map((l,j)=>{const sr=save.stars[bkey(mapI,j,dif)]||0,bw=save.best[bkey(mapI,j,dif)],o=layOpen(mapI,j);return'<button class="ly'+(j===layI&&!custSel()?' on':'')+(o?'':' lock')+'" data-l="'+j+'"><canvas width="320" height="200"></canvas>'+(o?'':'<span class="lk2">'+LOCK+' Win '+M.ly[j-1].n+'</span>')+'<span>'+l.n+'<small class="'+l.len+'">'+l.len+' path</small></span><em>'+(sr?starStr(sr):bw?'Best wave '+bw+' / '+DIFFS[dif].w:'Not played yet')+'</em></button>'}).join('');
-  [...$('lays').querySelectorAll('canvas')].forEach((c,j)=>thumb(mapI,j,c));renderCustom();paintStart()}
+  $('lays').innerHTML=M.ly.map((l,j)=>{const sr=save.stars[bkey(mapI,j,dif)]||0,bw=save.best[bkey(mapI,j,dif)],o=layOpen(mapI,j);return'<button class="ly'+(j===layI&&!custSel()?' on':'')+(o?'':' lock')+'" data-l="'+j+'"><canvas width="320" height="200"></canvas>'+(o?'':'<span class="lk2">'+LOCK+' Win '+M.ly[j-1].n+'</span>')+(o?'<span class="chk'+(chDone(mapI+'.'+j)?' d':'')+'" title="Challenge: '+chOf(mapI,j).t.n+'">'+(chDone(mapI+'.'+j)?'✓ ':'')+'★ '+chOf(mapI,j).t.n+'</span>':'')+'<span>'+l.n+'<small class="'+l.len+'">'+l.len+' path</small></span><em>'+(sr?starStr(sr):bw?'Best wave '+bw+' / '+DIFFS[dif].w:'Not played yet')+'</em></button>'}).join('');
+  [...$('lays').querySelectorAll('canvas')].forEach((c,j)=>thumb(mapI,j,c));renderCustom();paintStart();paintChal()}
 function renderPlay(){paintDiff();paintMaps();renderRoster();paintRun()}
 function renderRoster(){
   const cm=custSel(),M=MAPS[cm?cm.w:mapI];$('rname').textContent=M.n;
@@ -3250,7 +3262,7 @@ function showReveal(){const s=SK[CH.id],R=RAR[CH.r],more=chestPool(CH.r).length&
 function closeChest(){CH=null;$('chm').hidden=true;scr('chests')}
 $('chc').onclick=()=>{if(CH&&!CH.done)CH.t0=performance.now()-(CH_T+.9)*1000};
 
-function startGame(){if(ED.open)edClose();CUST=custSel();if(!CUST&&(!worldOpen(mapI)||!layOpen(mapI,layI))||!difOpen(dif))return;RUN.dly=null;DLY.keep=null;DLY.m=0;runCalc();if(CUST)setMap(CUST.w,0,CUST);else setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;closeMenu()}
+function startGame(){if(ED.open)edClose();CUST=custSel();if(!CUST&&(!worldOpen(mapI)||!layOpen(mapI,layI))||!difOpen(dif))return;RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;runCalc();if(CUST)setMap(CUST.w,0,CUST);else setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;closeMenu()}
 // Spell bar: the three base spells plus any learned in the skill tree
 function buildSpells(){const L=SPELLS.filter(spellOn);$('spells').innerHTML=L.map(s=>'<button class="sp" id="sp-'+s.k+'" title="'+s.n+' ('+s.key+'): '+s.d+'" style="--sc:rgb('+s.col+')">'+s.ic+'<span>'+s.n+'</span><kbd>'+s.key+'</kbd><i class="cd"></i><em></em></button>').join('');
 L.forEach(s=>$('sp-'+s.k).onclick=()=>castSpell(s.k))}
@@ -3271,12 +3283,50 @@ $('lays').onclick=e=>{const b=e.target.closest('[data-l]');if(b){layI=+b.dataset
 document.querySelectorAll('.back').forEach(b=>b.onclick=()=>scr(b.dataset.to));
 $('m-play').onclick=()=>scr('play');$('m-daily').onclick=()=>scr('daily');$('m-towers').onclick=()=>scr('towers');$('m-skins').onclick=()=>scr('skins');$('m-chests').onclick=()=>scr('chests');$('m-skills').onclick=()=>scr('skills');$('m-quests').onclick=()=>scr('quests');$('m-resume').onclick=closeMenu;
 // Progress lives in this browser only; a code moves it to another device or another link of the game
+/* ---------- Battlefield challenges: one special rule per built-in battlefield ---------- */
+// A challenge is 15 waves on Normal with a twist. The first win pays gems and a rune; it gives no stars or world wins.
+const CHW=15,CHG=50;
+const CHT=[
+  {n:'Few but Mighty',d:'Build at most 6 towers',cap:6},
+  {n:'No Magic',d:'Spells are switched off',nospell:1},
+  {n:'Old School',d:'Only Archer, Cannon and Frost',only:['sip','del','mraz']},
+  {n:'Rookies',d:'Towers can only be upgraded to level 3',maxlv:3},
+  {n:'Glass Castle',d:'The castle has only 3 lives',lives:3},
+  {n:'Tight Budget',d:'40% less starting gold and 20% less gold from enemies',mods:['poor']},
+  {n:'Elements',d:'Only Flame, Frost, Tesla and Poison',only:['mraz','pla','poi','tesla']},
+  {n:'Rush Hour',d:'Enemies move 25% faster',mods:['swift']},
+  {n:'Minimalist',d:'At most 8 towers and no spells',cap:8,nospell:1},
+  {n:'Artillery',d:'Only Archer, Cannon, Mortar and Missiles',only:['sip','del','mor','mis']},
+  {n:'Iron Hide',d:'Enemies have 50% more health',mods:['tough']},
+  {n:'Fresh Recruits',d:'Towers can only be upgraded to level 2',maxlv:2}];
+const chOf=(m,l)=>({k:m+'.'+l,m,l,t:CHT[(m*3+l)%CHT.length]});
+const chDone=k=>!!(save.chal||{})[k];
+function paintChal(){const el=$('chal'),cm=custSel(),C2=chOf(mapI,layI),M=MAPS[mapI],o=worldOpen(mapI)&&layOpen(mapI,layI),dn=chDone(C2.k);
+  $('chname').textContent=cm?'':'· '+M.ly[layI].n;
+  if(cm){el.innerHTML='<p class="note" style="margin:0 0 16px;text-align:left">Challenges are only on the built-in battlefields.</p>';return}
+  el.innerHTML='<div class="chc'+(dn?' done':'')+'"><span class="tr">'+(dn?'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5ef2a0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>':'<svg width="22" height="22" viewBox="0 0 24 24"><path d="M7 4h10v4a5 5 0 0 1-10 0z" fill="#ffc56b"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4" stroke="#ffc56b" stroke-width="1.6" fill="none"/><path d="M10 13h4v3h-4zM8 18h8v2H8z" fill="#ffc56b"/></svg>')+'</span>'
+    +'<div><b>'+C2.t.n+'</b><small>'+C2.t.d+' · survive '+CHW+' waves on Normal · '+(dn?'completed':'first win: +'+CHG+' gems and a rune')+'</small></div>'
+    +'<button id="ch-go"'+(o?'':' disabled')+'>'+(o?(dn?'Play again':'Play challenge'):LOCK+' Locked')+'</button></div>';
+  if(o)$('ch-go').onclick=()=>chStart(mapI,layI)}
+function chStart(m,l){const X=chOf(m,l);if(ED.open)edClose();
+  if(!spRun()||DLY.m)DLY.keep={dif,en:RUN.en,mods:RUN.mods};DLY.m=0;
+  CUST=null;RUN.dly=null;RUN.ch=X;dif=1;RUN.en=false;RUN.mods={};(X.t.mods||[]).forEach(x=>RUN.mods[x]=true);inGame=true;runCalc();
+  setMap(m,l);buildPicker();buildSpells();reset();nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');
+  $('sub').textContent='Challenge · '+X.t.n;$('sub').title=MAPS[m].ly[l].n+' · '+X.t.d;st.tq.push({t:5,n:'Challenge: '+X.t.n,d:X.t.d+' · survive '+CHW+' waves',c:'255,190,90'});closeMenu()}
+// Rules of the running challenge (all false outside challenges)
+const chCap=()=>RUN.ch&&RUN.ch.t.cap,chMaxLv=()=>RUN.ch&&RUN.ch.t.maxlv!==undefined?RUN.ch.t.maxlv:99,chNoSpell=()=>!!(RUN.ch&&RUN.ch.t.nospell);
+function chEnd(win){const X=RUN.ch,first=win&&!chDone(X.k);$('ovt').textContent=win?'Challenge complete':'Challenge failed';
+  if(first){save.chal=save.chal||{};save.chal[X.k]=1;save.gems+=CHG;st.gems+=CHG;save.runes++;persist();$('earn').textContent=st.gems;
+    setTimeout(()=>toast('Challenge complete!',X.t.n+' · +'+CHG+' gems and a rune',RUNE.replace(/12/g,'20'),'#ffc56b'),400)}
+  $('ovs').textContent=win?'You beat \u201c'+X.t.n+'\u201d on '+MAPS[X.m].ly[X.l].n+'.'+(first?' Reward: +'+CHG+' gems and a rune.':''):X.t.n+': the castle fell on wave '+st.wave+' of '+CHW+'.'}
+
 /* ---------- Daily challenge: the same battlefield, rules and towers for every player each day ---------- */
 // The challenge comes from the date (UTC), so everyone gets the same one without a server. Runs are endless on Normal and
 // score the wave reached, with kills breaking ties. Logged-in players go on the day's board: Firestore daily/{day}/scores/{uid}.
 // save.daily: d = day of the record, b = best wave, s = best score, sent/su = score already on the board and for which account,
 // rw = waves already paid in gems, str = days played in a row, last = last day played.
 const DLY={m:0,keep:null,lb:null,lbDay:'',lbAt:0,err:''},DLY_GEMS=3,DLY_MAX=90;
+const spRun=()=>RUN.dly||RUN.ch; // a run with its own fixed settings (daily challenge or battlefield challenge)
 const utcDay=(t=Date.now())=>new Date(t).toISOString().slice(0,10);
 function dailyOf(k){let h=2166136261;for(const c of k)h=Math.imul(h^c.charCodeAt(0),16777619);
   const r=()=>{h=Math.imul(h^h>>>15,h|1);h^=h+Math.imul(h^h>>>7,h|61);return((h^h>>>14)>>>0)/4294967296};
@@ -3291,8 +3341,8 @@ function dlySwap(){const k=DLY.keep;DLY.keep={dif,en:RUN.en,mods:RUN.mods};dif=k
 function dailyStart(){const D=dailyOf(utcDay()),o=dlySave();if(ED.open)edClose();
   if(o.last!==D.k){o.str=o.last===utcDay(Date.now()-864e5)?(o.str||0)+1:1;o.last=D.k;const b=10+5*Math.min(o.str-1,6);save.gems+=b;persist();
     setTimeout(()=>toast(o.str>1?o.str+' days in a row!':'Daily challenge','Streak bonus: +'+b+' gems',GEM.replace(/12/g,'20'),'#b57bff'),500)}
-  if(!RUN.dly||DLY.m)DLY.keep={dif,en:RUN.en,mods:RUN.mods};DLY.m=0;
-  CUST=null;RUN.dly=D.k;dif=1;RUN.en=true;RUN.mods={};D.mods.forEach(x=>RUN.mods[x]=true);inGame=true;runCalc();
+  if(!spRun()||DLY.m)DLY.keep={dif,en:RUN.en,mods:RUN.mods};DLY.m=0;
+  CUST=null;RUN.ch=null;RUN.dly=D.k;dif=1;RUN.en=true;RUN.mods={};D.mods.forEach(x=>RUN.mods[x]=true);inGame=true;runCalc();
   setMap(D.m,D.l);buildPicker();buildSpells();reset();nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');
   $('sub').textContent='Daily challenge · '+MAPS[D.m].ly[D.l].n;$('sub').title=MAPS[D.m].n+' · '+MAPS[D.m].ly[D.l].n+' · '+D.mods.map(id=>MODS.find(x=>x.id===id).n).join(', ');closeMenu()}
 function dlyRec(){if(RUN.dly!==utcDay())return null;const o=dlySave(),s=dlyScore();o.b=Math.max(o.b,st.wave);o.s=Math.max(o.s,s);return o}
@@ -3346,7 +3396,7 @@ $('m-settings').onclick=()=>scr('settings');$('m-account').onclick=()=>scr('acco
 $('startgame').onclick=startGame;
 $('menu').onclick=openMenu;
 $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()};
-$('again').onclick=()=>{if(MP){mpBackToLobby();return}if(RUN.dly){dailyStart();return}if(!CUST){mapI=cur;layI=lay}startGame()};
+$('again').onclick=()=>{if(MP){mpBackToLobby();return}if(RUN.dly){dailyStart();return}if(RUN.ch){chStart(RUN.ch.m,RUN.ch.l);return}if(!CUST){mapI=cur;layI=lay}startGame()};
 $('start').onclick=waveGo;$('tutx').onclick=tutEnd;$('tutok').onclick=tutEnd;
 $('auto').onclick=()=>{if(MP&&!MP.host)return;auto=!auto;$('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');if(auto&&!st.run&&!st.over)startWave()};
 $('fs').onclick=()=>{const d=document;try{(d.fullscreenElement?d.exitFullscreen():d.documentElement.requestFullscreen()).catch(()=>{})}catch(e){}};
@@ -3537,7 +3587,7 @@ function mpStart(){
 function beginMP(S,players,host){
   MP={host,id:NET.you,set:S,players:players.map((p,i)=>Object.assign({},p,{col:PCOL[i%4]})),evq:new Set(),evs:[],kd:[]};
   NET.last=new Map();NET.live={};NET.map={en:new Map(),tw:new Map(),bl:new Map(),zones:new Map(),met:new Map()};NET.barH='';NET.snapT=tm;
-  CUST=null;RUN.dly=null;DLY.keep=null;DLY.m=0;mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
+  CUST=null;RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
   setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';
   $('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');
   $('spd').textContent='Speed 1×';$('spd').classList.remove('on');
@@ -3630,6 +3680,7 @@ function hostMsg(from,d){
 function buildAs(o,k,cx,cy){
   if(typeof k!=='string'||!ownP(T,k))return false;
   const b=T[k];if(!inGame||st.over||!canBuild(k,cx,cy))return false;
+  if(RUN.ch){if(RUN.ch.t.only&&!RUN.ch.t.only.includes(k))return false;if(chCap()&&st.tw.length>=chCap()){if(!(st.capT>0)){st.capT=1;st.tq.push({t:2.5,n:'Tower limit reached',d:'This challenge allows '+chCap()+' towers',c:'255,190,90'})}return false}}
   const remote=MP&&o!==MP.id,pl=MP?st.P[o]:null;
   if(MP){
     if(!pl)return false;
@@ -3648,7 +3699,7 @@ function buildAs(o,k,cx,cy){
 }
 function upAs(o,t,s){
   return withSk(o,()=>{
-    if(!t||(MP&&t.ow!==o)||t.u[s]>=MAXU)return false;
+    if(!t||(MP&&t.ow!==o)||t.u[s]>=MAXU||tot(t)>=chMaxLv())return false;
     const c=upCost(t,s);if(goldOf(o)<c)return false;
     giveGold(o,-c);t.inv+=c;t.u[s]++;stat(t);t.pop=1;sfx('up');burst(t.x,t.y,'#ffd34d',12);st.fx.push({x:t.x,y:t.y,r:24,a:.9,c:'255,215,90'});
     if(tot(t)===SPLV&&t.sp===undefined&&SPEC[t.k]&&!st.spH){st.spH=1;st.tq.push({t:4,n:T[t.k].n+' can specialize',d:'Pick one of two paths at the bottom of its upgrade panel',c:SPCOL[0]})}
