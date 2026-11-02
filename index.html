@@ -791,12 +791,13 @@ const ABK=Object.keys(AB).filter(a=>!AB[a].elite&&!AB[a].boss);
 // Each world: theme, base roster (basic / fast / boss), 6 special enemies and 3 path layouts.
 // A layout without d gets its decorations generated from a fixed seed, so it always looks the same.
 // Each battlefield's k scales enemy health so every battlefield is about as hard as the others (a long, winding path is
-// easier to defend than a short one). Tuned with simulated games; worlds get slightly harder further down the list.
+// easier to defend than a short one). Tuned with simulated games; worlds get slightly harder further down the list, and a few
+// battlefields are lowered so that a strong defense can still win them on every difficulty without losing a life.
 const MAPS=[
 {n:'Winding Road',th:'grass',
- ly:[{n:'Meadow Trail',k:.95,r:[[-1,1],[3,1],[3,5],[8,5],[8,2],[12,2],[12,7],[16,7]],d:['0,8','1,9','5,0','6,8','9,9','14,0','15,3','10,0','6,2','14,4','0,4','5,8','10,9','2,7']},
+ ly:[{n:'Meadow Trail',k:.92,r:[[-1,1],[3,1],[3,5],[8,5],[8,2],[12,2],[12,7],[16,7]],d:['0,8','1,9','5,0','6,8','9,9','14,0','15,3','10,0','6,2','14,4','0,4','5,8','10,9','2,7']},
   {n:'Hill Steps',k:.75,r:[[-1,0],[3,0],[3,2],[6,2],[6,4],[9,4],[9,6],[12,6],[12,8],[16,8]]},
-  {n:'Long Haul',k:.95,r:[[-1,0],[2,0],[2,8],[5,8],[5,1],[8,1],[8,8],[11,8],[11,1],[14,1],[14,5],[16,5]]}],
+  {n:'Long Haul',k:.92,r:[[-1,0],[2,0],[2,8],[5,8],[5,1],[8,1],[8,8],[11,8],[11,1],[14,1],[14,5],[16,5]]}],
  e:{norm:{n:'Slime',s:'blob',c:'#8e44ad'},fast:{n:'Fox',s:'beast',c:'#e67e22'},tank:{n:'Knight',s:'armor',c:'#4a5560',c2:'#8896a3'}},
  x:{split:{n:'Mega Slime',s:'blob',c:'#3fbf5f'},heal:{n:'Shroom Healer',s:'mushroom',c:'#e74c3c'},jam:{n:'Web Spider',s:'spider',c:'#3b3b4f',c2:'#22222e'},shield:{n:'Shell Snail',s:'snail',c:'#c98b4a',c2:'#9fb878'},stun:{n:'Thunder Imp',s:'imp',c:'#f1c40f',c2:'#b8860b'},freeze:{n:'Frost Mage',s:'mage',c:'#5dade2',c2:'#2e6f9e'}}},
 {n:'Snake',th:'grass',
@@ -819,7 +820,7 @@ const MAPS=[
  x:{split:{n:'Pufferfish',s:'puffer',c:'#f6c544',c2:'#b5891f'},heal:{n:'Sea Mage',s:'mage',c:'#26a69a',c2:'#00695c'},jam:{n:'Ink Squid',s:'jelly',c:'#7b5ea7'},shield:{n:'Sea Turtle',s:'turtle',c:'#2e8b57',c2:'#8fd6a8'},stun:{n:'Electric Eel',s:'eel',c:'#3d5a80',c2:'#f4d35e'},freeze:{n:'Frost Jelly',s:'jelly',c:'#9ad7ff'}}},
 {n:'Mountain Pass',th:'mount',
  ly:[{n:'Summit',r:[[-1,3],[3,3],[3,8],[7,8],[7,1],[11,1],[11,5],[9,5],[9,8],[14,8],[14,4],[16,4]],d:['0,0','1,6','5,5','5,1','9,3','13,2','15,1','15,7','12,6','0,9','10,9','13,0','2,1','5,9']},
-  {n:'Cliffside',r:[[-1,6],[2,6],[2,1],[6,1],[6,4],[4,4],[4,8],[9,8],[9,3],[12,3],[12,6],[16,6]]},
+  {n:'Cliffside',k:.88,r:[[-1,6],[2,6],[2,1],[6,1],[6,4],[4,4],[4,8],[9,8],[9,3],[12,3],[12,6],[16,6]]},
   {n:'Ridge Run',k:.95,r:[[-1,2],[3,2],[3,6],[6,6],[6,2],[9,2],[9,8],[13,8],[13,4],[16,4]]}],
  e:{norm:{n:'Rockling',s:'golem',c:'#6f7d95',c2:'#454f63'},fast:{n:'Snow Wolf',s:'beast',c:'#d5dde7'},tank:{n:'Yeti',s:'yeti',c:'#eef3f8',c2:'#c3d0de'}},
  x:{split:{n:'Snowball',s:'blob',c:'#f4f8fc'},heal:{n:'Shaman',s:'mage',c:'#8d6e63',c2:'#4e342e'},jam:{n:'Frost Spider',s:'spider',c:'#dfe9f3',c2:'#8aa1b8'},shield:{n:'Rock Turtle',s:'turtle',c:'#7d8592',c2:'#b0b7c2'},stun:{n:'Storm Imp',s:'imp',c:'#4cc9f0',c2:'#1d6f8f'},freeze:{n:'Ice Golem',s:'golem',c:'#a7d8f0',c2:'#5c9ec4'}}},
@@ -848,15 +849,15 @@ const MAPS=[
  e:{norm:{n:'Gummy Bear',s:'gummy',c:'#ff5a7a'},fast:{n:'Sugar Fox',s:'beast',c:'#ffb3d6'},tank:{n:'Gingerbread Giant',s:'golem',c:'#c8803a',c2:'#8a4a1a'}},
  x:{split:{n:'Bubblegum',s:'blob',c:'#ff8ad8'},heal:{n:'Cupcake',s:'mushroom',c:'#ff7ab8'},jam:{n:'Licorice Spider',s:'spider',c:'#2a1a2a',c2:'#ff4d8a'},shield:{n:'Candy Snail',s:'snail',c:'#ff9ad5',c2:'#ffd1e8'},stun:{n:'Pop Rock Imp',s:'imp',c:'#7ad9ff',c2:'#3a9fd0'},freeze:{n:'Frosty Gummy',s:'gummy',c:'#9ad7ff'}}},
 {n:'Crystal Cave',th:'cave',
- ly:[{n:'Geode',r:[[-1,5],[2,5],[2,1],[7,1],[7,5],[5,5],[5,8],[10,8],[10,3],[13,3],[13,7],[16,7]]},
-  {n:'Deep Tunnels',k:1.05,r:[[-1,3],[3,3],[3,0],[7,0],[7,6],[11,6],[11,2],[14,2],[14,8],[16,8]]},
+ ly:[{n:'Geode',k:.93,r:[[-1,5],[2,5],[2,1],[7,1],[7,5],[5,5],[5,8],[10,8],[10,3],[13,3],[13,7],[16,7]]},
+  {n:'Deep Tunnels',k:.88,r:[[-1,3],[3,3],[3,0],[7,0],[7,6],[11,6],[11,2],[14,2],[14,8],[16,8]]},
   {n:'Shard Run',k:.92,r:[[-1,7],[6,7],[6,3],[12,3],[12,6],[16,6]]}],
  e:{norm:{n:'Crystal Slime',s:'blob',c:'#7ae0ff'},fast:{n:'Cave Bat',s:'bat',c:'#3a3a5a'},tank:{n:'Crystal Golem',s:'golem',c:'#8a7ad0',c2:'#4a3a90'}},
  x:{split:{n:'Geode Blob',s:'blob',c:'#b48cff'},heal:{n:'Crystal Sage',s:'mage',c:'#6a5acd',c2:'#2a1a6a'},jam:{n:'Cave Spider',s:'spider',c:'#5a5a7a',c2:'#2a2a3a'},shield:{n:'Shell Beetle',s:'turtle',c:'#4a7a8a',c2:'#8ac0d0'},stun:{n:'Spark Beetle',s:'beetle',c:'#4fc3f7'},freeze:{n:'Ice Golem',s:'golem',c:'#c0ecff',c2:'#6ab0d8'}}},
 {n:'Emerald Jungle',th:'jungle',
  ly:[{n:'Temple Path',k:.9,r:[[-1,6],[1,6],[1,1],[5,1],[5,6],[8,6],[8,3],[12,3],[12,0],[14,0],[14,5],[16,5]]},
   {n:'Vine Rush',k:.97,r:[[-1,6],[5,6],[5,9],[10,9],[10,6],[16,6]]},
-  {n:'Overgrowth',r:[[-1,8],[1,8],[1,3],[3,3],[3,9],[9,9],[9,0],[12,0],[12,2],[14,2],[14,7],[16,7]]}],
+  {n:'Overgrowth',k:.9,r:[[-1,8],[1,8],[1,3],[3,3],[3,9],[9,9],[9,0],[12,0],[12,2],[14,2],[14,7],[16,7]]}],
  e:{norm:{n:'Vine Slime',s:'blob',c:'#4caf50'},fast:{n:'Jaguar',s:'beast',c:'#e6a23c'},tank:{n:'Stone Idol',s:'golem',c:'#7a8a5a',c2:'#4a5a34'}},
  x:{split:{n:'Seed Pod',s:'puffer',c:'#8bc34a',c2:'#4a7a1a'},heal:{n:'Jungle Shaman',s:'mage',c:'#2e7d32',c2:'#1b4d1e'},jam:{n:'Tarantula',s:'spider',c:'#6d4c41',c2:'#3e2723'},shield:{n:'Armadillo',s:'turtle',c:'#8d6e63',c2:'#bcaaa4'},stun:{n:'Parrot Imp',s:'imp',c:'#e53935',c2:'#1e88e5'},freeze:{n:'Mist Wisp',s:'ghost',c:'#c8f7c5'}}},
 {n:'Frozen Tundra',th:'tundra',
@@ -874,7 +875,7 @@ const MAPS=[
 {n:'Murky Swamp',th:'swamp',
  ly:[{n:'Bog Walk',k:.9,r:[[-1,7],[2,7],[2,4],[4,4],[4,7],[7,7],[7,2],[12,2],[12,6],[16,6]]},
   {n:'Mire Dash',k:.95,r:[[-1,3],[3,3],[3,0],[5,0],[5,2],[7,2],[7,4],[12,4],[12,6],[16,6]]},
-  {n:'Sunken Maze',k:1.05,r:[[-1,0],[2,0],[2,8],[5,8],[5,1],[10,1],[10,8],[15,8],[15,3],[16,3]]}],
+  {n:'Sunken Maze',k:.88,r:[[-1,0],[2,0],[2,8],[5,8],[5,1],[10,1],[10,8],[15,8],[15,3],[16,3]]}],
  e:{norm:{n:'Bog Slime',s:'blob',c:'#6b8e23'},fast:{n:'Bog Eel',s:'eel',c:'#4a6b3a',c2:'#c0d860'},tank:{n:'Mud Golem',s:'golem',c:'#5a6e3a',c2:'#3a4a24'}},
  x:{split:{n:'Toad Spawn',s:'blob',c:'#9ccc65'},heal:{n:'Bog Witch',s:'mage',c:'#556b2f',c2:'#2f3d1a'},jam:{n:'Marsh Spider',s:'spider',c:'#3e4a2a',c2:'#9aa860'},shield:{n:'Snapping Turtle',s:'turtle',c:'#4a5a2a',c2:'#9aac6a'},stun:{n:'Will-o-Wisp',s:'ghost',c:'#c6ff8a'},freeze:{n:'Pale Jelly',s:'jelly',c:'#a8e6cf'}}},
 {n:'Sunny Beach',th:'beach',
@@ -904,13 +905,13 @@ const MAPS=[
 {n:'Clockwork Factory',th:'factory',
  ly:[{n:'Assembly',k:.95,r:[[-1,8],[1,8],[1,4],[3,4],[3,8],[6,8],[6,0],[10,0],[10,3],[16,3]]},
   {n:'Conveyor',k:.95,r:[[-1,5],[4,5],[4,8],[10,8],[10,3],[16,3]]},
-  {n:'Gearworks',k:1.1,r:[[-1,9],[1,9],[1,3],[4,3],[4,8],[7,8],[7,0],[11,0],[11,6],[15,6],[15,8],[16,8]]}],
+  {n:'Gearworks',r:[[-1,9],[1,9],[1,3],[4,3],[4,8],[7,8],[7,0],[11,0],[11,6],[15,6],[15,8],[16,8]]}],
  e:{norm:{n:'Oil Slime',s:'blob',c:'#455a64'},fast:{n:'Robo Hound',s:'beast',c:'#b0bec5'},tank:{n:'Steam Titan',s:'golem',c:'#78909c',c2:'#37474f'}},
  x:{split:{n:'Bolt Blob',s:'blob',c:'#ffca28'},heal:{n:'Mechanic',s:'mage',c:'#f57c00',c2:'#e65100'},jam:{n:'Spider Bot',s:'spider',c:'#607d8b',c2:'#263238'},shield:{n:'Tank Bot',s:'turtle',c:'#546e7a',c2:'#90a4ae'},stun:{n:'Spark Imp',s:'imp',c:'#ffeb3b',c2:'#fbc02d'},freeze:{n:'Cryo Bot',s:'golem',c:'#b3e5fc',c2:'#4fc3f7'}}},
 {n:'Lunar Base',th:'moon',
  ly:[{n:'Crater Rim',k:.95,r:[[-1,5],[2,5],[2,9],[4,9],[4,2],[7,2],[7,4],[11,4],[11,7],[16,7]]},
   {n:'Orbit Run',k:1.02,r:[[-1,6],[1,6],[1,9],[6,9],[6,5],[8,5],[8,3],[12,3],[12,6],[16,6]]},
-  {n:'Moonwalk',k:1.05,r:[[-1,0],[5,0],[5,6],[7,6],[7,1],[9,1],[9,9],[13,9],[13,5],[15,5],[15,8],[16,8]]}],
+  {n:'Moonwalk',k:.88,r:[[-1,0],[5,0],[5,6],[7,6],[7,1],[9,1],[9,9],[13,9],[13,5],[15,5],[15,8],[16,8]]}],
  e:{norm:{n:'Moon Slime',s:'blob',c:'#cfd8dc'},fast:{n:'Alien Bat',s:'bat',c:'#7cb342'},tank:{n:'Crater Titan',s:'golem',c:'#b0bec5',c2:'#78909c'}},
  x:{split:{n:'Alien Goo',s:'blob',c:'#76ff03'},heal:{n:'Star Mage',s:'mage',c:'#3949ab',c2:'#1a237e'},jam:{n:'Moon Spider',s:'spider',c:'#90a4ae',c2:'#37474f'},shield:{n:'Shell Alien',s:'turtle',c:'#7e57c2',c2:'#b39ddb'},stun:{n:'Zap Alien',s:'imp',c:'#00e676',c2:'#00a152'},freeze:{n:'Void Wraith',s:'ghost',c:'#b388ff'}}}
 ];
@@ -1304,27 +1305,28 @@ function reset(){const D=DIFFS[dif];MAXW=RUN.ch?CHW:D.w;st={gold:Math.round((D.g
 // Weather and events: from wave 3 a wave may come with an event that suits the world. It is rolled when the previous wave ends
 // (st.nev, shown in the next-wave preview) and is active while that wave runs (st.ev). The daily challenge rolls from the date.
 const EV={
-  fog:{n:'Fog',d:'Thick fog: towers have 20% less range',c:'205,215,220'},
+  fog:{n:'Fog',d:'Thick fog: towers have 12% less range',c:'205,215,220'},
   rain:{n:'Rain',d:'Enemies are 15% slower, but fire deals 40% less damage',c:'120,170,255'},
   storm:{n:'Thunderstorm',d:'Lightning strikes random enemies',c:'255,235,110'},
   quake:{n:'Earthquake',d:'Tremors knock out random towers for a moment',c:'215,175,125'},
-  moon:{n:'Blood Moon',d:'Enemies have 25% more health and drop 60% more gold',c:'255,80,90'},
-  wind:{n:'Tailwind',d:'Enemies move 15% faster and drop 20% more gold',c:'190,230,255'},
+  moon:{n:'Blood Moon',d:'Enemies have 15% more health and drop 50% more gold',c:'255,80,90'},
+  wind:{n:'Tailwind',d:'Enemies move 10% faster and drop 20% more gold',c:'190,230,255'},
   lucky:{n:'Lucky Stars',d:'Enemies drop double gold',c:'255,215,90'},
-  heat:{n:'Heatwave',d:'Towers attack 15% slower',c:'255,150,60'},
-  snow:{n:'Snowstorm',d:'Enemies 20% slower, towers 10% slower',c:'220,240,255'}};
+  heat:{n:'Heatwave',d:'Towers attack 8% slower',c:'255,150,60'},
+  snow:{n:'Snowstorm',d:'Enemies 20% slower, towers 5% slower',c:'220,240,255'}};
 const EVW={grass:['fog','rain','storm','wind','lucky','moon'],sea:['rain','storm','fog','lucky','wind'],mount:['snow','fog','quake','wind','storm'],desert:['heat','wind','quake','lucky','moon'],
   lava:['heat','quake','moon','storm'],haunt:['fog','moon','storm','rain'],candy:['lucky','rain','wind','moon'],cave:['quake','fog','moon','lucky'],jungle:['rain','storm','fog','heat'],
   tundra:['snow','fog','wind','storm'],autumn:['wind','rain','fog','lucky'],swamp:['fog','rain','moon','storm'],beach:['heat','wind','storm','lucky'],sky:['storm','wind','fog','lucky'],
   ruins:['quake','heat','moon','fog'],shroom:['fog','rain','moon','lucky'],factory:['quake','heat','storm','moon'],moon:['quake','moon','lucky','wind']};
 const evx=k=>st.run&&st.ev===k; // is event k active right now
+const EVGOOD=['storm','lucky','rain']; // the only events a boss wave can bring, so bosses never come with extra trouble
 function rollEv(w){if(w<3||save.wx===0||RUN.ch)return null;let r=Math.random;
   if(RUN.dly){let h=2166136261;for(const c of RUN.dly+'|'+w)h=Math.imul(h^c.charCodeAt(0),16777619);r=()=>{h=Math.imul(h^h>>>15,h|1);h^=h+Math.imul(h^h>>>7,h|61);return((h^h>>>14)>>>0)/4294967296}}
-  if(r()>=.3)return null;const L=EVW[MAPS[cur].th]||EVW.grass;return L[Math.floor(r()*L.length)]}
+  if(r()>=.3)return null;let L=EVW[MAPS[cur].th]||EVW.grass;if(w%5===0)L=L.filter(k=>EVGOOD.includes(k));return L.length?L[Math.floor(r()*L.length)]:null}
 // Active event effects that are not one-off modifiers: lightning strikes and tremors
 function evTick(dt){if(!st.run||!st.ev)return;st.evt=(st.evt||0)-dt;if(st.evt>0)return;
   if(st.ev==='storm'){st.evt=2.2;const tg=st.en.filter(e=>canHit(e));if(tg.length){const e=tg[Math.floor(Math.random()*tg.length)];hurt(e,30+st.wave*14,null);if(ccHold(e))e.stun=Math.max(e.stun||0,.5);st.bolts.push({x:e.x,y:e.y,l:1});st.flash={c:'230,235,255',a:.25};sfx('zap')}}
-  else if(st.ev==='quake'){st.evt=7;shake(7);const tw=st.tw.filter(t=>!T[t.k].trap);for(let j=0;j<2&&tw.length;j++){const t=tw.splice(Math.floor(Math.random()*tw.length),1)[0];disable(t,'stn',1.5);burst(t.x,t.y+8,'#a1887f',10)}sfx('boom')}
+  else if(st.ev==='quake'){st.evt=8;shake(7);const tw=st.tw.filter(t=>!T[t.k].trap);for(let j=0;j<2&&tw.length;j++){const t=tw.splice(Math.floor(Math.random()*tw.length),1)[0];disable(t,'stn',1.2);burst(t.x,t.y+8,'#a1887f',10)}sfx('boom')}
   else st.evt=99}
 // Heroes: one unit (solo play only) that fights beside the towers. Select it (click it or press L), then click where it should go.
 // It levels up from its own kills and cleared waves (st.hero.lv, up to 10) and has an ability on K.
@@ -1515,7 +1517,7 @@ function dropMeteor(x,y,who){
   withSk(me?undefined:who,()=>{if(scd.met>0||chNoSpell())return;scd.met=spellCd('met')*(Math.random()<.12*sk('m11')?.4:1);if(me){save.stats.spells++;questAdd('spell',1)}st.met.push({x,y,t:.75,R:80*(1+.06*sk('m2')),mk:1+.25*sk('m2'),fk:1+.4*sk('m7')});sfx('meteor')})}
 function spawn(){
   const w=st.wave,n=st.n++,{k,E}=pickSpawn(w,n);
-  const D=DIFFS[dif],hp=(18+w*w*1.25+w*10)*D.h*(E.hm||1)*(st.hpm||1)*LK*RUN.hp*(st.ev==='moon'?1.25:1),rw=Math.max(1,Math.round((4+Math.floor(w/2.5))*D.r)),o=ROLE[k];
+  const D=DIFFS[dif],hp=(18+w*w*1.25+w*10)*D.h*(E.hm||1)*(st.hpm||1)*LK*RUN.hp*(st.ev==='moon'?1.15:1),rw=Math.max(1,Math.round((4+Math.floor(w/2.5))*D.r)),o=ROLE[k];
   st.en.push({k,nm:E.n,elite:k==='elite',sh:E.s,col:E.c,c2:E.c2,c3:E.c3,hn:E.hn,ab:E.ab,at:1+Math.random(),ph:Math.random()*6,i:1,x:wp[0].x,y:wp[0].y,hp:hp*(k==='tank'?6+w*.3:o.h),mx:hp*(k==='tank'?6+w*.3:o.h),sp:o.s*(E.sm||1)*RUN.sp,rw:rw*o.r,z:o.z,slow:0,born:.5});
   if(k==='tank'&&E.ab){if(!st.seen['b'+E.ab]){st.seen['b'+E.ab]=1;st.tq.push({t:4.5,n:E.n+' · '+BOSSN[E.ab],d:AB[E.ab].n,c:AB[E.ab].col})}}
   else if(E.ab&&!st.seen[E.ab]){st.seen[E.ab]=1;st.tq.push({t:4,n:E.n,d:AB[E.ab].n,c:AB[E.ab].col})}
@@ -1550,7 +1552,7 @@ function hurt0(e,d,t){
 function prio(e){const p=wp[Math.min(e.i,wp.length-1)];return e.i*1e4-Math.hypot(e.x-p.x,e.y-p.y)}
 // Targeting modes: first along the path, last, most health, or nearest
 const canHit=e=>!e.gone&&!e.hid&&!e.bur&&!(e.egg>0);
-const rng=t=>t.r*(t.rm||1)*(evx('fog')?.8:1); // Fog Beasts and fog shrink tower range
+const rng=t=>t.r*(t.rm||1)*(evx('fog')?.88:1); // Fog Beasts and fog shrink tower range
 function pick(t){let best=null,bs=-1e9;const m=t.tg||'first',R=rng(t),aa=T[t.k].aa;for(const e of st.en){if(!canHit(e))continue;const d=Math.hypot(e.x-t.x,e.y-t.y);if(d<=R){let s=m==='first'?prio(e):m==='last'?-prio(e):m==='strong'?e.hp:-d;if(aa&&isFly(e))s+=1e7;if(s>bs){bs=s;best=e}}}return best}
 function inRange(t){const R=rng(t);return st.en.filter(e=>canHit(e)&&Math.hypot(e.x-t.x,e.y-t.y)<=R)}
 // Move an enemy forward along the path (Phantom teleport); never past the last waypoint
@@ -1592,7 +1594,7 @@ function update(dt){
     if(e.born>0)e.born-=dt;
     e.hst=hst.length>0&&hst.some(h=>h!==e&&Math.hypot(h.x-e.x,h.y-e.y)<=85);
     // Slows stack, but an enemy always keeps at least 20% of its speed
-    const s=e.sp*Math.max(.2,(e.slow>0&&cc(e)?(e.sf||.5):1)*e.tzs*(st.twp>0?.4:1))*(e.hst?1.4:1)*(st.run&&st.ev?(st.ev==='rain'?.85:st.ev==='wind'?1.15:st.ev==='snow'?.8:1):1)*(e.ab==='berserk'?1+1.3*(1-Math.max(0,e.hp)/e.mx):1)*(e.bur?1.5:1)*dt;
+    const s=e.sp*Math.max(.2,(e.slow>0&&cc(e)?(e.sf||.5):1)*e.tzs*(st.twp>0?.4:1))*(e.hst?1.4:1)*(st.run&&st.ev?(st.ev==='rain'?.85:st.ev==='wind'?1.1:st.ev==='snow'?.8:1):1)*(e.ab==='berserk'?1+1.3*(1-Math.max(0,e.hp)/e.mx):1)*(e.bur?1.5:1)*dt;
     e.slow-=dt;if(e.hf>0)e.hf-=dt*6;if(e.ice>0)e.ice-=dt;
     DOT=1;if(e.pt>0){e.pt-=dt;hurt(e,e.pd*dt,e.pl)}if(e.brn>0){e.brn-=dt;hurt(e,e.bdps*dt,e.bsrc)}DOT=0;if(e.chl>0)e.chl-=dt;if(e.cbt>0)e.cbt-=dt;
     if(e.ab==='regen'&&e.hp>0)e.hp=Math.min(e.mx,e.hp+e.mx*(e.k==='tank'?.012:.035)*dt);if(e.hard>0)e.hard-=dt;
@@ -1639,7 +1641,7 @@ function update(dt){
     if(t.frz>0)t.frz-=dt;if(t.stn>0)t.stn-=dt;
     if(T[t.k].drone)t.da=(t.da||0)+dt*1.6;
     if(t.frz>0||t.stn>0){t.bt=null;continue}
-    t.cd-=dt*(t.jm?.5:1)*(st.ovc>0?2:1)*(1+(t.hs||0))*(evx('heat')?.87:evx('snow')?.9:1);t.fl=Math.max(0,(t.fl||0)-dt*6);
+    t.cd-=dt*(t.jm?.5:1)*(st.ovc>0?2:1)*(1+(t.hs||0))*(evx('heat')?.92:evx('snow')?.95:1);t.fl=Math.max(0,(t.fl||0)-dt*6);
     const b=T[t.k],dm=t.d*(1+(t.buff||0))*(t.sg?1.3:1);if(t.sg&&!st.cs.surge&&st.run)comboHit(CMB.surge);
     if(b.buff||b.bank)continue;
     if(b.gen){if(!st.run){t.cd=Math.max(t.cd,t.cdv);continue}if(t.cd<=0){t.cd=t.cdv;const g0=Math.round(t.d);giveGold(t.ow,g0);st.ge+=g0;t.dmg=(t.dmg||0)+g0;t.fl=1;st.pt.push({x:t.x,y:t.y-14,vx:0,vy:-26,l:1,tx:'+'+g0});sfx('coin')}continue}
@@ -1686,7 +1688,7 @@ function update(dt){
   for(const e of st.en)if(e.hp<=0&&!e.gone){
     if(e.ab==='revive'&&!e.rv){e.rv=1;e.hp=1;e.egg=1.4;st.fx.push({x:e.x,y:e.y,r:30,a:1,c:'255,120,40'});burst(e.x,e.y,'#ff7043',14);continue}
     const owr=MP?((e.lh&&e.lh.ow!==undefined&&st.P[e.lh.ow])?e.lh.ow:mpAnyPlayer()):undefined;
-    const rw=withSk(owr,()=>Math.max(1,Math.round(e.rw*(1+.06*sk('e2'))*(st.mid>0?3:1)*(evx('moon')?1.6:evx('lucky')?2:evx('wind')?1.2:1)*(e.ab==='treasure'?4+2*sk('e10'):1)*RUN.gk*(1+.03*mastTier('e'))*(1+.08*sk('e12'))*(Math.random()<.04*sk('e7')?2:1))));
+    const rw=withSk(owr,()=>Math.max(1,Math.round(e.rw*(1+.06*sk('e2'))*(st.mid>0?3:1)*(evx('moon')?1.5:evx('lucky')?2:evx('wind')?1.2:1)*(e.ab==='treasure'?4+2*sk('e10'):1)*RUN.gk*(1+.03*mastTier('e'))*(1+.08*sk('e12'))*(Math.random()<.04*sk('e7')?2:1))));
     giveGold(owr,rw);st.ge+=rw;e.gone=true;if(MP)MP.kd.push([eid(e),e.k==='tank'?1:0]);if(e.lh)e.lh.kills=(e.lh.kills||0)+1;if(st.hero&&e.lh===st.hero)heroXp(e.k==='tank'?10:e.elite?3:1);st.kills++;save.stats.kills++;questAdd('kill',1);
     st.xp+=e.k==='tank'?25:e.elite?6:1;
     if(e.elite){st.elites++;save.stats.elites=(save.stats.elites||0)+1;questAdd('elite',1)}
