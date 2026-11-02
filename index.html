@@ -252,6 +252,13 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .ly .chk{position:absolute;top:8px;left:8px;padding:3px 7px;border-radius:99px;background:rgba(10,14,19,.8);color:#ffc56b;font-size:11px;font-weight:700}.ly .chk.d{color:#5ef2a0}
 @media (max-width:600px){.chc{flex-wrap:wrap}.chc button{width:100%}}
 .spells button.off{opacity:.35;pointer-events:none}
+.elb{margin-bottom:16px}.elb .lbmsg{margin:4px 0}
+.gtabs{display:flex;gap:8px;align-items:center;margin-bottom:14px}.gtabs button{padding:8px 14px;font-size:13px}.gtabs button.on{border-color:var(--acc);background:rgba(76,141,255,.12)}
+.gtabs span{margin-left:auto;color:var(--mut);font-size:12.5px}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.gc{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.gc canvas{width:100%;aspect-ratio:16/10;border-radius:8px;display:block}.gc b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gc small{color:var(--mut);font-size:11.5px}
+.gc .ga{display:flex;gap:6px}.gc .ga button{flex:1;padding:7px 8px;font-size:12.5px}.gc .ga .lk.on{color:#ff6b8a;border-color:rgba(255,107,138,.5)}
 .edtools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 #ed-msg{min-height:34px;line-height:1.45}
 @media (max-width:900px){.edw{grid-template-columns:1fr}#cmaps{grid-template-columns:repeat(2,1fr)}}
@@ -642,7 +649,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
           <span class="lbl">Run options <span id="rmult" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div class="runopt" id="runopt"></div>
           <button class="go" id="startgame">Start game</button>
         </div>
-        <div><span class="lbl">Enemies in <span id="rname"></span></span><div class="roster" id="roster"></div><span class="lbl">Elite enemies · every world, from wave 8</span><div class="eroster" id="eroster"></div></div>
+        <div><div id="elb"></div><span class="lbl">Enemies in <span id="rname"></span></span><div class="roster" id="roster"></div><span class="lbl">Elite enemies · every world, from wave 8</span><div class="eroster" id="eroster"></div></div>
       </div>
     </section>
 
@@ -678,6 +685,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
           <p class="lbmsg" id="ed-msg"></p>
           <button class="go" id="ed-save">Save map</button>
           <button id="ed-play">Save and play</button>
+          <button id="ed-pub" hidden>Publish online</button>
           <div class="edtools"><button id="ed-share">Copy code</button><button id="ed-del" class="lbleave">Delete</button></div>
         </div>
       </div>
@@ -708,6 +716,13 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
     <section class="scr" id="s-daily" hidden>
       <div class="sh"><button class="back" data-to="home">← Back</button><h2>Daily challenge</h2><p>The same battlefield, rules and towers for every player today. How far can you get?</p></div>
       <div class="dly"><div class="lbc" id="dcard"></div><div class="lbc" id="dboard"></div></div>
+    </section>
+
+    <section class="scr" id="s-gallery" hidden>
+      <div class="sh"><button class="back" data-to="play">← Back</button><h2>Player maps</h2><p>Battlefields built by other players. Play them and give your favourites a heart.</p></div>
+      <div class="gtabs"><button data-g="top">Most liked</button><button data-g="new">Newest</button><span id="gmsg"></span></div>
+      <div class="ggrid" id="ggrid"></div>
+      <p class="note">Publish your own maps from the map maker. Player maps pay half the gems and XP, like your own maps.</p>
     </section>
 
     <section class="scr" id="s-skins" hidden>
@@ -1806,7 +1821,7 @@ function end(win){if(!MP)runDrop();st.over=true;inGame=false;st.aim=null;st.paus
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
   $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win||!!CUST;
   $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));repBox();
-  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(RUN.dly)dlyEnd();if(RUN.ch)chEnd(win);if(MP)mpOver(win)}
+  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(RUN.dly)dlyEnd();if(RUN.ch)chEnd(win);elbRec();if(MP)mpOver(win)}
 let tm=0;
 const cir=(x,y,r,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill()};
 const ell=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,7);g.fill()};
@@ -3075,7 +3090,7 @@ function mapClean(m){
   return{id:typeof m.id==='string'&&m.id?m.id.slice(0,20):Date.now().toString(36),n:String(m.n||'Custom map').slice(0,24),w,r:r.map(q=>[q[0],q[1]]),d}}
 function renderCustom(){const el=$('cmaps');if(!el)return;const ms=save.maps;
   el.innerHTML=ms.map(m=>'<button class="ly'+(m.id===cSel?' on':'')+'" data-c="'+escH(m.id)+'"><canvas width="320" height="200"></canvas><span>'+escH(m.n)+'<small>'+MAPS[m.w].n+'</small></span><em><u data-e="'+escH(m.id)+'">Edit map</u></em></button>').join('')
-    +'<button class="ly cmnew" data-new="1"><b>+ Build a map</b><span>Draw your own path</span></button><button class="ly cmnew" data-imp="1"><b>Paste a map code</b><span>Play a friend’s map</span></button>';
+    +'<button class="ly cmnew" data-new="1"><b>+ Build a map</b><span>Draw your own path</span></button><button class="ly cmnew" data-imp="1"><b>Paste a map code</b><span>Play a friend’s map</span></button>'+(FB_CONFIG?'<button class="ly cmnew" data-gal="1"><b>Player maps</b><span>Browse maps other players published</span></button>':'');
   [...el.querySelectorAll('[data-c] canvas')].forEach((c,i)=>thumb(ms[i].w,0,c,ms[i]))}
 function mapCode(m){return 'TDM1:'+btoa(unescape(encodeURIComponent(JSON.stringify({n:m.n,w:m.w,r:m.r,d:m.d}))))}
 function mapImport(){const c=(prompt('Paste the map code:')||'').trim();if(!c)return;let m=null;
@@ -3090,7 +3105,7 @@ function edOpen(m){
   if(!ED.open){ED.keep={cur,lay,route,wp,deco,road:[...road]};ED.open=true}
   ED.m=m||null;ED.p=m?routeCells(m.r):[];ED.d=new Set(m?m.d:[]);ED.w=m?m.w:(worldOpen(mapI)?mapI:0);ED.dirty=false;ED.msg='';ED.hov=null;
   $('ed-n').value=m?m.n:'';$('ed-w').innerHTML=MAPS.map((M,i)=>worldOpen(i)||i===ED.w?'<option value="'+i+'"'+(i===ED.w?' selected':'')+'>'+M.n+'</option>':'').join('');
-  $('ed-share').hidden=$('ed-del').hidden=!m;edTool('p');scr('editor');edDraw()}
+  $('ed-share').hidden=$('ed-del').hidden=!m;edPubBtn();edTool('p');scr('editor');edDraw()}
 function edClose(){ED.open=false;ED.down=false;const k=ED.keep;ED.keep=null;if(!k)return;cur=k.cur;lay=k.lay;route=k.route;wp=k.wp;deco=k.deco;road.clear();k.road.forEach(x=>road.add(x));buildBG()}
 function edTool(t){ED.tool=t;$('ed-tp').classList.toggle('on',t==='p');$('ed-tt').classList.toggle('on',t==='t');if(ED.open)edPaint()}
 const edDone=()=>ED.p.length>0&&ED.p[ED.p.length-1][0]===W-1;
@@ -3125,8 +3140,8 @@ function edApply(a,b,first){if(a<0||b<0||a>=W||b>=H)return;const k=a+','+b,p=ED.
 function edSave(){const p=ED.p;if(!edDone()){ED.msg='The path must reach the right edge, where the castle stands.';edPaint();return null}
   const ms=save.maps,i=ED.m?ms.findIndex(x=>x.id===ED.m.id):-1;
   if(i<0&&ms.length>=30){ED.msg='You can keep up to 30 maps. Delete one first.';edPaint();return null}
-  const m={id:ED.m?ED.m.id:Date.now().toString(36),n:($('ed-n').value.trim()||'My map '+(ms.length+(i<0?1:0))).slice(0,24),w:ED.w,r:cellsToRoute(p),d:[...ED.d].filter(k=>!road.has(k))};
-  if(i>=0)ms[i]=m;else ms.push(m);ED.m=m;ED.dirty=false;cSel=m.id;persist();$('ed-share').hidden=$('ed-del').hidden=false;
+  const m={...(i>=0&&ms[i].src?{src:ms[i].src}:{}),id:ED.m?ED.m.id:Date.now().toString(36),n:($('ed-n').value.trim()||'My map '+(ms.length+(i<0?1:0))).slice(0,24),w:ED.w,r:cellsToRoute(p),d:[...ED.d].filter(k=>!road.has(k))};
+  if(i>=0)ms[i]=m;else ms.push(m);ED.m=m;ED.dirty=false;cSel=m.id;persist();$('ed-share').hidden=$('ed-del').hidden=false;edPubBtn();
   toast('Map saved',m.n+' is in Your maps on the Play screen',null,'#38d68a');return m}
 (function(){const cv=$('edcv');
   cv.addEventListener('pointerdown',e=>{e.preventDefault();ED.down=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}const[a,b]=edCell(e);ED.hov=[a,b];edApply(a,b,true)});
@@ -3141,7 +3156,7 @@ function edSave(){const p=ED.p;if(!edDone()){ED.msg='The path must reach the rig
   $('ed-share').onclick=()=>{if(!ED.m)return;const c=mapCode(ED.m);(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast('Map code copied','Send it to a friend. They paste it on the Play screen.',null,'#38d68a'),()=>prompt('Copy this map code:',c))};
   $('ed-del').onclick=()=>{if(!ED.m||!confirm('Delete '+ED.m.n+'?'))return;save.maps=save.maps.filter(x=>x.id!==ED.m.id);if(cSel===ED.m.id)cSel=null;persist();ED.dirty=false;scr('play')};
   $('cmaps').onclick=e=>{const ed=e.target.closest('[data-e]');if(ed){const m=save.maps.find(x=>x.id===ed.dataset.e);if(m)edOpen(m);return}
-    const b=e.target.closest('[data-c],[data-new],[data-imp]');if(!b)return;if(b.dataset.new){edOpen(null);return}if(b.dataset.imp){mapImport();return}
+    const b=e.target.closest('[data-c],[data-new],[data-imp],[data-gal]');if(!b)return;if(b.dataset.new){edOpen(null);return}if(b.dataset.imp){mapImport();return}if(b.dataset.gal){scr('gallery');return}
     cSel=cSel===b.dataset.c?null:b.dataset.c;renderLays();renderRoster()}})();
 
 /* ---------- First-game tips (single player, until finished or skipped) ---------- */
@@ -3260,7 +3275,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&ACC.user&&
 
 /* ---------- Main menu ---------- */
 let selT='sip',skT='sip';
-function scr(id){if(ED.open&&id!=='editor'){if(ED.dirty&&!confirm('Leave without saving your map?'))return;edClose()}['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account','editor','daily'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount,editor:edPaint,daily:renderDaily})[id]()}
+function scr(id){if(ED.open&&id!=='editor'){if(ED.dirty&&!confirm('Leave without saving your map?'))return;edClose()}['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account','editor','daily','gallery'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount,editor:edPaint,daily:renderDaily,gallery:()=>galLoad()})[id]()}
 function renderSettings(){const tg=(k,n,d)=>'<div class="setr"><div class="tx"><b>'+n+'</b><small>'+d+'</small></div><button data-t="'+k+'" class="'+(save[k]?'on':'')+'">'+(save[k]?'On':'Off')+'</button></div>';
   $('setl').innerHTML=tg('snd','Sound effects','Shots, hits and spell sounds')+tg('mus','Music','Background music')+'<div class="setr"><div class="tx"><b>Master volume</b><small>'+Math.round(save.vol*100)+'%</small></div><input type="range" id="vol" min="0" max="100" value="'+Math.round(save.vol*100)+'"></div>'+tg('dmg','Damage numbers','Floating numbers for big hits and crits')+tg('shk','Screen shake','Camera shake on explosions and leaks')+tg('wx','Weather events','Fog, storms, blood moons and more on some waves')+'<div class="setr"><div class="tx"><b>Fullscreen</b><small>Also available with the F key</small></div><button id="sfs">Toggle</button></div><div class="setr"><div class="tx"><b>Refund skill tree</b><small>Get all spent runes back</small></div><button id="srs">Refund</button></div><div class="setr"><div class="tx"><b>Move your progress</b><small>Copy a code here, then paste it on another device or another link of the game</small></div><button id="sexp">Copy code</button><button id="simp">Paste code</button></div><div class="setr dng"><div class="tx"><b>Reset all progress</b><small>Deletes gems, levels, skills, towers, skins and stars</small></div><button id="m-reset2">Reset</button></div>';
   $('setl').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;if(k==='snd')setSnd(!save.snd);else if(k==='mus')setMus(!save.mus);else{save[k]=save[k]?0:1;persist()}renderSettings()});
@@ -3343,7 +3358,7 @@ function paintMaps(){const tot=totStars();[...$('maps').children].forEach((b,i)=
   $('totst').textContent='★ '+tot+' collected';renderLays()}
 function renderLays(){const M=MAPS[mapI];if(layI>=M.ly.length)layI=0;$('lyname').textContent='· '+M.n;
   $('lays').innerHTML=M.ly.map((l,j)=>{const sr=save.stars[bkey(mapI,j,dif)]||0,bw=save.best[bkey(mapI,j,dif)],o=layOpen(mapI,j);return'<button class="ly'+(j===layI&&!custSel()?' on':'')+(o?'':' lock')+'" data-l="'+j+'"><canvas width="320" height="200"></canvas>'+(o?'':'<span class="lk2">'+LOCK+' Win '+M.ly[j-1].n+'</span>')+(o?'<span class="chk'+(chDone(mapI+'.'+j)?' d':'')+'" title="Challenge: '+chOf(mapI,j).t.n+'">'+(chDone(mapI+'.'+j)?'✓ ':'')+'★ '+chOf(mapI,j).t.n+'</span>':'')+'<span>'+l.n+'<small class="'+l.len+'">'+l.len+' path</small></span><em>'+(sr?starStr(sr):bw?'Best wave '+bw+' / '+DIFFS[dif].w:'Not played yet')+'</em></button>'}).join('');
-  [...$('lays').querySelectorAll('canvas')].forEach((c,j)=>thumb(mapI,j,c));renderCustom();paintStart();paintChal()}
+  [...$('lays').querySelectorAll('canvas')].forEach((c,j)=>thumb(mapI,j,c));renderCustom();paintStart();paintChal();paintElb()}
 function renderPlay(){paintDiff();paintMaps();renderRoster();paintRun();renderHeroes()}
 function renderHeroes(){save.heroes=save.heroes||['kn'];
   $('heroes').innerHTML=HKEYS.map(k=>{const H0=HERO[k],own=save.heroes.includes(k),on=save.hero===k;return'<button class="hc'+(on?' on':'')+(own?'':' lock')+'" data-h="'+k+'"><canvas width="112" height="112"></canvas><b>'+H0.n+'</b><small>'+H0.cls+' · '+H0.d+'</small><em>'+H0.ab.n+': '+H0.ab.d.charAt(0).toLowerCase()+H0.ab.d.slice(1)+'</em><span>'+(on?'✓ Chosen · click again to go alone':own?'Take into battle':GEM+' '+H0.gp+' to recruit')+'</span></button>'}).join('');
@@ -3449,6 +3464,59 @@ $('lays').onclick=e=>{const b=e.target.closest('[data-l]');if(b){layI=+b.dataset
 document.querySelectorAll('.back').forEach(b=>b.onclick=()=>scr(b.dataset.to));
 $('m-play').onclick=()=>scr('play');$('m-daily').onclick=()=>scr('daily');$('m-towers').onclick=()=>scr('towers');$('m-skins').onclick=()=>scr('skins');$('m-chests').onclick=()=>scr('chests');$('m-skills').onclick=()=>scr('skills');$('m-quests').onclick=()=>scr('quests');$('m-resume').onclick=()=>{if(inGame)closeMenu();else runResume()};
 // Progress lives in this browser only; a code moves it to another device or another link of the game
+/* ---------- Online extras: endless leaderboards and the player map gallery (Firestore) ---------- */
+// Endless boards: endless/{battlefield-difficulty}/scores/{uid}, one per built-in battlefield and difficulty, solo endless runs only.
+// save.eb keeps the best score per board (wave*1e4 + kills) and save.es what this account has already sent.
+const ELB={},elbKey=()=>bkey(mapI,layI,dif);
+function elbRec(){if(!RUN.en||CUST||MP||RUN.dly||RUN.ch)return;const k=bkey(cur,lay,dif),s=st.wave*1e4+Math.min(9999,st.kills||0);
+  save.eb=save.eb||{};if(s>(save.eb[k]||0)){save.eb[k]=s;persist()}elbSend(k)}
+async function elbSend(k){const u=ACC.user,s=(save.eb||{})[k];if(!u||!FB||!s)return;save.es=save.es||{};const o=save.es[k];if(o&&o.u===u.uid&&o.s>=s)return;
+  try{await FB.F.setDoc(FB.F.doc(FB.db,'endless',k,'scores',u.uid),{n:ACC.name,w:Math.floor(s/1e4),s,at:FB.F.serverTimestamp()});save.es[k]={u:u.uid,s};if(ELB[k])ELB[k].at=0;persist()}catch(e){}}
+async function elbLoad(k){const c=ELB[k]||(ELB[k]={at:0,list:null,err:''});if(c.busy)return;c.busy=1;
+  try{await fbLoad();await elbSend(k);const F=FB.F,q=await F.getDocs(F.query(F.collection(FB.db,'endless',k,'scores'),F.orderBy('s','desc'),F.limit(10)));
+    c.list=q.docs.map(x=>Object.assign({id:x.id},x.data()));c.err='';c.at=Date.now()}
+  catch(e){c.err=e&&e.code==='permission-denied'?'The leaderboards are not switched on yet.':'Could not load the leaderboard. Check your connection.';c.at=Date.now()-45000}
+  c.busy=0;paintElb()}
+function paintElb(){const el=$('elb');if(!el||$('s-play').hidden)return;if(custSel()||!FB_CONFIG){el.innerHTML='';return}
+  const k=elbKey(),c=ELB[k],uid=ACC.user&&ACC.user.uid,mine=(save.eb||{})[k];
+  let h='<span class="lbl">Endless leaderboard <span style="text-transform:none;letter-spacing:0;color:var(--mut)">· '+MAPS[mapI].ly[layI].n+' · '+DIFFS[dif].n+'</span></span><div class="elb">';
+  if(!c||(!c.list&&!c.err))h+='<p class="lbmsg">Loading…</p>';else if(c.err)h+='<p class="lbmsg">'+c.err+'</p>';
+  else if(!c.list.length)h+='<p class="lbmsg" style="color:var(--mut)">No scores yet. Turn on Endless and set the first one!</p>';
+  else h+=c.list.map((r,i)=>'<div class="dlr'+(i<3?' t'+(i+1):'')+(r.id===uid?' me':'')+'"><i>'+(i+1)+'</i><b>'+escH(r.n||'?')+'</b><span>wave '+(r.w|0)+'</span></div>').join('');
+  if(mine&&!(c&&c.list&&c.list.some(r=>r.id===uid)))h+='<div class="dlr me"><i>–</i><b>'+(ACC.user?escH(ACC.name):'You')+'</b><span>wave '+Math.floor(mine/1e4)+'</span></div>';
+  h+='<p class="note" style="margin:6px 0 0;text-align:left">'+(ACC.user?'Your best Endless run here counts (on your own, without a custom map).':'Log in to put your name on the board.')+'</p></div>';
+  el.innerHTML=h;if(!c||Date.now()-c.at>60000)elbLoad(k)}
+// Map gallery: maps/{id} = {n, m (map code), w, by, bn, at, likes}; a like is maps/{id}/likes/{uid} plus likes+1 in one batch.
+const GAL={tab:'top',list:null,err:'',at:0,busy:0};
+const galParse=c=>{try{if(typeof c==='string'&&c.slice(0,5)==='TDM1:')return mapClean(JSON.parse(decodeURIComponent(escape(atob(c.slice(5))))))}catch(e){}return null};
+async function galLoad(force){if(GAL.busy)return;if(!force&&GAL.list&&Date.now()-GAL.at<60000){renderGallery();return}GAL.busy=1;GAL.err='';renderGallery();
+  try{await fbLoad();const F=FB.F,q=await F.getDocs(F.query(F.collection(FB.db,'maps'),F.orderBy(GAL.tab==='top'?'likes':'at','desc'),F.limit(30)));
+    GAL.list=q.docs.map(x=>{const d=x.data(),m=galParse(d.m);return m?{id:x.id,n:String(d.n||m.n).slice(0,24),bn:String(d.bn||'?').slice(0,24),by:d.by,likes:d.likes|0,m}:null}).filter(Boolean);GAL.at=Date.now()}
+  catch(e){GAL.err=e&&e.code==='permission-denied'?'The map gallery is not switched on yet.':'Could not load the gallery. Check your connection.'}
+  GAL.busy=0;renderGallery()}
+function renderGallery(){if($('s-gallery').hidden)return;const uid=ACC.user&&ACC.user.uid,lk=save.liked||{};
+  document.querySelectorAll('.gtabs [data-g]').forEach(b=>b.classList.toggle('on',b.dataset.g===GAL.tab));
+  $('gmsg').textContent=GAL.busy?'Loading…':GAL.err||(GAL.list?GAL.list.length+' maps':'');
+  const L=GAL.list||[];$('ggrid').innerHTML=!GAL.busy&&GAL.list&&!L.length?'<p class="note" style="grid-column:1/-1">No maps yet. Build one in the map maker and publish it!</p>':L.map(g=>'<div class="gc"><canvas width="320" height="200"></canvas><b>'+escH(g.n)+'</b><small>by '+escH(g.bn)+' · '+MAPS[g.m.w].n+'</small><div class="ga"><button class="go" data-play="'+g.id+'">Play</button><button class="lk'+(lk[g.id]?' on':'')+'" data-like="'+g.id+'"'+(g.by===uid?' disabled title="Your map"':'')+'>♥ '+g.likes+'</button>'+(g.by===uid?'<button data-del="'+g.id+'">Delete</button>':'')+'</div></div>').join('');
+  [...$('ggrid').querySelectorAll('canvas')].forEach((c,i)=>thumb(L[i].m.w,0,c,L[i].m))}
+function galPlay(id){const g=(GAL.list||[]).find(x=>x.id===id);if(!g)return;let m=save.maps.find(x=>x.src===id);
+  if(!m){if(save.maps.length>=30){toast('Too many maps','You can keep up to 30. Delete one first.',null,'#ff5a6a');return}m=Object.assign({},g.m,{id:Date.now().toString(36),n:g.n,src:id});save.maps.push(m);persist()}
+  cSel=m.id;startGame();if(!inGame)scr('play')}
+async function galLike(id){const g=(GAL.list||[]).find(x=>x.id===id),u=ACC.user;if(!g)return;if(!u){toast('Log in to like maps','Open Account on the home screen',null,'#ff5a6a');return}
+  save.liked=save.liked||{};if(save.liked[id]||g.by===u.uid)return;save.liked[id]=1;g.likes++;persist();renderGallery();
+  try{const F=FB.F,b=F.writeBatch(FB.db);b.set(F.doc(FB.db,'maps',id,'likes',u.uid),{at:F.serverTimestamp()});b.update(F.doc(FB.db,'maps',id),{likes:F.increment(1)});await b.commit()}catch(e){}}
+async function galDel(id){const g=(GAL.list||[]).find(x=>x.id===id);if(!g||!confirm('Remove '+g.n+' from the gallery?'))return;
+  try{await FB.F.deleteDoc(FB.F.doc(FB.db,'maps',id));GAL.list=GAL.list.filter(x=>x.id!==id);save.maps.forEach(m=>{if(m.pub===id)delete m.pub});persist();renderGallery()}catch(e){toast('Could not remove the map','Try again in a moment',null,'#ff5a6a')}}
+async function galPublish(){if(!ED.m&&!edSave())return;const m=ED.m;if(!m)return;if(!ACC.user){toast('Log in to publish','Open Account on the home screen, then publish your map',null,'#ff5a6a');return}
+  if(m.pub)return;$('ed-pub').disabled=true;
+  try{const F=FB.F,r=await F.addDoc(F.collection(FB.db,'maps'),{n:m.n,m:mapCode(m),w:m.w,by:ACC.user.uid,bn:ACC.name,at:F.serverTimestamp(),likes:0});m.pub=r.id;persist();GAL.at=0;toast('Map published!',m.n+' is now in Player maps',null,'#38d68a')}
+  catch(e){toast('Could not publish',e&&e.code==='permission-denied'?'The map gallery is not switched on yet':'Check your connection and try again',null,'#ff5a6a')}
+  edPubBtn()}
+function edPubBtn(){const b=$('ed-pub');b.hidden=!FB_CONFIG;if(b.hidden)return;const m=ED.m&&save.maps.find(x=>x.id===ED.m.id);b.disabled=!!(m&&m.pub);b.textContent=m&&m.pub?'Published ✓':'Publish online'}
+$('ed-pub').onclick=galPublish;
+document.querySelector('.gtabs').onclick=e=>{const b=e.target.closest('[data-g]');if(!b||GAL.tab===b.dataset.g)return;GAL.tab=b.dataset.g;GAL.list=null;galLoad(true)};
+$('ggrid').onclick=e=>{const b=e.target.closest('[data-play],[data-like],[data-del]');if(!b)return;if(b.dataset.play)galPlay(b.dataset.play);else if(b.dataset.like)galLike(b.dataset.like);else galDel(b.dataset.del)};
+
 /* ---------- Saved run: a solo game can be continued after the page is closed ---------- */
 // Saved between waves only (at the start, after every cleared wave and after building between waves), so a reload during
 // a wave goes back to the start of that wave with the towers that stood then. Kept on this device (not in the account save).

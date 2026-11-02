@@ -1,6 +1,6 @@
 rules_version = '2';
 // Firestore rules for online saves (each player can only read and write their own save, saves/{their user id})
-// and the daily challenge leaderboard.
+// the daily and endless leaderboards, and the player map gallery.
 // Paste this in the Firebase console: Firestore Database > Rules > Publish.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -19,6 +19,35 @@ service cloud.firestore {
         && request.resource.data.w is int && request.resource.data.w >= 0 && request.resource.data.w <= 1000
         && request.resource.data.s is int
         && (resource == null || request.resource.data.s > resource.data.s);
+    }
+    // Endless leaderboards, one per battlefield and difficulty: same rules as the daily board
+    match /endless/{board}/scores/{uid} {
+      allow read: if true;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.n is string && request.resource.data.n.size() <= 24
+        && request.resource.data.w is int && request.resource.data.w >= 0 && request.resource.data.w <= 1000
+        && request.resource.data.s is int
+        && (resource == null || request.resource.data.s > resource.data.s);
+    }
+    // Player map gallery: anyone can read, players publish and delete their own maps,
+    // and a like adds exactly 1 together with the player's own like record (so each player likes a map once)
+    match /maps/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.by == request.auth.uid
+        && request.resource.data.n is string && request.resource.data.n.size() <= 24
+        && request.resource.data.bn is string && request.resource.data.bn.size() <= 24
+        && request.resource.data.m is string && request.resource.data.m.size() < 6000
+        && request.resource.data.w is int && request.resource.data.likes == 0;
+      allow delete: if request.auth != null && resource.data.by == request.auth.uid;
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+        && request.resource.data.likes == resource.data.likes + 1
+        && !exists(/databases/$(database)/documents/maps/$(id)/likes/$(request.auth.uid))
+        && existsAfter(/databases/$(database)/documents/maps/$(id)/likes/$(request.auth.uid));
+      match /likes/{uid} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.uid == uid;
+      }
     }
   }
 }
