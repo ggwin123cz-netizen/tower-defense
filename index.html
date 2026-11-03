@@ -165,6 +165,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 #ovr .lv{display:flex;align-items:flex-end;gap:2px;height:40px}#ovr .lv i{flex:1;border-radius:2px 2px 0 0;background:rgba(255,255,255,.1);min-height:2px}#ovr .lv i.l{background:var(--life)}
 #ovr .lx{display:flex;justify-content:space-between;font-size:10px;color:var(--mut);margin-top:3px}
 #ovr p{margin:0;font-size:12px;color:var(--mut);line-height:1.6}#ovr p b{color:var(--fg);font-weight:600}
+.cgrw{margin:12px auto 0;display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:13px;border-color:rgba(181,123,255,.55);background:rgba(181,123,255,.12);color:#e2ccff}
 .leak{margin-top:12px;padding:11px 14px;border-radius:12px;background:rgba(255,90,106,.07);border:1px solid rgba(255,90,106,.28);text-align:left}
 .leak .lkl{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:13px}
 .leak .lkh{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
@@ -552,6 +553,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
     <div id="ovteam" hidden></div>
     <div id="ovr" hidden></div>
     <div class="xpr" id="ovxp"></div>
+    <button id="cgrw" class="cgrw" hidden></button>
     <div class="earn"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#b57bff"/><path d="M2 9h20M8 3l4 18 4-18" stroke="#ecdcff" stroke-width="1" fill="none" opacity=".6"/></svg>+<b id="earn">0</b> gems earned</div>
     <div class="row2"><button id="tomenu">Main menu</button><button class="go" id="again">Play again</button></div>
   </div></div>
@@ -1063,11 +1065,35 @@ function fillSave(){delete save.lang;migrateWorlds(save);if(save.wx===undefined)
 fillSave();
 
 /* ---------- Sound: everything is synthesized with Web Audio, no files needed ---------- */
+/* ---------- CrazyGames: SDK, ads and gameplay events, only when the game runs on CrazyGames ---------- */
+// On crazygames.com (or with ?cg=1 for testing) the CrazyGames SDK v3 is loaded. The game then reports when the player is
+// actually playing, shows a midgame ad when a game ends, offers an optional rewarded ad for double gems on the end screen,
+// keeps quiet while an ad plays or when CrazyGames mutes it, and leaves out our own login, online boards and outside links.
+const CGON=/(^|\.)crazygames\./i.test(location.hostname)||/[?&](cg=1|useLocalSdk=true)/.test(location.search);
+const CG={sdk:null,on:CGON,ad:false,mute:false,chatOff:false,play:false,adb:false,rwUsed:false,t0:0};
+const cgSafe=f=>{try{return f()}catch(e){return undefined}};
+if(CGON){const sc=document.createElement('script');sc.src='https://sdk.crazygames.com/crazygames-sdk-v3.js';
+  sc.onload=async()=>{try{const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;await S.init();if(S.environment==='disabled')return;CG.sdk=S;
+    const st0=cgSafe(()=>S.game.settings)||{};CG.mute=!!st0.muteAudio;CG.chatOff=!!st0.disableChat;masterVol();
+    cgSafe(()=>S.game.addSettingsChangeListener(v=>{CG.mute=!!(v&&v.muteAudio);CG.chatOff=!!(v&&v.disableChat);masterVol()}));
+    try{CG.adb=!!(await S.ad.hasAdblock())}catch(e){}
+    const room=cgSafe(()=>S.game.getInviteParam('room'));if(room&&!MP){NET.prefill=String(room).toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);if(NET.prefill&&!inGame){openMenu();scr('lobby')}}
+  }catch(e){}};document.head.appendChild(sc)}
+// Master volume: silent while an ad plays or when CrazyGames asks for no sound
+function masterVol(){const v=(CG.ad||CG.mute)?0:.55*(save.vol??1);if(AU&&AU.m)AU.m.gain.value=v;return v}
+// Tell CrazyGames when real play starts and stops (menus, pause, end screen and ads are breaks)
+function cgPlay(){if(!CG.sdk)return;const p=inGame&&!st.over&&$('mm').hidden&&!st.pause&&!paused&&!CG.ad;if(p!==CG.play){CG.play=p;cgSafe(()=>p?CG.sdk.game.gameplayStart():CG.sdk.game.gameplayStop());if(p&&!CG.t0)CG.t0=Date.now()}}
+function cgAd(kind,done){if(!CG.sdk){done&&done(false,'none');return}
+  cgSafe(()=>CG.sdk.ad.requestAd(kind,{adStarted:()=>{CG.ad=true;masterVol();cgPlay()},adFinished:()=>{CG.ad=false;masterVol();done&&done(true)},adError:e=>{CG.ad=false;masterVol();done&&done(false,e&&e.code||e)}}))}
+// End of a game: a midgame ad after a real game (a few waves in), and the optional double-gems offer
+function cgEnd(gems,win){if(!CG.sdk)return;if(win)cgSafe(()=>CG.sdk.game.happytime());
+  if(st.wave>=3)setTimeout(()=>cgAd('midgame'),600);
+  const b=$('cgrw');b.hidden=CG.adb||CG.rwUsed||gems<5;if(!b.hidden){b.disabled=false;b.dataset.g=gems;b.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg>Watch an ad: double your gems (+'+gems+')'}}
 const AU={ctx:null,last:{}};
 // PV/PN: per-sound random pitch and stereo position, set by sfx() so repeated shots never sound identical
 let PV=1,PN=0;
 function auInit(){if(AU.ctx)return;const A=window.AudioContext||window.webkitAudioContext;if(!A)return;try{const c=new A();AU.ctx=c;
-  AU.m=c.createGain();AU.m.gain.value=.55*(save.vol??1);
+  AU.m=c.createGain();AU.m.gain.value=masterVol();
   const cp=c.createDynamicsCompressor();cp.threshold.value=-14;cp.knee.value=18;cp.ratio.value=5;cp.attack.value=.004;cp.release.value=.2;AU.m.connect(cp);cp.connect(c.destination);
   // Small synthetic room: decaying stereo noise as an impulse response, shared by effects and music
   const rl=Math.floor(c.sampleRate*1.8),ir=c.createBuffer(2,rl,c.sampleRate);for(let k=0;k<2;k++){const d=ir.getChannelData(k);for(let i=0;i<rl;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/rl,2.6)}
@@ -1714,6 +1740,9 @@ function update(dt){
 }
 // End-of-wave payout for wave w: clear bonus, Bank interest, economy skills, XP, quests and gems
 const blSpd=b=>b.k==='snip'?900:b.lob?210:b.k==='mis'?300:b.k==='gat'?720:b.k==='drn'||b.k==='flk'?540:380; // shot speed, px per second
+$('cgrw').onclick=()=>{const b=$('cgrw'),g=+b.dataset.g||0;if(!g||b.disabled)return;b.disabled=true;
+  cgAd('rewarded',(ok,why)=>{if(ok){CG.rwUsed=true;save.gems+=g;st.gems+=g;$('earn').textContent=st.gems;persist();hdr();b.hidden=true;toast('Gems doubled!','+'+g+' gems for watching the ad',GEM.replace(/12/g,'20'),'#b57bff');sfx('gold')}
+    else{b.disabled=false;if(why==='adblock'){b.hidden=true}toast('No ad right now','Try again in a moment',null,'#f4c152')}})};
 function payWave(w,ows){let wb=15+w*2;const ex={};ows.forEach(o=>ex[o]=0);
   // Interest: from Bank towers and the Interest skill
   for(const t of st.tw)if(T[t.k].bank&&!(t.frz>0)){const v=Math.round(Math.min(goldOf(t.ow)*t.bint,t.bcap));if(v>0){ex[t.ow]+=v;t.dmg=(t.dmg||0)+v;t.fl=1;st.pt.push({x:t.x,y:t.y-16,vx:0,vy:-24,l:1.4,tx:'+'+v})}}
@@ -1782,7 +1811,7 @@ function end(win){if(!MP)runDrop();$('ovteam').hidden=true;st.over=true;inGame=f
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?'You defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
   $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win||!!CUST;
   $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>Gold earned</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));repBox();
-  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(RUN.dly)dlyEnd();if(RUN.ch)chEnd(win);elbRec();if(MP)mpOver(win)}
+  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;cgEnd(st.gems,win);if(RUN.dly)dlyEnd();if(RUN.ch)chEnd(win);elbRec();if(MP)mpOver(win)}
 let tm=0;
 const cir=(x,y,r,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill()};
 const ell=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,7);g.fill()};
@@ -2915,7 +2944,7 @@ function draw(){
   if(st.mid>0){for(let i=0;i<10;i++){const x=(i*97+tm*30)%(W*C),y=(i*61+tm*40)%(H*C);g.globalAlpha=Math.min(1,st.mid)*.7;star(x,y,2,'#ffd34d')}g.globalAlpha=1}
   if(st.pause&&!st.over){g.fillStyle='rgba(8,11,16,.55)';g.fillRect(0,0,W*C,H*C);g.textAlign='center';g.textBaseline='middle';g.font='700 44px '+FONT;g.fillStyle='#fff';g.fillText('PAUSED',W*C/2,H*C/2-8);g.font='600 12px Inter,sans-serif';g.fillStyle='#b7c2d0';g.fillText('Press P or the Pause button to resume · you can still build and upgrade',W*C/2,H*C/2+24)}
 }
-function ui(){ui0();if(MP)mpUi();tutTick()}
+function ui(){cgPlay();ui0();if(MP)mpUi();tutTick()}
 function ui0(){
   $('gold').textContent=Math.floor(goldOf());$('lives').textContent=st.lives;$('g2').textContent=save.gems;
   $('wave').innerHTML=st.wave+(RUN.en?'<small>endless</small>':'<small>/ '+MAXW+'</small>');$('wbar').style.width=(RUN.en?(st.wave%10)*10:Math.min(100,st.wave/MAXW*100))+'%';
@@ -3122,7 +3151,7 @@ function tutEnd(){save.tips=1;persist();$('tut').hidden=true;tutHl(null)}
 
 /* ---------- Accounts: progress saved online (Firebase), so it follows the player to any device ---------- */
 // Public web settings of the Firebase project. Not a secret: the Firestore rules only let a player read and write their own save.
-const FB_CONFIG={apiKey:'AIzaSyCUGUrSRvwiPPHXePgly6LuVkTRwqYH9vQ',authDomain:'towerdefense-2fcf2.firebaseapp.com',projectId:'towerdefense-2fcf2'};
+const FB_CONFIG=CGON?null:{apiKey:'AIzaSyCUGUrSRvwiPPHXePgly6LuVkTRwqYH9vQ',authDomain:'towerdefense-2fcf2.firebaseapp.com',projectId:'towerdefense-2fcf2'};
 // Players log in with a name. Firebase wants an e-mail, so the name becomes one on a domain that can never receive mail.
 const FB_SDK='https://www.gstatic.com/firebasejs/10.12.2/',ACC_MAIL='@players.invalid';
 function fbLoad(){
@@ -3167,7 +3196,7 @@ async function accReconcile(){
 function accApply(cloud,rev,title,msg){
   save=Object.assign({gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}},cloud);fillSave();
   save.syncUid=ACC.user.uid;save.syncRev=rev;save.syncDirty=0;persist0();ACC.at=Date.now();
-  if(AU.sfx)AU.sfx.gain.value=save.snd?1:0;if(AU.mus)AU.mus.gain.value=save.mus?.3:0;if(AU.m)AU.m.gain.value=.55*(save.vol??1);sndUI();buildPicker();
+  if(AU.sfx)AU.sfx.gain.value=save.snd?1:0;if(AU.mus)AU.mus.gain.value=save.mus?.3:0;masterVol();sndUI();buildPicker();
   const k=['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account'].find(k=>!$('s-'+k).hidden);if(k)scr(k);
   toast(title,msg,null,'#38d68a')}
 // This device and the account both have progress the other lacks: the player picks which to keep
@@ -3210,7 +3239,7 @@ function scr(id){if(ED.open&&id!=='editor'){if(ED.dirty&&!confirm('Leave without
 function renderSettings(){const tg=(k,n,d)=>'<div class="setr"><div class="tx"><b>'+n+'</b><small>'+d+'</small></div><button data-t="'+k+'" class="'+(save[k]?'on':'')+'">'+(save[k]?'On':'Off')+'</button></div>';
   $('setl').innerHTML=tg('snd','Sound effects','Shots, hits and spell sounds')+tg('mus','Music','Background music')+'<div class="setr"><div class="tx"><b>Master volume</b><small>'+Math.round(save.vol*100)+'%</small></div><input type="range" id="vol" min="0" max="100" value="'+Math.round(save.vol*100)+'"></div>'+tg('dmg','Damage numbers','Floating numbers for big hits and crits')+tg('shk','Screen shake','Camera shake on explosions and leaks')+tg('wx','Weather events','Fog, storms, blood moons and more on some waves')+'<div class="setr"><div class="tx"><b>Fullscreen</b><small>Also available with the F key</small></div><button id="sfs">Toggle</button></div><div class="setr"><div class="tx"><b>Refund skill tree</b><small>Get all spent runes back</small></div><button id="srs">Refund</button></div><div class="setr"><div class="tx"><b>Move your progress</b><small>Copy a code here, then paste it on another device or another link of the game</small></div><button id="sexp">Copy code</button><button id="simp">Paste code</button></div><div class="setr dng"><div class="tx"><b>Reset all progress</b><small>Deletes gems, levels, skills, towers, skins and stars</small></div><button id="m-reset2">Reset</button></div>';
   $('setl').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;if(k==='snd')setSnd(!save.snd);else if(k==='mus')setMus(!save.mus);else{save[k]=save[k]?0:1;persist()}renderSettings()});
-  $('vol').oninput=e=>{save.vol=e.target.value/100;if(AU.m)AU.m.gain.value=.55*save.vol;persist();e.target.parentElement.querySelector('small').textContent=e.target.value+'%'};
+  $('vol').oninput=e=>{save.vol=e.target.value/100;masterVol();persist();e.target.parentElement.querySelector('small').textContent=e.target.value+'%'};
   $('sfs').onclick=()=>$('fs').click();
   $('srs').onclick=()=>{if(skRefund())renderSettings()};
   $('m-reset2').onclick=resetAll;$('sexp').onclick=saveExport;$('simp').onclick=saveImport}
@@ -3378,7 +3407,7 @@ function showReveal(){const s=SK[CH.id],R=RAR[CH.r],more=chestPool(CH.r).length&
 function closeChest(){CH=null;$('chm').hidden=true;scr('chests')}
 $('chc').onclick=()=>{if(CH&&!CH.done)CH.t0=performance.now()-(CH_T+.9)*1000};
 
-function startGame(){if(ED.open)edClose();CUST=custSel();if(!CUST&&(!worldOpen(mapI)||!layOpen(mapI,layI))||!difOpen(dif))return;RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;runCalc();if(CUST)setMap(CUST.w,0,CUST);else setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;closeMenu();runSave()}
+function startGame(){CG.rwUsed=false;if(ED.open)edClose();CUST=custSel();if(!CUST&&(!worldOpen(mapI)||!layOpen(mapI,layI))||!difOpen(dif))return;RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;runCalc();if(CUST)setMap(CUST.w,0,CUST);else setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+(CUST?CUST.n:MAPS[cur].ly[lay].n)+' · '+DIFFS[dif].n;closeMenu();runSave()}
 // Spell bar: the three base spells plus any learned in the skill tree
 function buildSpells(){const L=myLoad().map(k=>SPK[k]);$('spells').innerHTML=L.map((s,i)=>'<button class="sp" id="sp-'+s.k+'" title="'+s.n+' ('+SPKEYS[i]+'): '+s.d+'" style="--sc:rgb('+s.col+')">'+s.ic+'<span>'+s.n+'</span><kbd>'+SPKEYS[i]+'</kbd><i class="cd"></i><em></em></button>').join('');$('spells').hidden=!L.length;
 L.forEach(s=>$('sp-'+s.k).onclick=()=>castSpell(s.k))}
@@ -3595,6 +3624,7 @@ $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()}
 $('again').onclick=()=>{if(MP){mpBackToLobby();return}if(RUN.dly){dailyStart();return}if(RUN.ch){chStart(RUN.ch.m,RUN.ch.l);return}if(!CUST){mapI=cur;layI=lay}startGame()};
 $('start').onclick=waveGo;$('tutx').onclick=()=>{if(save.tips){save.ft=save.ft||{};FTIP.forEach(f=>save.ft[f.id]=1);persist();st.ftc=null}else tutEnd()};$('tutok').onclick=()=>{if(st.ftc){save.ft=save.ft||{};save.ft[st.ftc.id]=1;persist();st.ftc=null;$('tut').hidden=true;tutHl(null)}else tutEnd()};
 $('auto').onclick=()=>{if(MP&&!MP.host)return;auto=!auto;$('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');if(auto&&!st.run&&!st.over)startWave()};
+if(CGON){$('fs').hidden=true}
 $('fs').onclick=()=>{const d=document;try{(d.fullscreenElement?d.exitFullscreen():d.documentElement.requestFullscreen()).catch(()=>{})}catch(e){}};
 $('spd').onclick=()=>{if(MP&&!MP.host)return;st.spd=st.spd%3+1;$('spd').textContent='Speed '+st.spd+'×';$('spd').classList.toggle('on',st.spd>1)};
 $('u-sp').onclick=e=>{const b=e.target.closest('[data-sp]'),t=st.sel;if(!b||!t)return;const v=+b.dataset.sp;if(MP&&!MP.host){if(t.ow===MP.id)mpSend({c:'spec',id:t._id,v})}else specAs(MP?MP.id:undefined,t,v)};
@@ -3729,7 +3759,7 @@ function renderLobby(){
   for(let i=0;i<4;i++){const p=NET.players[i];
     slots.push(p?'<div class="lbp"><i style="background:'+PCOL[i]+'"></i><b>'+escH(p.name)+'</b>'+(p.host?'<em>Host</em>':'')+(p.id===NET.you?'<em class="me">You</em>':'')+(host&&!p.host?'<button class="lbx" data-act="kick" data-i="'+p.id+'" title="Remove player">✕</button>':'')+'</div>'
       :'<div class="lbp empty"><i></i><b>Waiting for a player…</b></div>')}
-  const link=(/^https?:$/.test(location.protocol)?location.origin+location.pathname:MP_SERVER.replace('wss:','https:')+'/')+'?room='+NET.code;
+  const link=CG.sdk?(cgSafe(()=>CG.sdk.game.inviteLink({room:NET.code}))||''):(/^https?:$/.test(location.protocol)?location.origin+location.pathname:MP_SERVER.replace('wss:','https:')+'/')+'?room='+NET.code;
   let right;
   if(MP){
     right='<div class="lbc"><h3>Game in progress</h3><p class="note">Your team is fighting on '+escH(MAPS[MP.set.map].n)+'. You can return to the battle at any time.</p><button class="go" data-act="resume">Back to the game</button></div>';
@@ -3741,7 +3771,7 @@ function renderLobby(){
   el.innerHTML='<div class="lb"><div class="lbc"><span class="lbl">Room code</span><div class="lbcode">'+NET.code+'</div>'
     +'<div class="lbrow"><button data-act="copy" data-l="'+escH(link)+'">Copy invite link</button><button data-act="leave" class="lbleave">Leave room</button></div>'
     +'<span class="lbl" style="margin-top:6px">Players ('+NET.players.length+'/4)</span><div class="lbps">'+slots.join('')+'</div>'
-    +'<span class="lbl" style="margin-top:6px">Chat</span><div class="lbchat" id="lbchat">'+NET.chat.map(chatLine).join('')+'</div><div class="lbrow"><input type="text" id="lb-chat" maxlength="140" placeholder="Message to the team" autocomplete="off"><button data-act="chatsend" style="flex:0 0 auto">Send</button></div></div>'+right+'</div>';
+    +(CG.chatOff?'':'<span class="lbl" style="margin-top:6px">Chat</span><div class="lbchat" id="lbchat">'+NET.chat.map(chatLine).join('')+'</div><div class="lbrow"><input type="text" id="lb-chat" maxlength="140" placeholder="Message to the team" autocomplete="off"><button data-act="chatsend" style="flex:0 0 auto">Send</button></div>')+'</div>'+right+'</div>';
   const ci=$('lb-chat');if(ci){ci.value=draft;if(hadFocus)ci.focus();$('lbchat').scrollTop=$('lbchat').scrollHeight}
 }
 (function lobbyEvents(){
@@ -3839,7 +3869,7 @@ function mpOver(win){
   mpToAll({c:'over',win:win?1:0,wave:st.wave,kills:st.kills,ge:st.ge,xp:st.xp,lost:st.lives0-st.lives,lk:leakTop(st.lk),team});
   mpOverButtons();
 }
-function mpEndGuest(d){$('ovr').hidden=true;teamBox(Array.isArray(d.team)?d.team.filter(p=>p&&typeof p.n==='string'&&Number.isFinite(p.d)).slice(0,4):null);
+function mpEndGuest(d){setTimeout(()=>cgEnd(st.gems,!!d.win),0);$('ovr').hidden=true;teamBox(Array.isArray(d.team)?d.team.filter(p=>p&&typeof p.n==='string'&&Number.isFinite(p.d)).slice(0,4):null);
   if(st.over)return;
   st.over=true;inGame=false;st.aim=null;
   const win=!!d.win,D=DIFFS[dif];
@@ -4141,7 +4171,7 @@ function chatPush(m){
   const ov=$('chatov');if(ov){const d=document.createElement('div');d.innerHTML=chatLine(m);const el=d.firstChild;ov.appendChild(el);while(ov.children.length>6)ov.firstChild.remove();setTimeout(()=>el.classList.add('old'),9000);setTimeout(()=>el.remove(),11000)}
 }
 function chatSend(text){text=String(text||'').trim();if(text&&NET.code)netSend({t:'chat',text:text.slice(0,140)})}
-function chatOpen(){const i=$('chatin');i.hidden=false;i.value='';i.focus()}
+function chatOpen(){if(CG.chatOff)return;const i=$('chatin');i.hidden=false;i.value='';i.focus()}
 function chatClose(){const i=$('chatin');i.hidden=true;i.blur()}
 $('chatin').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){chatSend($('chatin').value);chatClose()}else if(e.key==='Escape')chatClose()});
 addEventListener('keydown',e=>{if(e.key==='Enter'&&MP&&$('chatin').hidden&&$('mm').hidden&&document.activeElement===document.body){e.preventDefault();chatOpen()}});

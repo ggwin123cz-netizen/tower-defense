@@ -3,3 +3,4 @@ preview/
 serve.js
 .claude/
 *.log
+dist/
