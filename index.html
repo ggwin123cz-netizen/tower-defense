@@ -1051,7 +1051,7 @@ const T={
   thr:{n:'Thorn Tree',cost:125,r:85,d:20,cd:2.6,col:'#2e7d32',root:1,gp:170},
   flk:{n:'Flak Cannon',cost:150,r:170,d:34,cd:1.1,col:'#78909c',aa:1,spl:34,gp:160},
   bnk:{n:'Bank',cost:150,r:0,d:0,cd:1,col:'#2ecc71',bank:1,gp:180},
-  drn:{n:'Drone Bay',cost:180,r:160,d:15,cd:.38,col:'#26c6da',drone:1,gp:220}
+  drn:{n:'Drone Bay',cost:180,r:160,d:6,cd:.45,col:'#26c6da',drone:1,gp:220}
 };
 const DESC={sip:'Cheap and rapid fire. Great early on.',del:'Heavy cannonballs that explode on impact.',mraz:'Icy shots that slow the target and the enemies around it.',tesla:'Lightning that chains between enemies.',snip:'Huge range, always targets the toughest enemy.',pla:'Burns every enemy close to it.',dul:'Produces gold during waves instead of attacking.',
   poi:'Toxic globs that poison a small group over time.',las:'A beam that heats up the longer it stays on one target.',mor:'Long-range artillery shells with a big blast.',rail:'Pierces through every enemy in a straight line.',mis:'Fires a salvo of homing missiles at several targets.',bea:'Boosts the damage of nearby towers. Ward upgrade protects them from freeze and stun.',vor:'Damages and pulls nearby enemies back along the path.',sto:'Calls lightning on random enemies and stuns them briefly.',
@@ -1498,7 +1498,7 @@ function stat(t){withSk(t.ow,()=>stat0(t))}
 function stat0(t){const b=T[t.k],u=t.u;t.r=b.r*(1+.08*u.r)*(1+.04*sk('o3'));t.d=b.d*(1+.35*u.d)*(1+.04*sk('o1'))*(1+.04*mastTier('o'));t.cdv=b.cd*Math.pow(.85,u.s)/(1+.03*sk('o2'));t.spl=b.spl?b.spl*(1+.12*u.z)*(1+.1*sk('o9')):0;t.sf=Math.max(.1,.5-.08*u.z);t.sdur=1.6+.3*u.z;t.ch=(b.chain||0)+u.z;t.pdur=3+.6*u.z;t.prad=30*(1+.15*u.z);
   t.mc=3+u.z;t.pb=30*(1+.15*u.z);t.ns=3+u.z;t.bd=.3+.07*u.d;t.wd=.2*u.z;
   // New towers: pierce count, boomerang size, cone width, tar puddles, root time, drone count, bank interest, trap slow
-  t.prc=3+u.z;t.brad=10+3*u.z;t.cone=(35+8*u.z)*Math.PI/180;t.tdur=4+.8*u.z;t.tsl=Math.min(.8,.45+.07*u.z);t.rdur=1.2+.3*u.z;t.ndr=1+u.z;t.bint=.04+.012*u.d;t.bcap=40+25*u.d;t.barb=.1*u.z;
+  t.prc=3+u.z;t.brad=10+3*u.z;t.cone=(35+8*u.z)*Math.PI/180;t.tdur=4+.8*u.z;t.tsl=Math.min(.8,.45+.07*u.z);t.rdur=1.2+.3*u.z;t.ndr=3+u.z;t.bint=.04+.012*u.d;t.bcap=40+25*u.d;t.barb=.1*u.z;
   Object.assign(t,SPD);if(t.sp!==undefined&&SPEC[t.k])SPEC[t.k][t.sp].f(t)}
 // Specializations: at level 10 a tower can take one of two paths for good (t.sp = 0 or 1). f() adjusts what stat0() worked out;
 // the fields it sets are read by the firing code and by hurt0() (on-hit effects). SPD holds their neutral values.
@@ -1553,8 +1553,8 @@ const SPEC={
        {n:'Dual Purpose',d:'Full damage against ground enemies too',f:t=>{t.aaG=1}}],
   bnk:[{n:'Vault',d:'Interest cap doubled',f:t=>{t.bcap*=2}},
        {n:'Investor',d:'+3% interest',f:t=>{t.bint+=.03}}],
-  drn:[{n:'Swarm Bay',d:'+2 drones',f:t=>{t.ndr+=2}},
-       {n:'Gunships',d:'+70% damage, +25% patrol range',f:t=>{t.d*=1.7;t.r*=1.25}}]
+  drn:[{n:'Swarm Bay',d:'+3 drones',f:t=>{t.ndr+=3}},
+       {n:'Gunships',d:'+50% damage, +25% patrol range',f:t=>{t.d*=1.5;t.r*=1.25}}]
 };
 function hasZ(t){const b=T[t.k];return !!(b.spl||b.slow||b.chain||b.psn||b.multi||b.vort||b.storm||b.buff||b.pierce||b.boom||b.cone||b.tar||b.root||b.drone||b.trap)}
 const UPN={
