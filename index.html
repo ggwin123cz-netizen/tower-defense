@@ -813,7 +813,7 @@ const AB={
   pulse:{n:'Sends out an EMP pulse that shuts down nearby towers',col:'90,200,255',boss:1,cd:6}
 };
 // Each world's boss (its e.tank) gets one ability, named for the boss bar and the Play screen
-const BOSSAB=['shield','charge','jam','shell','freeze','burrow','erupt','summon','split','armor','regen','stomp','heal','haste','warden','storm','revive','spores','pulse','blink'];
+const BOSSAB=['shield','shell','freeze','burrow','erupt','summon','split','armor','regen','stomp','heal','haste','warden','storm','revive','spores','pulse','blink'];
 const BOSSN={shield:'Royal Guard',charge:'Charge',jam:'Dread Aura',shell:'Hard Shell',freeze:'Frost Breath',burrow:'Burrow',erupt:'Eruption',summon:'Raise the Dead',split:'Crumble',armor:'Crystal Armor',regen:'Regrowth',stomp:'Stomp',heal:'Healing Grove',haste:'Mudslide',warden:'Unstoppable',storm:'Thunder',revive:'Undying',spores:'Spore Cloud',pulse:'EMP Pulse',blink:'Phase Jump'};
 const ABK=Object.keys(AB).filter(a=>!AB[a].elite&&!AB[a].boss);
 // Each world: theme, base roster (basic / fast / boss), 6 special enemies and 3 path layouts.
@@ -828,18 +828,6 @@ const MAPS=[
   {n:'Long Haul',k:.92,r:[[-1,0],[2,0],[2,8],[5,8],[5,1],[8,1],[8,8],[11,8],[11,1],[14,1],[14,5],[16,5]]}],
  e:{norm:{n:'Slime',s:'blob',c:'#8e44ad'},fast:{n:'Fox',s:'beast',c:'#e67e22'},tank:{n:'Knight',s:'armor',c:'#4a5560',c2:'#8896a3'}},
  x:{split:{n:'Mega Slime',s:'blob',c:'#3fbf5f'},heal:{n:'Shroom Healer',s:'mushroom',c:'#e74c3c'},jam:{n:'Web Spider',s:'spider',c:'#3b3b4f',c2:'#22222e'},shield:{n:'Shell Snail',s:'snail',c:'#c98b4a',c2:'#9fb878'},stun:{n:'Thunder Imp',s:'imp',c:'#f1c40f',c2:'#b8860b'},freeze:{n:'Frost Mage',s:'mage',c:'#5dade2',c2:'#2e6f9e'}}},
-{n:'Snake',th:'grass',
- ly:[{n:'Coils',k:1.1,r:[[-1,1],[13,1],[13,4],[2,4],[2,8],[16,8]],d:['0,3','1,6','5,6','8,6','10,6','15,3','15,5','6,2','9,2','0,9','6,9','12,6','4,0','10,0']},
-  {n:'Reverse Coil',k:.97,r:[[-1,8],[12,8],[12,5],[2,5],[2,1],[16,1]]},
-  {n:'Serpent',k:1.08,r:[[-1,0],[13,0],[13,2],[2,2],[2,4],[13,4],[13,6],[2,6],[2,8],[16,8]]}],
- e:{norm:{n:'Beetle',s:'beetle',c:'#3f9d4a'},fast:{n:'Wasp',s:'wasp',c:'#f1c40f'},tank:{n:'Stag Beetle',s:'beetle',c:'#7a4a24',hn:1}},
- x:{split:{n:'Brood Mother',s:'beetle',c:'#8e44ad'},heal:{n:'Luna Moth',s:'bat',c:'#9ed99a'},jam:{n:'Silk Spider',s:'spider',c:'#a0522d',c2:'#5c2e14'},shield:{n:'Shell Turtle',s:'turtle',c:'#6b8e23',c2:'#a3b86c'},stun:{n:'Spark Wasp',s:'wasp',c:'#4fc3f7'},freeze:{n:'Ice Beetle',s:'beetle',c:'#9be7ff'}}},
-{n:'Spiral',th:'grass',
- ly:[{n:'Whirl',k:.95,r:[[-1,8],[4,8],[4,2],[8,2],[8,6],[11,6],[11,1],[16,1]],d:['1,5','2,3','6,4','6,7','6,9','10,9','13,4','14,7','14,3','1,1','5,0','9,0','9,4','13,8']},
-  {n:'Fangs',k:.95,r:[[-1,1],[3,1],[3,8],[6,8],[6,3],[9,3],[9,8],[12,8],[12,1],[16,1]]},
-  {n:'Double Bend',k:.95,r:[[-1,5],[3,5],[3,1],[7,1],[7,8],[11,8],[11,4],[16,4]]}],
- e:{norm:{n:'Wisp',s:'ghost',c:'#e3ebf7'},fast:{n:'Bat',s:'bat',c:'#5a3d6e'},tank:{n:'Dark Knight',s:'armor',c:'#2b1f3a',c2:'#5b3f7a',c3:'#a35cff'}},
- x:{split:{n:'Ectoplasm',s:'blob',c:'#6fe8a0'},heal:{n:'Spirit Mage',s:'mage',c:'#4caf50',c2:'#1b5e20'},jam:{n:'Shade Spider',s:'spider',c:'#3a2450',c2:'#1a0f26'},shield:{n:'Bone Knight',s:'armor',c:'#bdb39b',c2:'#efe8d6'},stun:{n:'Hex Imp',s:'imp',c:'#9b59b6',c2:'#5b2c6f'},freeze:{n:'Frost Wraith',s:'ghost',c:'#bfe9ff'}}},
 {n:'Coral Reef',th:'sea',
  ly:[{n:'Lagoon',r:[[-1,5],[2,5],[2,1],[6,1],[6,8],[10,8],[10,3],[13,3],[13,6],[16,6]],d:['0,1','4,3','4,6','8,0','8,5','11,0','15,1','15,9','0,8','3,9','8,3','12,9','14,4','4,9']},
   {n:'Riptide',k:.85,r:[[-1,4],[5,4],[5,1],[10,1],[10,7],[16,7]]},
@@ -1061,7 +1049,14 @@ const persist0=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catc
 const persist=()=>{accDirty();persist0()};
 // Online account state (see Accounts below); declared here because saves happen while the page is still loading
 const ACC={user:null,name:'',n:0,t:0,at:0,busy:false,ask:0,err:'',loading:null,recheck:0};let FB=null;
-function fillSave(){delete save.lang;if(save.wx===undefined)save.wx=1;save.stats=Object.assign({kills:0,bosses:0,spells:0,chests:0,built:0,elites:0,quests:0},save.stats||{});save.ach=save.ach||{};save.stars=save.stars||{};save.wins=save.wins||{};if(save.snd===undefined)save.snd=0;if(save.mus===undefined)save.mus=0;if(!save.mute1){save.snd=0;save.mus=0;save.mute1=1}if(save.tips===undefined)save.tips=save.tut||save.stats.built>0?1:0;if(save.vol===undefined)save.vol=1;if(save.dmg===undefined)save.dmg=1;if(save.shk===undefined)save.shk=1;
+// Snake and Spiral (worlds 1 and 2) looked just like Winding Road and were merged into it. Saves made before (no wv) get their
+// world numbers moved down: records for the removed worlds go, later worlds shift by two, custom maps on them become Winding Road.
+const WMAP=w=>w===0?0:w<3?-1:w-2;
+function migrateWorlds(sv){if(sv.wv>=2)return;sv.wv=2;
+  const rk=o=>{const n={};for(const k in o){const m=k.match(/^(\d+)(.*)$/);if(!m){n[k]=o[k];continue}const w=WMAP(+m[1]);if(w>=0)n[w+m[2]]=o[k]}return n};
+  for(const f of ['stars','best','endless','eb','es','chal','wins'])if(sv[f]&&typeof sv[f]==='object')sv[f]=rk(sv[f]);
+  if(Array.isArray(sv.maps))sv.maps.forEach(m=>{if(m&&typeof m.w==='number')m.w=Math.max(0,WMAP(m.w))})}
+function fillSave(){delete save.lang;migrateWorlds(save);if(save.wx===undefined)save.wx=1;save.stats=Object.assign({kills:0,bosses:0,spells:0,chests:0,built:0,elites:0,quests:0},save.stats||{});save.ach=save.ach||{};save.stars=save.stars||{};save.wins=save.wins||{};if(save.snd===undefined)save.snd=0;if(save.mus===undefined)save.mus=0;if(!save.mute1){save.snd=0;save.mus=0;save.mute1=1}if(save.tips===undefined)save.tips=save.tut||save.stats.built>0?1:0;if(save.vol===undefined)save.vol=1;if(save.dmg===undefined)save.dmg=1;if(save.shk===undefined)save.shk=1;
   save.skills=save.skills||{};save.maps=(Array.isArray(save.maps)?save.maps:[]).map(mapClean).filter(Boolean);
   // Older saves get a starting level based on the stars they already earned
   if(save.runes===undefined){const ts=Object.values(save.stars).reduce((a,v)=>a+v,0);save.lvl=1+Math.min(15,Math.floor(ts/3));save.xp=0;save.runes=2+save.lvl}}
@@ -3027,9 +3022,11 @@ function renderCustom(){const el=$('cmaps');if(!el)return;const ms=save.maps;
   el.innerHTML=ms.map(m=>'<button class="ly'+(m.id===cSel?' on':'')+'" data-c="'+escH(m.id)+'"><canvas width="320" height="200"></canvas><span>'+escH(m.n)+'<small>'+MAPS[m.w].n+'</small></span><em><u data-e="'+escH(m.id)+'">Edit map</u></em></button>').join('')
     +'<button class="ly cmnew" data-new="1"><b>+ Build a map</b><span>Draw your own path</span></button><button class="ly cmnew" data-imp="1"><b>Paste a map code</b><span>Play a friend’s map</span></button>'+(FB_CONFIG?'<button class="ly cmnew" data-gal="1"><b>Player maps</b><span>Browse maps other players published</span></button>':'');
   [...el.querySelectorAll('[data-c] canvas')].forEach((c,i)=>thumb(ms[i].w,0,c,ms[i]))}
-function mapCode(m){return 'TDM1:'+btoa(unescape(encodeURIComponent(JSON.stringify({n:m.n,w:m.w,r:m.r,d:m.d}))))}
+function parseMap(c){if(typeof c!=='string')return null;const v=c.slice(0,5);if(v!=='TDM1:'&&v!=='TDM2:')return null;
+  try{const o=JSON.parse(decodeURIComponent(escape(atob(c.slice(5)))));if(v==='TDM1:'&&o&&typeof o.w==='number')o.w=Math.max(0,WMAP(o.w));return mapClean(o)}catch(e){return null}}
+function mapCode(m){return 'TDM2:'+btoa(unescape(encodeURIComponent(JSON.stringify({n:m.n,w:m.w,r:m.r,d:m.d}))))}
 function mapImport(){const c=(prompt('Paste the map code:')||'').trim();if(!c)return;let m=null;
-  try{if(c.slice(0,5)==='TDM1:')m=mapClean(JSON.parse(decodeURIComponent(escape(atob(c.slice(5))))))}catch(e){}
+  m=parseMap(c);
   if(!m){toast('That code did not work','Copy the whole map code and try again',null,'#ff5a6a');return}
   if(save.maps.length>=30){toast('Too many maps','You can keep up to 30. Delete one first.',null,'#ff5a6a');return}
   m.id=Date.now().toString(36);save.maps.push(m);cSel=m.id;persist();renderLays();renderRoster();toast('Map added',m.n+' is ready to play',null,'#38d68a')}
@@ -3427,7 +3424,7 @@ function paintElb(){const el=$('elb');if(!el||$('s-play').hidden)return;if(custS
   el.innerHTML=h;if(!c||Date.now()-c.at>60000)elbLoad(k)}
 // Map gallery: maps/{id} = {n, m (map code), w, by, bn, at, likes}; a like is maps/{id}/likes/{uid} plus likes+1 in one batch.
 const GAL={tab:'top',list:null,err:'',at:0,busy:0};
-const galParse=c=>{try{if(typeof c==='string'&&c.slice(0,5)==='TDM1:')return mapClean(JSON.parse(decodeURIComponent(escape(atob(c.slice(5))))))}catch(e){}return null};
+const galParse=parseMap;
 async function galLoad(force){if(GAL.busy)return;if(!force&&GAL.list&&Date.now()-GAL.at<60000){renderGallery();return}GAL.busy=1;GAL.err='';renderGallery();
   try{await fbLoad();const F=FB.F,q=await F.getDocs(F.query(F.collection(FB.db,'maps'),F.orderBy(GAL.tab==='top'?'likes':'at','desc'),F.limit(30)));
     GAL.list=q.docs.map(x=>{const d=x.data(),m=galParse(d.m);return m?{id:x.id,n:String(d.n||m.n).slice(0,24),bn:String(d.bn||'?').slice(0,24),by:d.by,likes:d.likes|0,m}:null}).filter(Boolean);GAL.at=Date.now()}
@@ -3461,13 +3458,14 @@ $('ggrid').onclick=e=>{const b=e.target.closest('[data-play],[data-like],[data-d
 // a wave goes back to the start of that wave with the towers that stood then. Kept on this device (not in the account save).
 const RUNKEY='td-run-v1';let runT=0;
 function runSave(){if(MP||!inGame||st.over||st.run)return;try{
-  localStorage.setItem(RUNKEY,JSON.stringify({v:1,at:Date.now(),m:cur,l:lay,cust:CUST?{id:CUST.id,n:CUST.n,w:CUST.w,r:CUST.r,d:CUST.d}:null,dif,
+  localStorage.setItem(RUNKEY,JSON.stringify({v:1,wv:2,at:Date.now(),m:cur,l:lay,cust:CUST?{id:CUST.id,n:CUST.n,w:CUST.w,r:CUST.r,d:CUST.d}:null,dif,
     run:{en:RUN.en,mods:RUN.mods,dly:RUN.dly,ch:RUN.ch?[RUN.ch.m,RUN.ch.l]:null},
     s:{gold:st.gold,lives:st.lives,lives0:st.lives0,wave:st.wave,ge:st.ge,gems:st.gems,kills:st.kills,xp:st.xp,elites:st.elites,built:st.built,qge:st.qge,scd:st.scd,nev:st.nev,lk:st.lk,dk:st.dk,lwv:st.lwv,seen:st.seen,spH:st.spH},
     tw:st.tw.map(t=>({k:t.k,cx:t.cx,cy:t.cy,u:t.u,sp:t.sp,tg:t.tg,inv:t.inv,dmg:t.dmg||0,kills:t.kills||0}))}))}catch(e){}}
 const runSaveSoon=()=>{if(st.run||MP)return;clearTimeout(runT);runT=setTimeout(runSave,400)};
 const runDrop=()=>{try{localStorage.removeItem(RUNKEY)}catch(e){}};
 function runLoad(){let d=null;try{d=JSON.parse(localStorage.getItem(RUNKEY)||'null')}catch(e){}
+  if(d&&!d.wv){d.wv=2;if(typeof d.m==='number'){d.m=WMAP(d.m);if(d.m<0&&!d.cust)return null}if(d.cust&&typeof d.cust.w==='number')d.cust.w=Math.max(0,WMAP(d.cust.w));if(d.run&&d.run.ch){const w=WMAP(d.run.ch[0]);if(w<0)return null;d.run.ch[0]=w}}
   if(!d||d.v!==1||!d.s||!Array.isArray(d.tw)||(d.run&&d.run.dly&&d.run.dly!==utcDay())||(!d.cust&&!MAPS[d.m]))return null;return d}
 const runName=d=>d.run.ch?'Challenge · '+chOf(d.run.ch[0],d.run.ch[1]).t.n:d.run.dly?'Daily challenge':(d.cust?d.cust.n:MAPS[d.m].ly[d.l].n)+' · '+DIFFS[d.dif].n;
 function runResume(){const d=runLoad();if(!d){renderHome();return}if(ED.open)edClose();
