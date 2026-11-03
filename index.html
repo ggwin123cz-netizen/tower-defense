@@ -791,7 +791,7 @@ const FONT='"Barlow Condensed",Inter,sans-serif';
 let LK=1,route,wp,deco,dif=1,auto=false,mapI=0,layI=0,cur=0,lay=0,MAXW=20,paused=true,inGame=false,AV=[];
 // Save keys for best wave / stars; layout 1 keeps the old key so earlier progress still counts
 const bkey=(m,l,d)=>l?m+'.'+l+'-'+d:m+'-'+d;
-const DIFFS=[{n:'Easy',h:.7,r:1.25,l:30,g:230,c:.85,w:20,gm:1},{n:'Normal',h:1,r:1,l:20,g:160,c:1,w:25,gm:1.5},{n:'Hard',h:1.38,r:.85,l:12,g:140,c:1.2,w:30,gm:2},{n:'Insane',h:2.2,r:.7,l:5,g:120,c:1.4,w:35,gm:3}];
+const DIFFS=[{n:'Easy',h:.66,r:1.25,l:30,g:230,c:.85,w:20,gm:1},{n:'Normal',h:.92,r:1,l:20,g:160,c:1,w:25,gm:1.5},{n:'Hard',h:1.32,r:.85,l:12,g:140,c:1.2,w:30,gm:2},{n:'Insane',h:2.2,r:.7,l:5,g:120,c:1.4,w:35,gm:3}];
 const GEM='<svg width="12" height="12" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#b57bff"/></svg>';
 const LOCK='<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" fill="#8592a3"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#8592a3" stroke-width="2"/></svg>';
 const COIN='<svg width="11" height="11" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#f4c152"/><circle cx="8" cy="8" r="4.3" fill="none" stroke="#a87a22" stroke-width="1.5"/></svg>';
@@ -1019,18 +1019,18 @@ const T={
   snip:{n:'Sniper',cost:140,r:210,d:95,cd:2.2,col:'#2ecc71',snp:1,gp:80},
   pla:{n:'Flame',cost:120,r:70,d:5,cd:.25,col:'#e67e22',aura:1,gp:0},
   dul:{n:'Generator',cost:100,r:0,d:4,cd:3,col:'#fcee0a',gen:1,gp:0},
-  poi:{n:'Poison',cost:90,r:100,d:6,cd:1,col:'#7ed957',psn:1,gp:60},
+  poi:{n:'Poison',cost:90,r:100,d:8,cd:1,col:'#7ed957',psn:1,gp:60},
   las:{n:'Laser',cost:150,r:120,d:2.8,cd:.1,col:'#ff3b6b',beam:1,gp:120},
   mor:{n:'Mortar',cost:160,r:240,d:45,cd:3,col:'#8d6e63',spl:70,lob:1,gp:120},
   rail:{n:'Railgun',cost:170,r:200,d:40,cd:2,col:'#00e5ff',rail:1,gp:150},
-  mis:{n:'Missiles',cost:150,r:150,d:13,cd:1.6,col:'#ff8c42',multi:1,spl:30,gp:140},
+  mis:{n:'Missiles',cost:150,r:150,d:12,cd:1.6,col:'#ff8c42',multi:1,spl:30,gp:140},
   bea:{n:'Beacon',cost:100,r:90,d:0,cd:1,col:'#c77dff',buff:1,gp:100},
   vor:{n:'Vortex',cost:150,r:110,d:15,cd:2,col:'#9d4edd',vort:1,gp:180},
   sto:{n:'Storm',cost:200,r:170,d:38,cd:1.8,col:'#4cc9f0',storm:1,gp:200},
-  bal:{n:'Ballista',cost:160,r:200,d:55,cd:2.4,col:'#a0522d',pierce:1,gp:160},
-  boo:{n:'Boomerang',cost:120,r:130,d:16,cd:1.5,col:'#ff9f1c',boom:1,gp:120},
-  blu:{n:'Blunderbuss',cost:130,r:85,d:30,cd:1.15,col:'#b5651d',cone:1,gp:130},
-  spk:{n:'Spike Trap',cost:70,r:24,d:14,cd:.45,col:'#9e9e9e',trap:1,gp:90},
+  bal:{n:'Ballista',cost:160,r:200,d:54,cd:2.4,col:'#a0522d',pierce:1,gp:160},
+  boo:{n:'Boomerang',cost:120,r:130,d:19,cd:1.5,col:'#ff9f1c',boom:1,gp:120},
+  blu:{n:'Blunderbuss',cost:130,r:85,d:33,cd:1.15,col:'#b5651d',cone:1,gp:130},
+  spk:{n:'Spike Trap',cost:70,r:24,d:17,cd:.45,col:'#9e9e9e',trap:1,gp:90},
   tar:{n:'Tar Pit',cost:95,r:120,d:12,cd:3,col:'#5d4037',tar:1,gp:110},
   gat:{n:'Gatling',cost:140,r:115,d:4,cd:.32,col:'#ffd166',spin:1,gp:150},
   thr:{n:'Thorn Tree',cost:125,r:85,d:20,cd:2.6,col:'#2e7d32',root:1,gp:170},
@@ -3168,8 +3168,9 @@ const FTIP=[
   {id:'spec',t:'Specialize a tower',when:()=>st.tw.some(t=>t.sp===undefined&&SPEC[t.k]&&tot(t)>=SPLV),d:()=>'A tower reached level '+SPLV+'. Select it and pick one of two paths at the bottom of its panel.',done:()=>st.tw.some(t=>t.sp!==undefined)}];
 function ftTick(el){save.ft=save.ft||{};
   if(st.ftc&&(save.ft[st.ftc.id]||(st.ftc.done&&st.ftc.done()))){save.ft[st.ftc.id]=1;persist();st.ftc=null}
-  if(!st.ftc){const f=FTIP.find(f=>!save.ft[f.id]&&f.when());if(!f){if(!el.hidden){el.hidden=true;tutHl(null)}return}st.ftc=f}
-  const f=st.ftc,d=f.d(),k='f|'+f.id+'|'+d;if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent='Tip';$('tutt').textContent=f.t;$('tutd').textContent=d;$('tutok').hidden=false;tutHl(f.hl)}
+  // The text is worked out once, when the tip appears: what it describes (the next wave's weather, say) can change while it is shown
+  if(!st.ftc){const f=FTIP.find(f=>!save.ft[f.id]&&f.when());if(!f){if(!el.hidden){el.hidden=true;tutHl(null)}return}st.ftc=f;st.ftd=f.d()}
+  const f=st.ftc,d=st.ftd,k='f|'+f.id+'|'+d;if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent='Tip';$('tutt').textContent=f.t;$('tutd').textContent=d;$('tutok').hidden=false;tutHl(f.hl)}
   if(el.hidden){el.hidden=false;tutHl(f.hl)}}
 function tutTick(){const el=$('tut');
   if(save.tips&&inGame&&!st.over&&$('mm').hidden){ftTick(el);return}
