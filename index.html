@@ -106,7 +106,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .nextw .ni{position:relative;display:inline-flex}
 .nextw canvas{width:26px;height:26px}
 .nextw .ni b{position:absolute;right:-3px;bottom:-2px;font-size:9.5px;color:#fff;background:rgba(10,14,19,.85);border-radius:5px;padding:0 3px;line-height:13px}
-.nextw .evc{margin-left:auto;padding:2px 7px;border:1px solid;border-radius:99px;font-weight:700;font-size:10px;letter-spacing:.04em;cursor:help}.nextw .evc+.bt{margin-left:6px}
+.nextw .evc{margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border:1px solid;border-radius:99px;font-weight:700;font-size:10px;letter-spacing:.04em;cursor:help}.nextw .evc+.bt{margin-left:6px}
 .nextw .bt{margin-left:auto;color:var(--life);font-weight:700;font-size:10px;letter-spacing:.08em}
 /* End screen extras */
 .stars{display:flex;justify-content:center;align-items:flex-end;gap:6px;margin:14px 0 2px}
@@ -274,6 +274,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .ly em{font-style:normal;font-size:11px;color:var(--mut);padding:0 3px 2px;text-align:left}
 #startgame{width:100%;padding:16px;font-size:16px}
 .roster{display:flex;flex-direction:column;gap:6px}
+.fo .evi{flex:none;width:40px;height:40px;border-radius:9px;display:grid;place-items:center}
 .fo{display:flex;align-items:center;gap:10px;padding:5px 10px 5px 6px;background:var(--panel2);border:1px solid var(--line);border-radius:10px}
 .fo canvas{width:40px;height:40px;flex:none}
 .fo b{display:block;font-size:12.5px}
@@ -651,7 +652,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
           <span class="lbl">Run options <span id="rmult" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div class="runopt" id="runopt"></div>
           <div class="startbar"><span id="sbsum"></span><button class="go" id="startgame">Start game</button></div>
         </div>
-        <div><div id="elb"></div><span class="lbl">Enemies in <span id="rname"></span></span><div class="roster" id="roster"></div><span class="lbl">Elite enemies · every world, from wave 8</span><div class="eroster" id="eroster"></div></div>
+        <div><div id="elb"></div><span class="lbl">Enemies in <span id="rname"></span></span><div class="roster" id="roster"></div><span class="lbl">Elite enemies · every world, from wave 8</span><div class="eroster" id="eroster"></div><span class="lbl" style="margin-top:16px">Weather in <span id="wxname"></span></span><p class="note" style="margin:0 0 8px;text-align:left">From wave 3, about one wave in three brings weather. You see it coming in the next-wave preview. Boss waves only bring good weather. You can turn weather off in Settings.</p><div class="roster" id="wxl"></div></div>
       </div>
     </section>
 
@@ -1328,6 +1329,17 @@ function reset(){const D=DIFFS[dif];MAXW=RUN.ch?CHW:D.w;st={gold:Math.round((D.g
   st.lives0=st.lives;SPELLS.forEach(s=>st.scd[s.k]=0);if(MP)mpAfterReset();$('ov').hidden=true;if(auto&&!(MP&&!MP.host))st.nxt=2}
 // Weather and events: from wave 3 a wave may come with an event that suits the world. It is rolled when the previous wave ends
 // (st.nev, shown in the next-wave preview) and is active while that wave runs (st.ev). The daily challenge rolls from the date.
+// A small icon for each weather event (preview chip, Play screen list)
+const EVI={fog:'<path d="M4 9h13M7 13h13M4 17h11" stroke="#cdd7dc" stroke-width="2" stroke-linecap="round"/>',
+  rain:'<path d="M7 13a4 4 0 0 1 .5-8A5 5 0 0 1 17 7a3.5 3.5 0 0 1 0 7H7z" fill="#9fc3ff"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3" stroke="#78aaff" stroke-width="1.8" stroke-linecap="round"/>',
+  storm:'<path d="M7 12a4 4 0 0 1 .5-8A5 5 0 0 1 17 6a3.5 3.5 0 0 1 0 7H7z" fill="#8a96b8"/><path d="M12 12l-3 5h3l-2 5 5-7h-3l2-3z" fill="#ffe36e"/>',
+  quake:'<path d="M3 15l4-3 3 4 4-6 3 4 4-3" stroke="#d7af7d" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M3 20h18" stroke="#a1887f" stroke-width="2" stroke-linecap="round"/>',
+  moon:'<circle cx="12" cy="12" r="8" fill="#c62835"/><circle cx="9" cy="9" r="1.6" fill="#e2535e"/><circle cx="14" cy="14" r="2.2" fill="#a51e2a"/>',
+  wind:'<path d="M3 9h11a3 3 0 1 0-3-3M3 14h15a3 3 0 1 1-3 3M3 19h7" stroke="#bfe6ff" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  lucky:'<path d="M12 3l2.6 5.6 6 .7-4.5 4 1.3 6L12 16.4 6.6 19.3l1.3-6-4.5-4 6-.7z" fill="#ffd75a"/>',
+  heat:'<circle cx="12" cy="12" r="5" fill="#ff9a3c"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" stroke="#ff9a3c" stroke-width="2" stroke-linecap="round"/>',
+  snow:'<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9" stroke="#e6f3ff" stroke-width="2" stroke-linecap="round"/>'};
+const evIcon=(k,z=16)=>'<svg width="'+z+'" height="'+z+'" viewBox="0 0 24 24" fill="none">'+(EVI[k]||'')+'</svg>';
 const EV={
   fog:{n:'Fog',d:'Thick fog: towers have 12% less range',c:'205,215,220'},
   rain:{n:'Rain',d:'Enemies are 15% slower, but fire deals 40% less damage',c:'120,170,255'},
@@ -2940,9 +2952,10 @@ function ui0(){
   }
 }
 let nwKey='';
+$('nextw').addEventListener('click',e=>{const c=e.target.closest('[data-ev]');if(c&&EV[c.dataset.ev])toast('Next wave: '+EV[c.dataset.ev].n,EV[c.dataset.ev].d,evIcon(c.dataset.ev,20),'rgb('+EV[c.dataset.ev].c+')')});
 function renderNext(){const w=st.wave+1,key=cur+'|'+dif+'|'+w+'|'+MAXW+'|'+RUN.en+'|'+st.nev;if(key===nwKey)return;nwKey=key;const el=$('nextw');
   if(w>MAXW&&!RUN.en){el.innerHTML='<span class="nl">Final wave</span><span>Defeat every enemy to win!</span>';return}
-  const comp=waveComp(w);el.innerHTML='<span class="nl">Wave '+w+'</span>'+comp.map(c=>'<span class="ni" title="'+c.E.n+' ×'+c.c+'"><canvas width="52" height="52"></canvas><b>'+c.c+'</b></span>').join('')+(st.nev&&EV[st.nev]?'<span class="evc" style="color:rgb('+EV[st.nev].c+');border-color:rgba('+EV[st.nev].c+',.45)" title="'+EV[st.nev].d+'">'+EV[st.nev].n+'</span>':'')+(w%5===0?'<span class="bt">BOSS</span>':'');
+  const comp=waveComp(w);el.innerHTML='<span class="nl">Wave '+w+'</span>'+comp.map(c=>'<span class="ni" title="'+c.E.n+' ×'+c.c+'"><canvas width="52" height="52"></canvas><b>'+c.c+'</b></span>').join('')+(st.nev&&EV[st.nev]?'<span class="evc" data-ev="'+st.nev+'" style="color:rgb('+EV[st.nev].c+');border-color:rgba('+EV[st.nev].c+',.45)" title="Next wave: '+EV[st.nev].n+'. '+EV[st.nev].d+'">'+evIcon(st.nev,13)+EV[st.nev].n+'</span>':'')+(w%5===0?'<span class="bt">BOSS</span>':'');
   [...el.querySelectorAll('canvas')].forEach((c,i)=>eIcon(c,comp[i].E,comp[i].z))}
 function cell(e){const r=cv.getBoundingClientRect();return{x:Math.floor((e.clientX-r.left)*W/r.width),y:Math.floor((e.clientY-r.top)*H/r.height)}}
 // Touch screens have no hover, so building there takes two taps (see the click handler)
@@ -3288,8 +3301,10 @@ function renderSpl(){const L=myLoad();
 $('spl').onclick=e=>{const b=e.target.closest('[data-s]');if(!b||b.disabled)return;const k=b.dataset.s;let L=myLoad();
   if(L.includes(k))L=L.filter(x=>x!==k);else if(L.length>=SPMAX){toast('Up to '+SPMAX+' spells','Remove one first, then pick '+SPK[k].n,null,'#f4c152');return}else L=[...L,k];
   save.spl=L;persist();renderSpl();if(!inGame)buildSpells()};
+function renderWx(M){$('wxname').textContent=M.n;
+  $('wxl').innerHTML=(EVW[M.th]||EVW.grass).map(k=>'<div class="fo"><span class="evi" style="background:rgba('+EV[k].c+',.14)">'+evIcon(k,22)+'</span><div><b>'+EV[k].n+(EVGOOD.includes(k)?' <em style="font-style:normal;font-size:10.5px;color:#5ef2a0">helps you</em>':'')+'</b><small>'+EV[k].d+'</small></div></div>').join('')}
 function renderRoster(){
-  const cm=custSel(),M=MAPS[cm?cm.w:mapI];$('rname').textContent=M.n;
+  const cm=custSel(),M=MAPS[cm?cm.w:mapI];$('rname').textContent=M.n;renderWx(M);
   const list=[['norm',M.e.norm],['fast',M.e.fast],['tank',M.e.tank],...ABK.map(a=>['spec',M.x[a]])];
   $('roster').innerHTML=list.map(([k,E])=>'<div class="fo"><canvas width="80" height="80"></canvas><div><b>'+E.n+'</b><small>'+(E.ab&&k!=='tank'?'<i style="background:rgb('+AB[E.ab].col+')"></i>'+AB[E.ab].n+' · from wave '+AB[E.ab].w:'<span>'+ROLE[k].n+(k==='tank'?' · every 5th wave · '+(E.ab?'<b style="display:inline;font-size:inherit;color:rgb('+AB[E.ab].col+')">'+BOSSN[E.ab]+'</b>: '+AB[E.ab].n.toLowerCase():'costs 2 lives'):'')+'</span>')+'</small></div></div>').join('');
   [...$('roster').querySelectorAll('canvas')].forEach((c,i)=>eIcon(c,list[i][1],ROLE[list[i][0]].z));
