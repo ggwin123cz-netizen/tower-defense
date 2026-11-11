@@ -204,6 +204,8 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 /* Main menu */
 #mm{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(1000px 600px at 75% 0,rgba(76,141,255,.16),transparent 70%),radial-gradient(800px 600px at 0 100%,rgba(140,90,255,.10),transparent 70%),rgba(8,11,15,.86);backdrop-filter:blur(10px)}
 #mmbg{position:absolute;inset:0;width:100%;height:100%;display:none}
+#pgbg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.side .panel,.side .stat,.side .nextw{background:rgba(13,18,26,.6)}.side .tw:not(.on){background:rgba(22,30,40,.62)}
 .mmbox{position:relative;z-index:1;width:min(1060px,100%);height:min(720px,100%);display:flex;flex-direction:column;background:rgba(13,18,26,.88);border:1px solid var(--line2);border-radius:18px;box-shadow:0 40px 100px rgba(0,0,0,.6);overflow:hidden}
 .mmtop{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
 .mmtop h1{font-size:22px}
@@ -613,6 +615,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
     <div class="row2"><button id="tomenu">Main menu</button><button class="go" id="again">Play again</button></div>
   </div></div>
 </div>
+<canvas id="pgbg"></canvas>
 <div id="ttip"></div>
 <aside class="side">
   <div class="brand">
@@ -4392,7 +4395,7 @@ function simStep(ts){
 // Layers, back to front: sky and stars, the aurora (drawn small and stretched, which also softens it), mountains, a lake that
 // mirrors the lights, then the shore with pines and a watchtower. The still layers are painted once per window size.
 const SKY={w:0,h:0,x:null,st:[],sp:{},au:null,mt:null,fg:null,still:matchMedia('(prefers-reduced-motion:reduce)').matches};
-function skyBuild(w,h,dp){const el=$('mmbg');el.width=w*dp;el.height=h*dp;SKY.w=w;SKY.h=h;SKY.x=el.getContext('2d');
+function skyBuild(w,h,dp){SKY.w=w;SKY.h=h;
   let sd=11;const R=()=>(sd=sd*16807%2147483647)/2147483647,hz=SKY.hz=Math.round(h*.7);
   SKY.st=Array.from({length:Math.min(420,Math.round(w*hz/2600))},()=>({x:R()*w,y:R()*hz,r:.35+R()*R()*1.5,p:R()*6.28,s:.5+R()*2,c:R()}));
   SKY.au=document.createElement('canvas');SKY.au.width=Math.ceil(w/4);SKY.au.height=Math.ceil(hz/4);
@@ -4411,9 +4414,11 @@ function skyBuild(w,h,dp){const el=$('mmbg');el.width=w*dp;el.height=h*dp;SKY.w=
    q.fillRect(tx,ty-104,34,104);q.fillRect(tx-4,ty-112,42,10);for(let k=0;k<4;k++)q.fillRect(tx-4+k*11.6,ty-120,7,9);
    q.beginPath();q.moveTo(tx+34,ty-60);q.lineTo(tx+62,ty-60);q.lineTo(tx+62,ty);q.lineTo(tx+34,ty);q.fill();for(let k=0;k<3;k++)q.fillRect(tx+36+k*9,ty-66,6,7);q.fillRect(tx+16,ty-150,1.8,32)}
 }
-function skyDraw(t){const el=$('mmbg');if($('mm').hidden)return;const on=!inGame;if(el.style.display!==(on?'block':'none'))el.style.display=on?'block':'none';if(!on)return;
+// The lights fill the whole page behind the game; while the main menu is open outside a game they are drawn on the menu's own canvas instead
+function skyDraw(t){const mb=$('mmbg'),menu=!$('mm').hidden&&!inGame,el=menu?mb:$('pgbg');if(mb.style.display!==(menu?'block':'none'))mb.style.display=menu?'block':'none';
   const w=el.clientWidth,h=el.clientHeight,dp=Math.min(devicePixelRatio||1,1.5);if(!w||!h)return;if(SKY.w!==w||SKY.h!==h)skyBuild(w,h,dp);if(SKY.still)t=40;
-  const x=SKY.x,hz=SKY.hz;x.setTransform(dp,0,0,dp,0,0);
+  if(el.width!==Math.round(w*dp)||el.height!==Math.round(h*dp)){el.width=Math.round(w*dp);el.height=Math.round(h*dp)}
+  const x=el.getContext('2d'),hz=SKY.hz;x.setTransform(dp,0,0,dp,0,0);
   let g=x.createLinearGradient(0,0,0,hz);g.addColorStop(0,'#020814');g.addColorStop(.55,'#04192a');g.addColorStop(1,'#0b3a44');x.fillStyle=g;x.fillRect(0,0,w,hz);
   for(const q of SKY.st){const a=.4+.6*Math.sin(t*q.s+q.p);x.fillStyle=q.c<.15?'rgba(170,210,255,'+a+')':q.c>.9?'rgba(255,230,200,'+a+')':'rgba(255,255,255,'+a+')';x.fillRect(q.x-q.r,q.y-q.r,q.r*2,q.r*2);
     if(q.r>1.45){x.fillStyle='rgba(255,255,255,'+a*.35+')';x.fillRect(q.x-q.r*3.5,q.y-.4,q.r*7,.8);x.fillRect(q.x-.4,q.y-q.r*3.5,.8,q.r*7)}}
