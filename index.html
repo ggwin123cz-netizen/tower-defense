@@ -188,7 +188,8 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 
 /* Main menu */
 #mm{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(1000px 600px at 75% 0,rgba(76,141,255,.16),transparent 70%),radial-gradient(800px 600px at 0 100%,rgba(140,90,255,.10),transparent 70%),rgba(8,11,15,.86);backdrop-filter:blur(10px)}
-.mmbox{width:min(1060px,100%);height:min(720px,100%);display:flex;flex-direction:column;background:rgba(15,20,27,.94);border:1px solid var(--line2);border-radius:18px;box-shadow:0 40px 100px rgba(0,0,0,.6);overflow:hidden}
+#mmbg{position:absolute;inset:0;width:100%;height:100%;display:none}
+.mmbox{position:relative;z-index:1;width:min(1060px,100%);height:min(720px,100%);display:flex;flex-direction:column;background:rgba(13,18,26,.88);border:1px solid var(--line2);border-radius:18px;box-shadow:0 40px 100px rgba(0,0,0,.6);overflow:hidden}
 .mmtop{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
 .mmtop h1{font-size:22px}
 @media (max-width:600px){.mmtop{flex-wrap:wrap;gap:10px;padding:12px 14px}.mmtop .brand{flex:1 0 auto}.mmr{display:contents}.mmr .lvc{flex:1}.mmr .lvc span{flex:1;width:auto}}
@@ -643,6 +644,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 </main>
 
 <div id="mm" hidden>
+  <canvas id="mmbg"></canvas>
   <div class="mmbox">
     <header class="mmtop">
       <div class="brand"><div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 21V9l2-1V4h3v2h2V4h2v2h2V4h3v4l2 1v12z" fill="#4c8dff" opacity=".25"/><path d="M4 21V9l2-1V4h3v2h2V4h2v2h2V4h3v4l2 1v12zM10 21v-5a2 2 0 0 1 4 0v5" stroke="#9cc0ff" stroke-width="1.6" stroke-linejoin="round"/></svg></div><h1>Tower Defense</h1></div>
@@ -4342,7 +4344,60 @@ function simStep(ts){
   if(MP&&MP.host)mpTick();
   achT-=dt;if(achT<=0){achT=.5;checkAch()}
 }
-function loop(ts){simStep(ts);draw();ui();requestAnimationFrame(loop)}
+/* ---------- Northern lights behind the main menu ---------- */
+// Layers, back to front: sky and stars, the aurora (drawn small and stretched, which also softens it), mountains, a lake that
+// mirrors the lights, then the shore with pines and a watchtower. The still layers are painted once per window size.
+const SKY={w:0,h:0,x:null,st:[],sp:{},au:null,mt:null,fg:null,still:matchMedia('(prefers-reduced-motion:reduce)').matches};
+function skyBuild(w,h,dp){const el=$('mmbg');el.width=w*dp;el.height=h*dp;SKY.w=w;SKY.h=h;SKY.x=el.getContext('2d');
+  let sd=11;const R=()=>(sd=sd*16807%2147483647)/2147483647,hz=SKY.hz=Math.round(h*.7);
+  SKY.st=Array.from({length:Math.min(420,Math.round(w*hz/2600))},()=>({x:R()*w,y:R()*hz,r:.35+R()*R()*1.5,p:R()*6.28,s:.5+R()*2,c:R()}));
+  SKY.au=document.createElement('canvas');SKY.au.width=Math.ceil(w/4);SKY.au.height=Math.ceil(hz/4);
+  const layer=()=>{const c=document.createElement('canvas');c.width=w*dp;c.height=h*dp;const q=c.getContext('2d');q.setTransform(dp,0,0,dp,0,0);return[c,q]};
+  // Mountains: two ridges with snow on the peaks, standing on the far shore
+  {const[c,q]=layer();SKY.mt=c;
+   const ridge=(col,snow,base,amp,step)=>{const P=[];for(let px=-step;px<=w+step;px+=step*(.6+R()*.8))P.push([px,base-amp*(.25+R()*.75)]);
+     q.fillStyle=col;q.beginPath();q.moveTo(-step,hz+2);for(const[px,py]of P)q.lineTo(px,py);q.lineTo(w+step,hz+2);q.fill();
+     q.fillStyle=snow;for(let i=1;i<P.length-1;i++){const[px,py]=P[i];if(py<P[i-1][1]&&py<P[i+1][1]){const d=Math.min(base-py,60)*.45,l=P[i-1],r=P[i+1],lx=px+(l[0]-px)*d/(l[1]-py),rx=px+(r[0]-px)*d/(r[1]-py);
+       q.beginPath();q.moveTo(px,py);q.lineTo(rx,py+d);q.lineTo(px+(rx-px)*.45,py+d*.72);q.lineTo(px,py+d*1.05);q.lineTo(px+(lx-px)*.5,py+d*.7);q.lineTo(lx,py+d);q.fill()}}};
+   ridge('#0c2f3a','rgba(150,235,220,.2)',hz,h*.26,120);ridge('#07202a','rgba(170,240,225,.28)',hz,h*.15,90)}
+  // The shore in front: ground, pines of mixed heights and a watchtower on a rock
+  {const[c,q]=layer();SKY.fg=c;q.fillStyle='#020a10';const gy=h-22;q.beginPath();q.moveTo(0,h);q.lineTo(0,gy-14);for(let px=0;px<=w;px+=40)q.lineTo(px,gy-8-Math.sin(px*.006)*8-R()*4);q.lineTo(w,h);q.fill();
+   for(let px=-10;px<w+10;px+=9+R()*22){const ph=22+R()*R()*70,pw=ph*.3,by=gy-6-Math.sin(px*.006)*8;q.fillRect(px-1,by-ph*.2,2,ph*.25);for(let k=0;k<4;k++){const y0=by-ph*(.12+k*.2),ww=pw*(1-k*.2);q.beginPath();q.moveTo(px,y0-ph*.36);q.lineTo(px+ww,y0);q.lineTo(px-ww,y0);q.fill()}}
+   const tx=SKY.tx=Math.round(w*.11),ty=SKY.ty=gy-18;q.beginPath();q.moveTo(tx-46,gy);q.lineTo(tx-22,ty);q.lineTo(tx+50,ty);q.lineTo(tx+78,gy);q.fill();
+   q.fillRect(tx,ty-104,34,104);q.fillRect(tx-4,ty-112,42,10);for(let k=0;k<4;k++)q.fillRect(tx-4+k*11.6,ty-120,7,9);
+   q.beginPath();q.moveTo(tx+34,ty-60);q.lineTo(tx+62,ty-60);q.lineTo(tx+62,ty);q.lineTo(tx+34,ty);q.fill();for(let k=0;k<3;k++)q.fillRect(tx+36+k*9,ty-66,6,7);q.fillRect(tx+16,ty-150,1.8,32)}
+}
+function skyDraw(t){const el=$('mmbg');if($('mm').hidden)return;const on=!inGame;if(el.style.display!==(on?'block':'none'))el.style.display=on?'block':'none';if(!on)return;
+  const w=el.clientWidth,h=el.clientHeight,dp=Math.min(devicePixelRatio||1,1.5);if(!w||!h)return;if(SKY.w!==w||SKY.h!==h)skyBuild(w,h,dp);if(SKY.still)t=40;
+  const x=SKY.x,hz=SKY.hz;x.setTransform(dp,0,0,dp,0,0);
+  let g=x.createLinearGradient(0,0,0,hz);g.addColorStop(0,'#020814');g.addColorStop(.55,'#04192a');g.addColorStop(1,'#0b3a44');x.fillStyle=g;x.fillRect(0,0,w,hz);
+  for(const q of SKY.st){const a=.4+.6*Math.sin(t*q.s+q.p);x.fillStyle=q.c<.15?'rgba(170,210,255,'+a+')':q.c>.9?'rgba(255,230,200,'+a+')':'rgba(255,255,255,'+a+')';x.fillRect(q.x-q.r,q.y-q.r,q.r*2,q.r*2);
+    if(q.r>1.45){x.fillStyle='rgba(255,255,255,'+a*.35+')';x.fillRect(q.x-q.r*3.5,q.y-.4,q.r*7,.8);x.fillRect(q.x-.4,q.y-q.r*3.5,.8,q.r*7)}}
+  // Shooting star now and then
+  {const n=Math.floor(t/7),u=(t-n*7)/.8;if(u<1){const sx=w*(.2+((n*9301+49297)%233280)/233280*.6),sy=hz*(.08+(n*7919%97)/97*.3),dx=-240*u,dy=110*u,a=Math.sin(u*Math.PI);
+    g=x.createLinearGradient(sx+dx,sy+dy,sx+dx+84,sy+dy-38);g.addColorStop(0,'rgba(255,255,255,'+a+')');g.addColorStop(1,'rgba(255,255,255,0)');x.strokeStyle=g;x.lineWidth=1.6;x.lineCap='round';x.beginPath();x.moveTo(sx+dx,sy+dy);x.lineTo(sx+dx+84,sy+dy-38);x.stroke()}}
+  // Aurora: curtains of light with a bright lower hem, fading upward, shot through with moving rays
+  {const A=SKY.au,q=A.getContext('2d'),aw=A.width,ah=A.height;q.clearRect(0,0,aw,ah);q.globalCompositeOperation='lighter';
+   [['70,255,165',.56,1,.50],['60,225,255',.40,1.35,.36],['185,105,255',.30,.75,.46],['120,255,190',.70,1.6,.26]].forEach(([c,yb,sp,hh],i)=>{let S=SKY.sp[c];
+     if(!S){S=SKY.sp[c]=document.createElement('canvas');S.width=1;S.height=64;const k=S.getContext('2d'),gr=k.createLinearGradient(0,0,0,64);gr.addColorStop(0,'rgba('+c+',0)');gr.addColorStop(.55,'rgba('+c+',.22)');gr.addColorStop(.86,'rgba('+c+',.8)');gr.addColorStop(.93,'rgba(235,255,245,.75)');gr.addColorStop(1,'rgba('+c+',0)');k.fillStyle=gr;k.fillRect(0,0,1,64)}
+     for(let px=0;px<aw;px+=2){const X=px*4,y0=ah*yb+(Math.sin(X*.0034+t*.2*sp+i*2.1)*.13+Math.sin(X*.0105-t*.27+i)*.05+Math.sin(X*.027+t*.5+i*4)*.012)*ah,
+       ray=.5+.5*Math.sin(X*.09+i*5+Math.sin(X*.013+t*.7)*3),k=(.3+.7*ray)*(.55+.45*Math.sin(X*.0052+t*.45*sp+i*3)),hh2=ah*hh*(.55+.45*Math.sin(X*.0075-t*.33+i*1.3))*(.8+.2*ray);
+       q.globalAlpha=Math.max(0,k);q.drawImage(S,px,y0-hh2,2,hh2)}});
+   q.globalAlpha=1;q.globalCompositeOperation='source-over';
+   x.save();x.globalCompositeOperation='lighter';x.imageSmoothingEnabled=true;x.drawImage(A,0,0,w,hz);x.restore();
+   x.setTransform(1,0,0,1,0,0);x.drawImage(SKY.mt,0,0);x.setTransform(dp,0,0,dp,0,0);
+   // The lake: dark water, the lights mirrored in it, and slow ripples
+   g=x.createLinearGradient(0,hz,0,h);g.addColorStop(0,'#0a3038');g.addColorStop(1,'#03121a');x.fillStyle=g;x.fillRect(0,hz,w,h-hz);
+   x.save();x.globalCompositeOperation='lighter';x.globalAlpha=.4;x.drawImage(A,0,0,aw,ah,0,hz+(h-hz)*1.25,w,-(h-hz)*1.25);x.restore();
+   x.fillStyle='rgba(190,255,235,.07)';for(let i=0;i<26;i++){const yy=hz+6+((i*37)%100)/100*(h-hz-40),ww=30+(i*53)%90,xx=((i*211+t*(4+i%5))%(w+200))-100;x.fillRect(xx,yy,ww,1)}
+   x.fillStyle='rgba(160,255,225,.10)';x.fillRect(0,hz,w,1.2)}
+  x.setTransform(1,0,0,1,0,0);x.drawImage(SKY.fg,0,0);x.setTransform(dp,0,0,dp,0,0);
+  // The watchtower: a warm window and a flag in the wind
+  {const tx=SKY.tx,ty=SKY.ty,f=.75+.25*Math.sin(t*3)*Math.sin(t*7.3);x.fillStyle='rgba(255,190,90,'+f+')';x.fillRect(tx+14,ty-78,6,10);x.fillRect(tx+45,ty-40,5,8);
+   g=x.createRadialGradient(tx+17,ty-73,0,tx+17,ty-73,34);g.addColorStop(0,'rgba(255,180,80,'+.3*f+')');g.addColorStop(1,'rgba(255,180,80,0)');x.fillStyle=g;x.fillRect(tx-20,ty-110,74,74);
+   x.fillStyle='#c0392b';x.beginPath();x.moveTo(tx+17.8,ty-150);x.quadraticCurveTo(tx+27,ty-149+Math.sin(t*4)*2.5,tx+35,ty-145+Math.sin(t*4+1)*2.5);x.lineTo(tx+17.8,ty-139);x.fill()}
+}
+function loop(ts){simStep(ts);draw();ui();skyDraw(ts/1000);requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 // Co-op host: a hidden tab gets no animation frames, which froze the game for everyone.
 // A worker's timer keeps the host's game going (without drawing) while the tab is hidden.
