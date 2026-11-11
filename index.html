@@ -2322,8 +2322,19 @@ function droneArt(x,y,fl,ufo){g.save();g.translate(x,y-4);ell(0,9,6,2.5,'rgba(0,
   g.restore()}
 function boomer(x,y,s,rot){g.save();g.translate(x,y);g.rotate(rot);g.scale(s,s);g.beginPath();g.moveTo(-7,4);g.quadraticCurveTo(0,-9,7,4);g.quadraticCurveTo(0,-2.5,-7,4);g.closePath();fo(lin(0,-5,0,4,'#ff9f1c',.35,.35),'#8a4b00',.8);g.strokeStyle='rgba(255,255,255,.6)';g.lineWidth=.6;g.beginPath();g.moveTo(-4,1.6);g.quadraticCurveTo(0,-4.8,4,1.6);g.stroke();g.restore()}
 function chakram(x,y,s){g.save();g.translate(x,y);g.scale(s,s);cir(0,0,9,'rgba(179,136,255,.25)');g.beginPath();g.arc(0,0,7,0,7);g.arc(0,0,4,0,7,true);fo('#b388ff','#4a148c',.6);for(let i=0;i<6;i++){const an=i*1.047;g.beginPath();g.moveTo(Math.cos(an)*7,Math.sin(an)*7);g.lineTo(Math.cos(an+.35)*10,Math.sin(an+.35)*10);g.lineTo(Math.cos(an+.5)*6.8,Math.sin(an+.5)*6.8);g.closePath();fo('#e1d5ff','#4a148c',.4)}g.restore()}
-// Corner points of the battlement blocks around a tower's rim (four blocks, or eight)
-const MER=[4,8].map(mc=>Array.from({length:mc},(_,i)=>{const an=mc===8?i*.785+.39:i*1.571+.785,c=Math.cos(an),d=Math.sin(an),o=[];for(const[x,y]of[[-2.2,-2.6],[2.4,-2.6],[2.4,2.6],[-2.2,2.6]])o.push(c*(16.3+x)-d*y,d*(16.3+x)+c*y);return o}));
+// Battlement blocks around a tower's rim (four, or eight): the four corner points, the tip of a spike, and the centre
+const MER=[4,8].map(mc=>Array.from({length:mc},(_,i)=>{const an=mc===8?i*.785+.39:i*1.571+.785,c=Math.cos(an),d=Math.sin(an),o=[];for(const[x,y]of[[-2.2,-2.6],[2.4,-2.6],[2.4,2.6],[-2.2,2.6],[4.6,0],[.1,0]])o.push(c*(16.3+x)-d*y,d*(16.3+x)+c*y);return o}));
+// How each skin shapes its battlements: block colour, outline, spikes instead of blocks, and a cap on top (r = its size)
+const MERS={_:{},
+  wood:{c:'#b07a44',cap:()=>'#e0b47a',r:1.25},
+  moss:{cap:()=>'#6fae3f',r:1.7},
+  gold:{c:'#f3d36b',cap:t=>'rgba(255,255,255,'+(.55+.35*Math.sin(t*3))+')',r:.9},
+  obsidian:{c:'#3e3852',spike:1,ol:t=>'rgba(190,110,255,'+(.7+.3*Math.sin(t*3))+')',lw:.9},
+  crystal:{c:'#dff5ff',spike:1,ol:()=>'#5aa6cc'},
+  lava:{c:'#4f261a',cap:t=>'rgb(255,'+(110+Math.round(70*Math.sin(t*4)+70))+',30)',r:1.2},
+  neon:{c:'#252f4a',ol:t=>'hsl('+((t*90)%360)+',100%,62%)',lw:1,cap:t=>'hsl('+((t*90+180)%360)+',100%,70%)',r:.8},
+  galaxy:{c:'#2a1d5c',ol:()=>'#9a7bff',cap:t=>'rgba(255,255,255,'+(.5+.5*Math.sin(t*2.5))+')',r:.75}};
+const lumOf=c=>{const[r,gg,b]=rgbOf(c);return r*.3+gg*.59+b*.11};
 function drawTower(t){
   const pp=t.pop||0,n=tot(t),sc=(1+Math.min(.25,n*.02))*(1+pp*.35*Math.sin(pp*Math.PI*3)),k=t.k,fl=t.fl||0,sk=SK[t.skin||save.eq[k]]||SK.classic,MT=c=>sk.m||c;
   g.save();g.translate(t.x,t.y);g.scale(sc,sc);
@@ -2333,13 +2344,17 @@ function drawTower(t){
   ell(6,9,20,8.5,'rgba(0,0,0,.17)');ell(3,8,17.5,8,'rgba(0,0,0,.28)');
   g.beginPath();g.moveTo(-16,0);g.lineTo(-16,4.4);g.arc(0,4.4,16,Math.PI,0,true);g.lineTo(16,0);g.closePath();fo(lin(-16,0,16,0,sk.e,.32,.3),shade(sk.e,-.55),.7);
   g.strokeStyle=shade(sk.e,-.45);g.lineWidth=.6;g.beginPath();for(const x of[-11.5,-6,0,6,11.5]){const yy=Math.sqrt(256-x*x);g.moveTo(x,yy+.8);g.lineTo(x,yy+4.2)}g.stroke();
+  g.strokeStyle='rgba(255,255,255,.14)';g.lineWidth=.7;g.beginPath();g.arc(0,4.4,15.6,.5,2.2);g.stroke();
   if(n>=7){const bc=n>=11?'#f4c152':'#aab4c0';g.strokeStyle=shade(bc,-.5);g.lineWidth=2.2;g.beginPath();g.arc(0,2.3,16,.12,3.02);g.stroke();g.strokeStyle=bc;g.lineWidth=1.3;g.stroke();for(const an of[.45,1.02,1.571,2.12,2.69])cir(Math.cos(an)*16,2.3+Math.sin(an)*16,.75,shade(bc,.45))}
   g.beginPath();g.arc(0,0,16,0,7);fo(sph(0,0,16,sk.o,.3,.35),shade(sk.o,-.6),.8);
   g.strokeStyle=shade(sk.o,-.35);g.lineWidth=.7;g.beginPath();for(let i=0;i<8;i++){const an=i*.785+.39;g.moveTo(Math.cos(an)*13.6,Math.sin(an)*13.6);g.lineTo(Math.cos(an)*15.8,Math.sin(an)*15.8)}g.stroke();
   g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=.9;g.beginPath();g.arc(0,0,15.3,-2.7,-1.1);g.stroke();
   // Battlements around the rim: four at first, eight after a few upgrades, capped in gold on a heavily upgraded tower
-  {const M=MER[n>=3?1:0],mo=n>=11?'#f4c152':shade(sk.o,.12);g.beginPath();for(const q of M){g.moveTo(q[0],q[1]+1.7);g.lineTo(q[2],q[3]+1.7);g.lineTo(q[4],q[5]+1.7);g.lineTo(q[6],q[7]+1.7)}g.fillStyle=shade(sk.e,-.3);g.fill();
-   g.beginPath();for(const q of M){g.moveTo(q[0],q[1]);g.lineTo(q[2],q[3]);g.lineTo(q[4],q[5]);g.lineTo(q[6],q[7]);g.closePath()}fo(mo,shade(mo,-.55),.6)}
+  {const M=MER[n>=3?1:0],st2=MERS[sk.id]||MERS._,dk=sk.dk??(sk.dk=lumOf(sk.o)<80),gd=n>=11;
+   const mo=gd?'#f4c152':st2.c||shade(sk.o,dk?.28:.12),ol=gd?'#7a5512':st2.ol?st2.ol(tm):sg&&dk?sg.ring:shade(mo,-.55),sp=st2.spike;
+   const P=dy=>{g.beginPath();for(const q of M){if(sp){g.moveTo(q[0],q[1]+dy);g.lineTo(q[8],q[9]+dy);g.lineTo(q[6],q[7]+dy)}else{g.moveTo(q[0],q[1]+dy);g.lineTo(q[2],q[3]+dy);g.lineTo(q[4],q[5]+dy);g.lineTo(q[6],q[7]+dy)}g.closePath()}};
+   P(1.7);g.fillStyle=shade(sk.e,dk?.12:-.3);g.fill();P(0);fo(mo,ol,st2.lw||.6);
+   const cap=st2.cap&&st2.cap(tm);if(cap){g.fillStyle=cap;g.beginPath();for(const q of M){g.moveTo(q[10]+st2.r,q[11]);g.arc(q[10],q[11],st2.r,0,7)}g.fill()}}
   if(sg)sg.base();else skinFx(sk);
   g.beginPath();g.arc(0,0,13.2,0,7);g.strokeStyle='rgba(0,0,0,.28)';g.lineWidth=3.8;g.stroke();
   g.beginPath();g.arc(0,0,13.2,0,7);g.strokeStyle=sg?sg.ring:sk.id==='neon'?'hsl('+((tm*90+180)%360)+',100%,62%)':T[k].col;g.lineWidth=2.4;g.stroke();
