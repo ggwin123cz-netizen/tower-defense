@@ -57,12 +57,27 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .go kbd{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.25);color:#fff}
 
 /* Tower picker */
-#types{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:5px}
-.tw{position:relative;flex-direction:column;gap:2px;padding:6px 2px 5px}
-.tw canvas{width:30px;height:30px}
-.tw span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:0}.tw span b{font-size:10.5px}
+#types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.tw{--tc:124,160,255;position:relative;flex-direction:column;gap:3px;padding:8px 4px 7px;transition:transform .18s cubic-bezier(.2,.8,.3,1.4),border-color .18s,box-shadow .18s,background .18s}
+.tw canvas{width:40px;height:40px;transition:transform .25s cubic-bezier(.2,.8,.3,1.5),filter .2s}
+.tw span{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0}
+.tw i{font-style:normal;font-size:11.5px;font-weight:700;color:var(--fg);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tw b{display:flex;align-items:center;gap:3px;color:var(--gold);font-size:11px}
-.tw kbd{position:absolute;top:2px;right:2px;font-size:8px;padding:1px 3px;opacity:.75}
+.tw kbd{position:absolute;top:3px;right:3px;font-size:8.5px;padding:1px 4px;opacity:.75}
+.tw.on{border-color:rgb(var(--tc));background:rgba(var(--tc),.14);box-shadow:inset 0 0 0 1px rgb(var(--tc))}
+@keyframes twwob{0%,100%{transform:scale(1.14) rotate(0)}30%{transform:scale(1.14) rotate(-7deg)}70%{transform:scale(1.14) rotate(7deg)}}
+@media (hover:hover){.tw:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(var(--tc),.75);background:linear-gradient(180deg,rgba(var(--tc),.16),rgba(var(--tc),.04)),var(--panel2);box-shadow:0 8px 18px rgba(var(--tc),.2)}
+ .tw:hover:not(:disabled) canvas{animation:twwob .6s ease-in-out;transform:scale(1.14);filter:drop-shadow(0 0 6px rgba(var(--tc),.6))}}
+@media (prefers-reduced-motion:reduce){.tw,.tw canvas{transition:none;animation:none!important}}
+#ttip{position:fixed;z-index:60;width:250px;padding:13px 14px 12px;background:rgba(14,19,27,.97);border:1px solid rgba(var(--tc),.55);border-radius:13px;box-shadow:0 16px 40px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.3);pointer-events:none;opacity:0;transform:translateX(6px);transition:opacity .14s,transform .14s}
+#ttip.on{opacity:1;transform:none}
+#ttip .th{display:flex;align-items:center;gap:10px;margin-bottom:8px}#ttip .th canvas{width:44px;height:44px;flex:none;border-radius:50%;background:radial-gradient(circle,rgba(var(--tc),.25),transparent 70%)}
+#ttip .th b{display:block;font:700 18px/1.05 "Barlow Condensed",Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:rgb(var(--tc))}#ttip .th small{display:flex;align-items:center;gap:4px;margin-top:3px;color:var(--gold);font-weight:700;font-size:12px}
+#ttip p{margin:0 0 9px;font-size:12px;line-height:1.45;color:var(--mut)}
+#ttip .sr{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:5px 8px;font-size:12px}
+#ttip .sr span{color:var(--mut)}#ttip .sr em{font-style:normal;font-weight:700;text-align:right;color:var(--fg)}
+#ttip .sr i{height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden}#ttip .sr i u{display:block;height:100%;border-radius:3px;background:rgb(var(--tc))}
+#ttip .tx{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:11.5px;line-height:1.5;color:#c9d3df}#ttip .tx b{color:rgb(var(--tc))}
 #tsel{margin:8px 0 0;min-height:32px;font-size:11.5px;color:var(--mut);line-height:1.45}#tsel b{color:var(--fg);font-size:12.5px}#tsel em{font-style:normal;color:var(--gold);font-weight:600}
 .tw.poor b{color:var(--life)}
 .tw.poor canvas{opacity:.45;filter:grayscale(.8)}
@@ -598,6 +613,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
     <div class="row2"><button id="tomenu">Main menu</button><button class="go" id="again">Play again</button></div>
   </div></div>
 </div>
+<div id="ttip"></div>
 <aside class="side">
   <div class="brand">
     <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 21V9l2-1V4h3v2h2V4h2v2h2V4h3v4l2 1v12z" fill="#4c8dff" opacity=".25"/><path d="M4 21V9l2-1V4h3v2h2V4h2v2h2V4h3v4l2 1v12zM10 21v-5a2 2 0 0 1 4 0v5" stroke="#9cc0ff" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
@@ -3154,9 +3170,37 @@ function thumb(m,l,c,L){const x=c.getContext('2d'),s=c.width/(W*C),M=L||MAPS[m].
 // In-game tower picker: only unlocked towers
 function buildPicker(){
   AV=RUN.ch&&RUN.ch.t.only?KEYS.filter(k=>RUN.ch.t.only.includes(k)):RUN.dly?dailyOf(RUN.dly).tw:KEYS.filter(k=>(MP&&MP.set.ut)||save.un.includes(k));
-  $('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" title="${T[k].n}: ${DESC[k]}"><canvas width="68" height="68"></canvas><span>${T[k].n}<b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
-  AV.forEach(k=>{tIcon($('t-'+k).querySelector('canvas'),k);$('t-'+k).onclick=()=>{st.type=k;st.sel=null}});
+  twTip(null);$('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" style="--tc:${rgbOf(T[k].col).join(',')}" aria-label="${T[k].n}: ${DESC[k]}"><canvas width="80" height="80"></canvas><span><i>${T[k].n}</i><b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
+  AV.forEach(k=>{const b=$('t-'+k);tIcon(b.querySelector('canvas'),k);b.onclick=()=>{st.type=k;st.sel=null};b.onmouseenter=()=>twTip(k,b);b.onmouseleave=()=>twTip(null)});
 }
+// What a freshly built tower of kind k does (with the player's skills), for the stats window over the tower picker
+const SPX={del:t=>'Splash: hits everything within <b>'+Math.round(t.spl)+'</b> of the impact',mraz:t=>'Slows enemies by <b>'+Math.round((1-t.sf)*100)+'%</b> for '+t.sdur.toFixed(1)+'s',
+  tesla:t=>'Lightning jumps to <b>'+t.ch+'</b> more enemies',snip:()=>'Always aims at the <b>toughest</b> enemy in range',pla:()=>'Burns <b>every</b> enemy in range',
+  dul:t=>'Makes <b>'+Math.round(t.d)+' gold</b> every '+t.cdv.toFixed(1)+'s during waves',poi:t=>'Poison keeps hurting for <b>'+t.pdur.toFixed(1)+'s</b>',las:()=>'The beam heats up to <b>×3</b> damage on one target',
+  mor:t=>'Long-range shells, splash <b>'+Math.round(t.spl)+'</b>',rail:()=>'The shot <b>pierces</b> every enemy in a line',mis:t=>'Fires <b>3</b> missiles, splash '+Math.round(t.spl),
+  bea:()=>'Towers nearby deal <b>+30%</b> damage',vor:()=>'<b>Pulls</b> enemies back along the path',sto:()=>'Calls <b>lightning</b> down on enemies',bal:t=>'Bolts <b>pierce '+t.prc+'</b> enemies',
+  boo:()=>'Flies out and <b>back</b>, hitting on both ways',blu:()=>'Shotgun blast hits a whole <b>cone</b>',spk:()=>'Built <b>on the path</b>, hurts what walks over it',tar:t=>'Leaves tar that slows by <b>'+Math.round(t.tsl*100)+'%</b>',
+  gat:()=>'Spins up and fires <b>faster</b> the longer it shoots',thr:t=>'<b>Roots</b> enemies in place for '+t.rdur.toFixed(1)+'s',flk:()=>'<b>×3</b> damage to flying enemies, half to ground',
+  bnk:t=>'Pays <b>'+Math.round(t.bint*100)+'%</b> interest on your gold each wave (max '+t.bcap+')',drn:t=>'Launches <b>'+t.ndr+'</b> drones that hunt enemies'};
+const GROUND=new Set(['spk','tar','thr']);
+function twTip(k,btn){const el=$('ttip');if(!k||coarse()){el.classList.remove('on');return}
+  const t={k,u:{d:0,s:0,r:0,z:0},ow:MP?MP.id:undefined};stat(t);const b=T[k],att=!b.gen&&!b.bank&&!b.buff;
+  const hits=b.multi?3:b.drone?t.ndr:1,dps=att?t.d*hits/t.cdv:0;
+  // Bars compare against the strongest tower of each kind, so a glance shows where this one stands
+  const mx=TWMAX||(TWMAX=(()=>{let d=0,s=0,r=0,p=0;for(const q of KEYS){const b2=T[q];if(b2.gen||b2.bank||b2.buff)continue;const h=b2.multi?3:b2.drone?3:1;d=Math.max(d,b2.d*h);s=Math.max(s,1/b2.cd);r=Math.max(r,b2.r);p=Math.max(p,b2.d*h/b2.cd)}return{d,s,r,p}})());
+  const row=(n,v,f)=>'<span>'+n+'</span><i><u style="width:'+Math.max(4,Math.min(100,f*100))+'%"></u></i><em>'+v+'</em>';
+  let rows='';
+  if(att)rows+=row('Damage',fmt(Math.round(t.d*10)/10)+(hits>1?' ×'+hits:''),t.d*hits/mx.d)+row('Attack speed',(1/t.cdv).toFixed(1)+'/s',1/t.cdv/mx.s)+row('DPS',fmt(Math.round(dps)),dps/mx.p);
+  if(t.r)rows+=row('Range',Math.round(t.r),t.r/mx.r);
+  el.style.setProperty('--tc',rgbOf(b.col).join(','));
+  el.innerHTML='<div class="th"><canvas width="88" height="88"></canvas><div><b>'+b.n+'</b><small>'+COIN+bcost(k)+' gold</small></div></div><p>'+DESC[k]+'</p>'+(rows?'<div class="sr">'+rows+'</div>':'')+
+    '<div class="tx">'+(SPX[k]?SPX[k](t):'Fast, simple shots')+(att?'<br>'+(GROUND.has(k)?'Ground enemies only':'Hits ground and <b>flying</b> enemies'):'')+'</div>';
+  tIcon(el.querySelector('canvas'),k);
+  const r=btn.getBoundingClientRect(),W2=250,H2=el.offsetHeight;let x=r.left-W2-12,y=r.top+r.height/2-H2/2;
+  if(x<8)x=Math.min(innerWidth-W2-8,r.right+12);if(x<8){x=Math.max(8,r.left+r.width/2-W2/2);y=r.top-H2-10;if(y<8)y=r.bottom+10}
+  el.style.left=x+'px';el.style.top=Math.max(8,Math.min(innerHeight-H2-8,y))+'px';el.classList.add('on')}
+let TWMAX=null;
+addEventListener('resize',()=>twTip(null));addEventListener('scroll',()=>twTip(null),true);
 
 /* ---------- Map maker: players draw their own battlefields ---------- */
 // Custom maps live in save.maps as {id,n,w,r,d}: route corners and tree tiles like the built-in layouts, so the game plays them unchanged.
