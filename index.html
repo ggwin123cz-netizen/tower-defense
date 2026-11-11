@@ -1190,7 +1190,7 @@ function noise(dur,o={}){const c=AU.ctx;if(!c)return;const t0=c.currentTime+(o.d
 const SND={
   sip:()=>{noise(.05,{vol:.12,f:4200,type:'bandpass',q:2.5});tone(1100,.07,{type:'triangle',vol:.06,slide:.55});tone(2200,.03,{type:'sine',vol:.03})},
   del:()=>{noise(.3,{vol:.32,f:900,slide:.15});tone(130,.28,{type:'sine',vol:.3,slide:.4});tone(65,.35,{type:'sine',vol:.25,slide:.6})},
-  boom:()=>{noise(.8,{vol:.42,f:1400,slide:.08});noise(.25,{vol:.2,f:5000,type:'highpass'});tone(80,.6,{type:'sine',vol:.4,slide:.3});tone(45,.8,{type:'sine',vol:.3,slide:.7})},
+  boom:()=>{noise(.9,{vol:.42,f:1500,slide:.07});noise(.25,{vol:.2,f:5000,type:'highpass'});tone(80,.6,{type:'sine',vol:.42,slide:.3});tone(45,.9,{type:'sine',vol:.32,slide:.7});noise(1.2,{vol:.08,f:500,slide:.4,delay:.15})},
   frost:()=>[2093,2637,3136].forEach((f,i)=>tone(f,.18+i*.04,{type:'sine',vol:.05,delay:i*.025,thick:7})),
   zap:()=>{noise(.14,{vol:.14,f:5000,type:'highpass'});tone(180,.14,{type:'sawtooth',vol:.07,slide:4,lp:3000});tone(1400,.08,{type:'square',vol:.03,slide:.4,delay:.03,lp:4000})},
   snip:()=>{noise(.1,{vol:.3,f:3000,type:'bandpass',q:.8});tone(480,.18,{type:'sawtooth',vol:.09,slide:.2,lp:2500});tone(90,.25,{type:'sine',vol:.15,slide:.5})},
@@ -1202,16 +1202,27 @@ const SND={
   mis:()=>{noise(.4,{vol:.13,f:1000,type:'bandpass',q:.8,slide:3});tone(200,.3,{type:'sawtooth',vol:.04,slide:2,lp:1500})},
   vor:()=>{tone(90,.6,{type:'sine',vol:.2,slide:3,vib:[9,40]});tone(180,.5,{type:'triangle',vol:.06,slide:2.2})},
   thunder:()=>{noise(.9,{vol:.34,f:2200,slide:.06});tone(55,.7,{type:'sine',vol:.22,slide:.6});noise(.12,{vol:.2,f:6000,type:'highpass'})},
-  die:()=>{tone(600,.14,{type:'square',vol:.05,slide:.3,lp:3000});noise(.1,{vol:.08,f:1600,slide:.3})},
+  die:()=>{tone(700,.12,{type:'square',vol:.045,slide:.35,lp:2600});noise(.09,{vol:.09,f:2000,type:'bandpass',q:1.2,slide:.4});tone(1400,.05,{type:'sine',vol:.03,delay:.02,slide:.6})},
+  bossdie:()=>{noise(1.4,{vol:.45,f:1800,slide:.05});tone(70,1.3,{type:'sine',vol:.45,slide:.35});tone(140,.9,{type:'sawtooth',vol:.08,slide:.3,lp:600});[523,659,784,1047].forEach((f,i)=>tone(f,.4,{type:'triangle',vol:.07,delay:.5+i*.09,thick:6}))},
+  bal:()=>{tone(300,.22,{type:'triangle',vol:.14,slide:.45});noise(.12,{vol:.14,f:2400,type:'bandpass',q:1.5,slide:.5});tone(90,.18,{type:'sine',vol:.12,slide:.6})},
+  boo:()=>noise(.35,{vol:.12,f:900,type:'bandpass',q:3,slide:2.8}),
+  blu:()=>{noise(.35,{vol:.36,f:1800,slide:.12});tone(95,.3,{type:'sine',vol:.28,slide:.45});noise(.08,{vol:.15,f:6000,type:'highpass'})},
+  gat:()=>{noise(.035,{vol:.13,f:3500,type:'bandpass',q:1.6});tone(140,.04,{type:'square',vol:.04,lp:1200})},
+  flk:()=>{noise(.16,{vol:.2,f:2600,type:'bandpass',q:.9,slide:.4});tone(220,.12,{type:'triangle',vol:.08,slide:.5})},
+  drn:()=>tone(520,.12,{type:'sawtooth',vol:.025,slide:1.5,lp:2200,vib:[30,40]}),
+  spk:()=>{tone(1900,.05,{type:'square',vol:.03,lp:5000});noise(.07,{vol:.1,f:2800,type:'bandpass',q:2})},
+  thr:()=>{tone(140,.35,{type:'sawtooth',vol:.07,slide:1.6,lp:500});noise(.25,{vol:.1,f:600,type:'bandpass',q:2})},
+  tar:()=>{noise(.2,{vol:.14,f:420,slide:.5});tone(110,.18,{type:'sine',vol:.12,slide:.6})},
+  hit:()=>noise(.04,{vol:.06,f:2600,type:'bandpass',q:1.4}),
   coin:()=>{tone(1568,.06,{type:'square',vol:.035,lp:5000});tone(2093,.22,{type:'triangle',vol:.06,delay:.055,thick:6})},
   place:()=>{tone(200,.14,{type:'triangle',vol:.22,slide:.55});noise(.1,{vol:.16,f:500});tone(800,.05,{type:'sine',vol:.05,slide:.5,delay:.02})},
-  up:()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,.16,{type:'triangle',vol:.1,delay:i*.05,thick:5})),
+  up:()=>{[523,659,784,1047,1319].forEach((f,i)=>tone(f,.16,{type:'triangle',vol:.1,delay:i*.045,thick:5}));tone(2093,.45,{type:'sine',vol:.05,delay:.24,thick:8});noise(.3,{vol:.05,f:7000,type:'highpass',delay:.2})},
   sell:()=>{tone(988,.07,{type:'square',vol:.04,lp:4000});tone(659,.07,{type:'square',vol:.04,delay:.06,lp:4000});tone(494,.16,{type:'triangle',vol:.07,delay:.12})},
   wave:()=>[196,294,392].forEach((f,i)=>tone(f,.55,{type:'sawtooth',vol:.07,delay:i*.14,lp:1400,thick:8,atk:.04})),
   boss:()=>{for(let i=0;i<3;i++){tone(98,.45,{type:'sawtooth',vol:.12,delay:i*.4,lp:700,lps:.5,thick:10});tone(49,.45,{type:'sine',vol:.2,delay:i*.4})}noise(1.2,{vol:.15,f:200})},
   leak:()=>{tone(220,.4,{type:'sawtooth',vol:.12,slide:.4,lp:1200});noise(.25,{vol:.14,f:400});tone(110,.3,{type:'sine',vol:.2,slide:.5})},
   clear:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.3,{type:'triangle',vol:.1,delay:i*.08,thick:6})),
-  win:()=>{[523,659,784,1047].forEach((f,i)=>tone(f,.25,{type:'square',vol:.07,delay:i*.12,lp:5000}));[523,784,1047,1319].forEach(f=>tone(f,.9,{type:'triangle',vol:.07,delay:.5,thick:6}))},
+  win:()=>{[523,659,784,1047].forEach((f,i)=>tone(f,.25,{type:'square',vol:.07,delay:i*.12,lp:5000}));[523,784,1047,1319].forEach(f=>tone(f,1.4,{type:'triangle',vol:.07,delay:.5,thick:6,sus:.4}));[1568,2093,2637].forEach((f,i)=>tone(f,.6,{type:'sine',vol:.04,delay:.9+i*.12,thick:8}));tone(131,1.4,{type:'sawtooth',vol:.06,delay:.5,lp:900});noise(.8,{vol:.06,f:8000,type:'highpass',delay:.5})},
   lose:()=>{[392,330,262,196].forEach((f,i)=>tone(f,.45,{type:'triangle',vol:.13,delay:i*.22,lp:1500,thick:8}));tone(98,1,{type:'sine',vol:.12,delay:.7})},
   click:()=>{tone(880,.035,{type:'triangle',vol:.05});tone(1320,.025,{type:'sine',vol:.02})},
   shake:()=>noise(.06,{vol:.1,f:700,type:'bandpass'}),
@@ -1222,30 +1233,55 @@ const SND={
   ach:()=>{[784,1047,1319,1568].forEach((f,i)=>tone(f,.22,{type:'triangle',vol:.09,delay:i*.09,thick:5}));tone(2093,.5,{type:'sine',vol:.06,delay:.4})}
 };
 // Minimum gap per sound so a screen full of towers doesn't turn into noise
-const SGAP={las:.12,fire:.15,sip:.06,zap:.08,die:.05,coin:.08,poi:.1,frost:.1,mis:.1,shake:.11,click:.03};
+const SGAP={las:.12,fire:.15,sip:.06,zap:.08,die:.05,coin:.08,poi:.1,frost:.1,mis:.1,shake:.11,click:.03,gat:.07,drn:.25,spk:.12,hit:.06,boo:.15};
 // Interface and fanfare sounds stay centred; combat sounds get a random spot in the stereo field
-const SCENT={click:1,up:1,sell:1,place:1,wave:1,boss:1,clear:1,win:1,lose:1,burst:1,freeze:1,gold:1,ach:1,leak:1,meteor:1};
+const SCENT={bossdie:1,click:1,up:1,sell:1,place:1,wave:1,boss:1,clear:1,win:1,lose:1,burst:1,freeze:1,gold:1,ach:1,leak:1,meteor:1};
 function sfx(n){if(MP&&MP.host&&n!=='click'&&n!=='ach')MP.evq.add(n);if(!AU.ctx||!save.snd||!SND[n])return;const now=AU.ctx.currentTime;if(now-(AU.last[n]||0)<(SGAP[n]??.04))return;AU.last[n]=now;PV=1+(Math.random()-.5)*(SCENT[n]?.02:.1);PN=SCENT[n]?0:(Math.random()-.5)*.7;try{SND[n]()}finally{PV=1;PN=0}}
-const FSND={sip:'sip',del:'del',mraz:'frost',tesla:'zap',snip:'snip',pla:'fire',poi:'poi',mor:'mor',rail:'rail',mis:'mis',vor:'vor',sto:'thunder'};
-// Background music: a looping chiptune in A minor (Am–F–C–G) with pad, bass, arpeggio, drums and a lead that
-// alternates two melodies. It gets busier while a wave is running. Scheduled a little ahead of the clock.
-const MEL=[[[76,0,0,0,72,0,74,0],[77,0,0,72,0,69,0,0],[79,0,76,0,72,0,0,0],[74,0,0,71,0,67,0,0]],
-           [[69,72,76,72,81,0,76,0],[77,0,72,0,69,72,77,0],[79,76,72,76,79,0,84,0],[83,0,79,74,71,74,79,0]]];
-let musT=0,musStep=0;
+const FSND={sip:'sip',del:'del',mraz:'frost',tesla:'zap',snip:'snip',pla:'fire',poi:'poi',mor:'mor',rail:'rail',mis:'mis',vor:'vor',sto:'thunder',bal:'bal',boo:'boo',blu:'blu',gat:'gat',flk:'flk',tar:'tar'};
+// Background music: every world has its own track (MUSW): four chords, a tempo, instruments and a drum style.
+// The lead is made from the chord's own notes in a rhythm picked per world, so it always fits the harmony.
+// The track gets busier while a wave runs; the main menu has a calm one of its own. Scheduled a little ahead of the clock.
+const MUSW={
+  menu:{p:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],sp:.27,ld:'sine',pd:'sine',ar:'triangle',dr:0},
+  grass:{p:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],sp:.2,ld:'triangle',pd:'sawtooth',ar:'square',dr:1},
+  sea:{p:[[62,66,69],[59,62,66],[55,59,62],[57,61,64]],sp:.24,ld:'sine',pd:'sine',ar:'triangle',dr:3},
+  mount:{p:[[52,55,59],[48,52,55],[55,59,62],[50,54,57]],sp:.22,ld:'triangle',pd:'sawtooth',ar:'triangle',dr:1},
+  desert:{p:[[50,53,57],[51,55,58],[50,53,57],[48,51,55]],sp:.21,ld:'sawtooth',pd:'sawtooth',ar:'square',dr:3},
+  lava:{p:[[45,48,52],[46,50,53],[45,48,52],[43,46,50]],sp:.17,ld:'sawtooth',pd:'sawtooth',ar:'square',dr:2},
+  haunt:{p:[[57,60,63],[56,59,62],[53,56,60],[52,56,59]],sp:.27,ld:'sine',pd:'sine',ar:'triangle',dr:0},
+  candy:{p:[[60,64,67],[57,60,64],[53,57,60],[55,59,62]],sp:.18,ld:'square',pd:'triangle',ar:'square',dr:1},
+  cave:{p:[[50,53,57],[46,50,53],[48,51,55],[45,48,52]],sp:.26,ld:'sine',pd:'sine',ar:'triangle',dr:0},
+  jungle:{p:[[55,59,62],[52,55,59],[48,52,55],[50,54,57]],sp:.19,ld:'triangle',pd:'sawtooth',ar:'triangle',dr:3},
+  tundra:{p:[[64,67,71],[60,64,67],[62,66,69],[59,62,66]],sp:.25,ld:'sine',pd:'sine',ar:'sine',dr:0},
+  autumn:{p:[[57,60,64],[50,53,57],[55,59,62],[48,52,55]],sp:.22,ld:'triangle',pd:'sawtooth',ar:'triangle',dr:1},
+  swamp:{p:[[52,55,59],[53,57,60],[52,55,59],[50,53,57]],sp:.24,ld:'sine',pd:'sawtooth',ar:'triangle',dr:3},
+  beach:{p:[[53,57,60],[58,62,65],[60,64,67],[53,57,60]],sp:.2,ld:'triangle',pd:'triangle',ar:'square',dr:3},
+  sky:{p:[[60,64,67],[62,65,69],[65,69,72],[67,71,74]],sp:.21,ld:'sine',pd:'sine',ar:'triangle',dr:1},
+  ruins:{p:[[50,53,57],[55,58,62],[57,61,64],[50,53,57]],sp:.23,ld:'triangle',pd:'sawtooth',ar:'square',dr:1},
+  shroom:{p:[[61,64,68],[57,61,64],[59,63,66],[56,60,63]],sp:.22,ld:'sine',pd:'sine',ar:'triangle',dr:3},
+  factory:{p:[[45,48,52],[45,48,52],[41,45,48],[43,47,50]],sp:.18,ld:'square',pd:'sawtooth',ar:'square',dr:2},
+  moon:{p:[[59,62,66],[55,59,62],[52,55,59],[54,58,61]],sp:.27,ld:'sine',pd:'sine',ar:'sine',dr:0}};
+// Two lead rhythms per track: for each of the 8 steps of a bar, which chord note to play (0-2, one octave up) or a rest (-1)
+const musPat=k=>{let h=7;for(const ch of k)h=(h*31+ch.charCodeAt(0))%2147483647;const R=()=>(h=h*16807%2147483647)/2147483647;
+  return[0,1].map(v=>Array.from({length:4},()=>Array.from({length:8},(_,i)=>R()<(i%2?.38:.72)-v*.12?Math.floor(R()*3):-1)))};
+let musT=0,musStep=0,musK='',musP=null;
 function musStart(){if(AU.timer)return;musT=AU.ctx.currentTime+.1;AU.timer=setInterval(musTick,100)}
 function musTick(){const c=AU.ctx;if(!c)return;if(!save.mus){musT=c.currentTime+.1;return}
-  const hz=m=>440*Math.pow(2,(m-69)/12),D=AU.mus;
-  while(musT<c.currentTime+.4){const cyc=Math.floor(musStep/32),bar=Math.floor(musStep/8)%4,s=musStep%8,ch=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]][bar],dl=Math.max(0,musT-c.currentTime),act=!!(st&&st.run&&!st.over);
-    if(s===0)ch.forEach(m=>tone(hz(m),1.6,{type:'sawtooth',vol:.018,delay:dl,dest:D,lp:900,thick:9,atk:.25,sus:.6,pan:0}));
-    if(s===0||s===4)tone(hz(ch[0]-12),.4,{type:'triangle',vol:.22,delay:dl,dest:D,pan:0});
-    if(s===3||s===6||(act&&s===2))tone(hz(ch[s===6?2:0]-12),.22,{type:'triangle',vol:.1,delay:dl,dest:D,pan:0});
-    const ar=hz(ch[[0,1,2,1,0,2,1,2][s]]+12);tone(ar,.18,{type:'square',vol:.03,delay:dl,dest:D,lp:3200,pan:-.25});tone(ar,.18,{type:'square',vol:.012,delay:dl+.4,dest:D,lp:2400,pan:.3});
-    if(cyc%4!==3){const n=MEL[cyc%2][bar][s];if(n)tone(hz(n),.34,{type:'triangle',vol:.06,delay:dl,dest:D,thick:7,vib:[5,12],pan:.15})}
-    if(s===0||s===4){tone(150,.16,{type:'sine',vol:act?.3:.22,delay:dl,dest:D,slide:.25,pan:0})}
-    if(s%2===1||(act&&s%4===2))noise(.04,{vol:act?.05:.035,f:7000,type:'highpass',delay:dl,dest:D,pan:s%4===1?-.3:.3});
-    if(act&&(s===2||s===6))noise(.12,{vol:.05,f:2200,type:'bandpass',q:.8,delay:dl,dest:D,pan:0});
+  const hz=m=>440*Math.pow(2,(m-69)/12),D=AU.mus,k=inGame&&MAPS[cur]&&MUSW[MAPS[cur].th]?MAPS[cur].th:'menu',M=MUSW[k];
+  if(k!==musK){musK=k;musP=musPat(k);musStep=0;musT=Math.max(musT,c.currentTime+.05)}
+  while(musT<c.currentTime+.4){const cyc=Math.floor(musStep/32),bar=Math.floor(musStep/8)%4,s=musStep%8,ch=M.p[bar],dl=Math.max(0,musT-c.currentTime),act=!!(inGame&&st&&st.run&&!st.over),dr=M.dr;
+    if(s===0)ch.forEach(m=>tone(hz(m),M.sp*8,{type:M.pd,vol:M.pd==='sine'?.03:.018,delay:dl,dest:D,lp:900,thick:9,atk:.25,sus:.6,pan:0}));
+    if(s===0||s===4)tone(hz(ch[0]-12),M.sp*2,{type:'triangle',vol:.22,delay:dl,dest:D,pan:0});
+    if(s===3||s===6||(act&&s===2))tone(hz(ch[s===6?2:0]-12),M.sp*1.1,{type:'triangle',vol:.1,delay:dl,dest:D,pan:0});
+    const ar=hz(ch[[0,1,2,1,0,2,1,2][s]]+12);tone(ar,M.sp*.9,{type:M.ar,vol:M.ar==='square'?.03:.045,delay:dl,dest:D,lp:3200,pan:-.25});tone(ar,M.sp*.9,{type:M.ar,vol:.012,delay:dl+M.sp*2,dest:D,lp:2400,pan:.3});
+    if(cyc%4!==3){const ix=musP[cyc%2][bar][s];if(ix>=0)tone(hz(ch[ix]+12),M.sp*1.7,{type:M.ld,vol:M.ld==='sine'?.075:M.ld==='square'?.035:.06,delay:dl,dest:D,thick:7,vib:[5,12],lp:M.ld==='sawtooth'?2200:undefined,pan:.15})}
+    // Drums: 0 soft hats only, 1 kick and hats, 2 heavy with a snare, 3 hand drums
+    if(dr!==0&&(s===0||s===4||(dr===2&&s===6&&act)))tone(150,.16,{type:'sine',vol:act?.3:.22,delay:dl,dest:D,slide:.25,pan:0});
+    if(dr===3&&(s===2||s===5||s===7))tone(s===5?330:240,.12,{type:'sine',vol:.09,delay:dl,dest:D,slide:.7,pan:s===5?.3:-.3});
+    if(s%2===1||(act&&s%4===2))noise(.04,{vol:(act?.05:.035)*(dr===0?.6:1),f:7000,type:'highpass',delay:dl,dest:D,pan:s%4===1?-.3:.3});
+    if(act&&(s===2||s===6)&&dr!==0)noise(dr===2?.16:.12,{vol:dr===2?.08:.05,f:2200,type:'bandpass',q:.8,delay:dl,dest:D,pan:0});
     if(musStep%32===28)tone(hz(ch[2]+24),.5,{type:'sine',vol:.035,delay:dl,dest:D});
-    musT+=.2;musStep++}}
+    musT+=M.sp;musStep++}}
 function sndUI(){$('snd').classList.toggle('off',!save.snd);$('mm-snd').classList.toggle('off',!save.snd);$('mm-mus').classList.toggle('off',!save.mus)}
 function setSnd(v){save.snd=v?1:0;if(AU.sfx)AU.sfx.gain.value=save.snd;persist();sndUI()}
 function setMus(v){save.mus=v?1:0;if(AU.mus)AU.mus.gain.value=save.mus?.3:0;persist();sndUI()}
@@ -1738,11 +1774,11 @@ function update(dt){
     const b=T[t.k],dm=t.d*(1+(t.buff||0));
     if(b.buff||b.bank)continue;
     if(b.gen){if(!st.run){t.cd=Math.max(t.cd,t.cdv);continue}if(t.cd<=0){t.cd=t.cdv;const g0=Math.round(t.d);giveGold(t.ow,g0);st.ge+=g0;t.dmg=(t.dmg||0)+g0;t.fl=1;st.pt.push({x:t.x,y:t.y-14,vx:0,vy:-26,l:1,tx:'+'+g0});sfx('coin')}continue}
-    if(b.trap){if(t.cd<=0){let hit=0;for(const x of st.en)if(!x.gone&&!isFly(x)&&Math.hypot(x.x-t.x,x.y-t.y)<=t.r){hurt(x,dm,t);hit=1;if(t.barb>0&&cc(x)){x.slow=Math.max(x.slow,.8);x.sf=Math.min(x.sf||1,1-t.barb)}}if(hit){t.cd=t.cdv;t.fl=1;sfx('sip')}}continue}
-    if(b.root){if(t.cd<=0){const tg=inRange(t).filter(x=>!isFly(x));if(tg.length){t.cd=t.cdv;t.fl=1;for(const x of tg){hurt(x,dm,t);if(ccHold(x))x.root=Math.max(x.root||0,x.k==='tank'||x.elite?t.rdur*.5:t.rdur)}st.fx.push({x:t.x,y:t.y,r:rng(t),a:.8,c:'90,200,90'});sfx('poi')}}continue}
+    if(b.trap){if(t.cd<=0){let hit=0;for(const x of st.en)if(!x.gone&&!isFly(x)&&Math.hypot(x.x-t.x,x.y-t.y)<=t.r){hurt(x,dm,t);hit=1;if(t.barb>0&&cc(x)){x.slow=Math.max(x.slow,.8);x.sf=Math.min(x.sf||1,1-t.barb)}}if(hit){sfx('spk');t.cd=t.cdv;t.fl=1;sfx('sip')}}continue}
+    if(b.root){if(t.cd<=0){const tg=inRange(t).filter(x=>!isFly(x));if(tg.length){sfx('thr');t.cd=t.cdv;t.fl=1;for(const x of tg){hurt(x,dm,t);if(ccHold(x))x.root=Math.max(x.root||0,x.k==='tank'||x.elite?t.rdur*.5:t.rdur)}st.fx.push({x:t.x,y:t.y,r:rng(t),a:.8,c:'90,200,90'});sfx('poi')}}continue}
     {const a=pick(t);if(a)t.ang=Math.atan2(a.y-t.y,a.x-t.x)}
     if(b.spin){const e=pick(t);t.spin=e?Math.min(1,(t.spin||0)+dt*.45*(t.spr||1)):Math.max(0,(t.spin||0)-dt*.8);if(e)t.cd-=dt*3*t.spin}
-    if(b.drone){if(t.cd<=0){const tg=inRange(t).sort((p,q)=>prio(q)-prio(p));if(tg.length){t.cd=t.cdv;t.fl=1;for(let j=0;j<t.ndr;j++){const an=t.da+j*6.283/t.ndr;st.bl.push({x:t.x+Math.cos(an)*24,y:t.y+Math.sin(an)*24,t:tg[j%tg.length],d:dm,o:t,k:'drn',col:b.col})}sfx('las')}}continue}
+    if(b.drone){if(t.cd<=0){const tg=inRange(t).sort((p,q)=>prio(q)-prio(p));if(tg.length){sfx('drn');t.cd=t.cdv;t.fl=1;for(let j=0;j<t.ndr;j++){const an=t.da+j*6.283/t.ndr;st.bl.push({x:t.x+Math.cos(an)*24,y:t.y+Math.sin(an)*24,t:tg[j%tg.length],d:dm,o:t,k:'drn',col:b.col})}sfx('las')}}continue}
     if(b.beam){const e=pick(t);if(e!==t.bt){t.bt=e;t.heat=0}if(e){t.heat=Math.min(t.hmx||2,(t.heat||0)+dt*(t.hr||1));if(t.cd<=0){t.cd=t.cdv;hurt(e,dm*(1+t.heat),t);sfx('las');
       if(t.prism){let o=null,od=80;for(const x of st.en)if(x!==e&&canHit(x)){const dd=Math.hypot(x.x-e.x,x.y-e.y);if(dd<od){od=dd;o=x}}if(o){hurt(o,dm*(1+t.heat)*t.prism,t);st.beams.push({a:e.x,b:e.y-2,c:o.x,d:o.y-2,l:.6,pr:1})}}}}continue}
     if(t.cd<=0){const e=pick(t);if(e){t.fl=1;t.cd=t.cdv;sfx(FSND[t.k]);
@@ -1787,7 +1823,7 @@ function update(dt){
     if(e.elite){st.elites++;save.stats.elites=(save.stats.elites||0)+1;questAdd('elite',1)}
     if(e.ab==='emp'){for(const t of st.tw)if(Math.hypot(t.x-e.x,t.y-e.y)<=100)disable(t,'stn',2.5);st.fx.push({x:e.x,y:e.y,r:100,a:1,c:'90,200,255'});sfx('zap')}
     if(e.ab==='treasure'){const gg=Math.round(3*DIFFS[dif].gm)+withSk(owr,()=>sk('e10'));st.gems+=gg;save.gems+=gg;mpEv('!g:'+gg);st.pt.push({x:e.x,y:e.y-22,vx:0,vy:-24,l:1.6,tx:'+'+gg+' GEMS',big:1,gem:1});burst(e.x,e.y,'#ffd54f',24);sfx('gold')}
-    if(e.k==='tank'){save.stats.bosses++;questAdd('boss',1);boomFx(e.x,e.y,46,1.1);burst(e.x,e.y,e.col,20);shake(5);sfx('boom')}else{deathFx(e);sfx('die')}
+    if(e.k==='tank'){save.stats.bosses++;questAdd('boss',1);boomFx(e.x,e.y,46,1.1);burst(e.x,e.y,e.col,20);shake(5);sfx(e.mini?'boom':'bossdie')}else{deathFx(e);sfx('die')}
     st.pt.push({x:e.x,y:e.y-8,vx:0,vy:-28,l:1,tx:'+'+rw});
     if(e.ab==='split'){const B=e.k==='tank',n=B?4:2;for(let j=0;j<n;j++){const an=j*6.283/n+.6;add.push({k:'norm',nm:e.nm,from:'split',sh:e.sh,col:e.col,c2:e.c2,c3:e.c3,hn:e.hn,ph:Math.random()*6,i:e.i,x:e.x+Math.cos(an)*8,y:e.y+Math.sin(an)*5,hp:e.mx*(B?.12:.35),mx:e.mx*(B?.12:.35),sp:B?50:62,rw:B?3:1,z:Math.round(e.z*(B?.55:.7)),slow:0,mini:1,born:.3})}}}
   st.en=st.en.filter(e=>!e.gone).concat(add);st.bl=st.bl.filter(b=>!b.done);
