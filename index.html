@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tower Defense</title>
+<title>Realm Defenders</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -692,7 +692,7 @@ h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;
 <aside class="side">
   <div class="brand">
     <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#4c8dff"/></linearGradient></defs><path d="M5 21.500V10L3.500 8.500V3.500h3.500V5.500h2.500V3.500h5V5.500H17V3.500h3.500v5L19 10v11.500z" fill="url(#lg1)"/><path d="M5 10h14" stroke="#fff" stroke-opacity=".5" stroke-width="1.200"/><path d="M9.500 21.500V16a2.500 2.500 0 0 1 5 0v5.500z" fill="#0d1420" opacity=".75"/><rect x="11.200" y="11.500" width="1.600" height="2.600" rx=".8" fill="#0d1420" opacity=".75"/></svg></div>
-    <div><h1>Tower Defense</h1><p id="sub">Hold the castle</p></div>
+    <div><h1>Realm Defenders</h1><p id="sub">Hold the castle</p></div>
     <div class="gems sm" title="Gems"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#b57bff"/><path d="M6 3l-4 6h6zM18 3l4 6h-6z" fill="#d9bcff"/><path d="M8 9h8l-4 12z" fill="#9a5cf0"/><path d="M6 3h12l-2 6H8z" fill="#c89bff"/><path d="M9 4.500h4" stroke="#fff" stroke-opacity=".7" stroke-width="1.200" stroke-linecap="round"/></svg><b id="g2">0</b></div>
     <button class="ib" id="snd" title="Sound effects (M)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="2" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" stroke-linecap="round"/></svg></button>
     <button class="ib" id="fs" title="Fullscreen (F)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -738,7 +738,7 @@ h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;
   <canvas id="mmbg"></canvas>
   <div class="mmbox">
     <header class="mmtop">
-      <div class="brand"><div class="logo"><svg width="24" height="24" viewBox="0 0 24 24"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#4c8dff"/></linearGradient></defs><path d="M5 21.500V10L3.500 8.500V3.500h3.500V5.500h2.500V3.500h5V5.500H17V3.500h3.500v5L19 10v11.500z" fill="url(#lg2)"/><path d="M5 10h14" stroke="#fff" stroke-opacity=".5" stroke-width="1.200"/><path d="M9.500 21.500V16a2.500 2.500 0 0 1 5 0v5.500z" fill="#0d1420" opacity=".75"/><rect x="11.200" y="11.500" width="1.600" height="2.600" rx=".8" fill="#0d1420" opacity=".75"/></svg></div><h1>Tower Defense</h1></div>
+      <div class="brand"><div class="logo"><svg width="24" height="24" viewBox="0 0 24 24"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#4c8dff"/></linearGradient></defs><path d="M5 21.500V10L3.500 8.500V3.500h3.500V5.500h2.500V3.500h5V5.500H17V3.500h3.500v5L19 10v11.500z" fill="url(#lg2)"/><path d="M5 10h14" stroke="#fff" stroke-opacity=".5" stroke-width="1.200"/><path d="M9.500 21.500V16a2.500 2.500 0 0 1 5 0v5.500z" fill="#0d1420" opacity=".75"/><rect x="11.200" y="11.500" width="1.600" height="2.600" rx=".8" fill="#0d1420" opacity=".75"/></svg></div><h1>Realm Defenders</h1></div>
       <div class="mmr"><button class="ib" id="mm-snd" title="Sound effects"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="2" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" stroke-linecap="round"/></svg></button><button class="ib" id="mm-mus" title="Music"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="2"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></button>
       <div class="lvc" id="lvc" title="Player level"><b id="plv">1</b><span><i id="pxp"></i></span></div>
       <div class="gems runes" title="Runes: spend them in the Skill Tree"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M12 2l8 5v10l-8 5-8-5V7z" fill="#5ee0c8"/><path d="M12 6v12M8.5 9l7 6M15.5 9l-7 6" stroke="#0b3a33" stroke-width="1.6" stroke-linecap="round"/></svg><b id="runes">0</b></div>
@@ -748,7 +748,7 @@ h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;
     <section class="scr" id="s-home">
       <div class="home">
         <div class="hero">
-          <h2>Tower<br><span>Defense</span></h2>
+          <h2>Realm<br><span>Defenders</span></h2>
           <p id="herop"></p>
           <canvas id="show" width="840" height="330"></canvas>
         </div>
