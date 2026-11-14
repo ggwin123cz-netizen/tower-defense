@@ -604,6 +604,69 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
   .home,.play,.split{grid-template-columns:minmax(0,1fr)}.hero h2{font-size:52px}.tgrid{grid-template-columns:repeat(3,1fr)}.skgrid{grid-template-columns:repeat(2,1fr)}.chests{grid-template-columns:repeat(2,minmax(0,1fr))}#diff{grid-template-columns:repeat(2,minmax(0,1fr))}.scr{padding:16px}}
 /* Phones held upright: the board stays at the top while the controls scroll under it */
 @media (max-width:900px) and (orientation:portrait){.wrap{position:sticky;top:0;z-index:6}}
+
+/* ---------- Polish pass: glassy panels, tinted cards, richer buttons and icons ---------- */
+button{background:linear-gradient(180deg,#1b2633,#141c27);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+button:hover:not(:disabled){background:linear-gradient(180deg,#223040,#19222e)}
+button:disabled{opacity:.55}
+*{scrollbar-width:thin;scrollbar-color:#2f3b4c transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#2f3b4c;border-radius:8px}::-webkit-scrollbar-thumb:hover{background:#3e4c61}::-webkit-scrollbar-track{background:transparent}
+.logo{background:linear-gradient(145deg,#243a5c,#111927);box-shadow:inset 0 0 0 1px rgba(124,170,255,.35),inset 0 1px 0 rgba(255,255,255,.12),0 6px 18px rgba(40,90,200,.25)}
+h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.gems{background:linear-gradient(180deg,rgba(180,120,255,.2),rgba(180,120,255,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 16px -6px rgba(180,120,255,.6)}
+.gems.runes{background:linear-gradient(180deg,rgba(94,224,200,.18),rgba(94,224,200,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 16px -6px rgba(94,224,200,.6)}
+.lvc{background:linear-gradient(180deg,rgba(76,141,255,.18),rgba(76,141,255,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+/* In-game panel */
+.side .stat{background:linear-gradient(160deg,rgba(var(--sc),.2),rgba(13,18,26,.62) 62%);border-color:rgba(var(--sc),.32);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.side .stat span{color:rgba(var(--sc),.95)}.side .stat b{color:#fff;text-shadow:0 0 18px rgba(var(--sc),.45)}
+.side .panel{border-color:rgba(124,170,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.bar{height:7px;background:rgba(8,12,18,.6)}.bar i{background:linear-gradient(90deg,#4c8dff,#7ff0da);box-shadow:0 0 10px rgba(108,195,255,.6)}
+.sp{background:linear-gradient(180deg,color-mix(in srgb,var(--sc) 20%,transparent),rgba(13,18,26,.7) 70%);border-color:color-mix(in srgb,var(--sc) 35%,var(--line2))}
+.sp svg{width:26px;height:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45));transition:transform .2s cubic-bezier(.2,.8,.3,1.5)}
+.sp.ready svg{animation:spready 2.2s ease-in-out infinite}@keyframes spready{50%{transform:translateY(-1.5px) scale(1.06)}}
+@media (hover:hover){.sp:hover:not(:disabled) svg{transform:scale(1.18) rotate(-6deg)}}
+.sp span{font-weight:700}
+#start{background:linear-gradient(180deg,#6aa5ff,#3672ee);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 8px 22px rgba(58,120,240,.38);font-size:14px;letter-spacing:.02em;position:relative;overflow:hidden}
+#start:not(:disabled)::after{content:'';position:absolute;top:0;bottom:0;left:-50%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-18deg);animation:sheen 3.2s ease-in-out infinite}@keyframes sheen{0%,55%{left:-50%}100%{left:130%}}
+#start.early{background:linear-gradient(180deg,#ffd166,#f0a020);color:#3a2600;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 8px 22px rgba(240,170,40,.35)}
+#spd::before,#pause::before,#auto::before,#menu::before{content:'';width:11px;height:11px;flex:none;background:center/contain no-repeat;opacity:.85}
+#spd::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 5l9 7-9 7zM13 5l9 7-9 7z' fill='%23cfd8e3'/%3E%3C/svg%3E")}
+#pause::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5' y='4' width='5' height='16' rx='1.500' fill='%23cfd8e3'/%3E%3Crect x='14' y='4' width='5' height='16' rx='1.500' fill='%23cfd8e3'/%3E%3C/svg%3E")}
+#auto::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cfd8e3' stroke-width='2.400' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12a8 8 0 1 1-2.300-5.600'/%3E%3Cpath d='M20 4v5h-5'/%3E%3C/svg%3E")}
+#menu::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' stroke='%23cfd8e3' stroke-width='2.600' stroke-linecap='round'%3E%3Cpath d='M4 6h16M4 12h16M4 18h16'/%3E%3C/svg%3E")}
+.ctl button:not(#start){gap:4px;padding-left:4px;padding-right:4px;font-size:12px;white-space:nowrap}
+#info{border-color:rgba(124,170,255,.35);box-shadow:0 18px 44px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06)}
+.nextw{border-color:rgba(124,170,255,.16)}
+/* Menu */
+.mmtop{background:linear-gradient(180deg,rgba(124,170,255,.08),rgba(255,255,255,.01));position:relative}
+.mmtop::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(124,170,255,.55),rgba(94,234,212,.45),transparent)}
+.sh h2{position:relative;padding-left:14px;background:linear-gradient(180deg,#fff,#b9c9de);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sh h2::before{content:'';position:absolute;left:0;top:10%;bottom:10%;width:4px;border-radius:3px;background:linear-gradient(180deg,#7caaff,#5eead4)}
+.back{border-radius:99px;padding:8px 14px;border-color:rgba(124,170,255,.3)}
+@media (hover:hover){.back:hover{transform:translateX(-2px);border-color:rgba(124,170,255,.7)}}
+.lbl{display:flex;align-items:center;gap:8px}.lbl::before{content:'';width:3px;height:11px;border-radius:2px;background:linear-gradient(180deg,#7caaff,#5eead4);flex:none}
+#diff button{--dc:56,214,138;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(var(--dc),.12),rgba(13,18,26,.5) 70%);border-color:rgba(var(--dc),.3)}
+#diff button:nth-child(2){--dc:108,170,255}#diff button:nth-child(3){--dc:255,170,70}#diff button:nth-child(4){--dc:255,90,106}
+#diff button::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:rgb(var(--dc));opacity:.7}
+#diff button b{color:rgb(var(--dc))}
+#diff button.on,#diff button.on:hover:not(:disabled){border-color:rgb(var(--dc));background:linear-gradient(180deg,rgba(var(--dc),.26),rgba(var(--dc),.08));box-shadow:inset 0 0 0 1px rgb(var(--dc)),0 8px 22px rgba(var(--dc),.2)}
+#diff button.lock b{color:var(--mut)}
+.tc{--tc:124,170,255;border-color:rgba(var(--tc),.22);background:linear-gradient(180deg,rgba(var(--tc),.1),rgba(13,18,26,.5) 65%)}
+.tc b{color:#fff}
+.tc.on,.tc.on:hover:not(:disabled){border-color:rgb(var(--tc));background:linear-gradient(180deg,rgba(var(--tc),.26),rgba(var(--tc),.08));box-shadow:inset 0 0 0 1px rgb(var(--tc)),0 8px 22px rgba(var(--tc),.22)}
+.tc canvas,.detail canvas,.chip canvas{filter:drop-shadow(0 4px 8px rgba(0,0,0,.4))}
+.tc.lock{opacity:.6}
+.detail{border-color:rgba(124,170,255,.22);background:linear-gradient(180deg,rgba(124,170,255,.07),transparent 30%),var(--panel)}
+.node .ni{color:color-mix(in srgb,var(--bc) 75%,#fff);background:color-mix(in srgb,var(--bc) 14%,transparent);border-color:color-mix(in srgb,var(--bc) 35%,var(--line2))}
+.node.lock .ni{color:var(--mut);background:rgba(255,255,255,.04);border-color:var(--line2)}
+.node.got{background:linear-gradient(90deg,color-mix(in srgb,var(--bc) 12%,transparent),transparent 60%),var(--panel2)}
+.toast{background:linear-gradient(180deg,rgba(26,34,46,.98),rgba(15,20,28,.98));box-shadow:0 14px 34px rgba(0,0,0,.55),0 0 22px -8px var(--tc,#ffd34d),inset 0 1px 0 rgba(255,255,255,.07)}
+.menu{background:linear-gradient(180deg,rgba(22,30,42,.97),rgba(13,18,26,.97));border-color:rgba(124,170,255,.25);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07)}
+.estats div,.setr,.qst,.ach,.lvt,.skc,.gc,.lbc{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.go{letter-spacing:.02em}
+#startgame{position:relative;overflow:hidden}
+#startgame:not(:disabled)::after{content:'';position:absolute;top:0;bottom:0;left:-50%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-18deg);animation:sheen 3.2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){#start::after,#startgame::after,.sp.ready svg{animation:none!important}}
 </style>
 </head>
 <body>
@@ -631,16 +694,16 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 <div id="ttip"></div>
 <aside class="side">
   <div class="brand">
-    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 21V9l2-1V4h3v2h2V4h2v2h2V4h3v4l2 1v12z" fill="#4c8dff" opacity=".25"/><path d="M4 21V9l2-1V4h3v2h2V4h2v2h2V4h3v4l2 1v12zM10 21v-5a2 2 0 0 1 4 0v5" stroke="#9cc0ff" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#4c8dff"/></linearGradient></defs><path d="M5 21.500V10L3.500 8.500V3.500h3.500V5.500h2.500V3.500h5V5.500H17V3.500h3.500v5L19 10v11.500z" fill="url(#lg1)"/><path d="M5 10h14" stroke="#fff" stroke-opacity=".5" stroke-width="1.200"/><path d="M9.500 21.500V16a2.500 2.500 0 0 1 5 0v5.500z" fill="#0d1420" opacity=".75"/><rect x="11.200" y="11.500" width="1.600" height="2.600" rx=".8" fill="#0d1420" opacity=".75"/></svg></div>
     <div><h1>Tower Defense</h1><p id="sub">Hold the castle</p></div>
-    <div class="gems sm" title="Gems"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#b57bff"/></svg><b id="g2">0</b></div>
+    <div class="gems sm" title="Gems"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9z" fill="#b57bff"/><path d="M6 3l-4 6h6zM18 3l4 6h-6z" fill="#d9bcff"/><path d="M8 9h8l-4 12z" fill="#9a5cf0"/><path d="M6 3h12l-2 6H8z" fill="#c89bff"/><path d="M9 4.500h4" stroke="#fff" stroke-opacity=".7" stroke-width="1.200" stroke-linecap="round"/></svg><b id="g2">0</b></div>
     <button class="ib" id="snd" title="Sound effects (M)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="2" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" stroke-linecap="round"/></svg></button>
     <button class="ib" id="fs" title="Fullscreen (F)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </div>
   <div class="stats">
-    <div class="stat"><span><svg width="13" height="13" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#f4c152"/><circle cx="8" cy="8" r="4.3" fill="none" stroke="#a87a22" stroke-width="1.5"/></svg>Gold</span><b id="gold">0</b></div>
-    <div class="stat"><span><svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" fill="#ff5a6a"/></svg>Lives</span><b id="lives">0</b></div>
-    <div class="stat"><span><svg width="13" height="13" viewBox="0 0 24 24"><path d="M5 21V4m0 0h11l-2 4 2 4H5" stroke="#6cc3ff" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>Wave</span><b id="wave">0</b></div>
+    <div class="stat" style="--sc:244,193,82"><span><svg width="16" height="16" viewBox="0 0 16 16"><ellipse cx="8" cy="9.200" rx="6.800" ry="6" fill="#a87a22"/><circle cx="8" cy="7.600" r="6.800" fill="#f4c152"/><circle cx="8" cy="7.600" r="4.600" fill="none" stroke="#c9952e" stroke-width="1.200"/><path d="M8 5v5.200M6.600 6.300h2.200a1 1 0 0 1 0 2H7.200a1 1 0 0 0 0 2h2.300" stroke="#8a5a00" stroke-width="1" fill="none"/><ellipse cx="5.600" cy="4.800" rx="1.600" ry=".8" fill="#fff" opacity=".6" transform="rotate(-30 5.600 4.800)"/></svg>Gold</span><b id="gold">0</b></div>
+    <div class="stat" style="--sc:255,90,106"><span><svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 21.500s-9-5.700-9-12.300A5 5 0 0 1 12 6a5 5 0 0 1 9 3.200c0 6.600-9 12.300-9 12.300z" fill="#ff5a6a"/><path d="M12 21.500s9-5.700 9-12.300c0-1-.3-2-.8-2.800C19 13 14 17.500 12 21.500z" fill="#c9304a" opacity=".6"/><ellipse cx="8" cy="8" rx="2.400" ry="1.400" fill="#fff" opacity=".55" transform="rotate(-35 8 8)"/></svg>Lives</span><b id="lives">0</b></div>
+    <div class="stat" style="--sc:108,195,255"><span><svg width="16" height="16" viewBox="0 0 24 24"><rect x="4" y="2.500" width="2.400" height="19.500" rx="1.200" fill="#cfd8e3"/><path d="M6.400 4h12.100l-2.800 4.200 2.800 4.300H6.400z" fill="#6cc3ff"/><path d="M6.400 4h12.100l-1.400 2.100H6.400z" fill="#fff" opacity=".35"/></svg>Wave</span><b id="wave">0</b></div>
   </div>
   <div class="mpbar" id="mpbar" hidden></div>
   <div class="bar"><i id="wbar"></i></div>
@@ -678,7 +741,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
   <canvas id="mmbg"></canvas>
   <div class="mmbox">
     <header class="mmtop">
-      <div class="brand"><div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 21V9l2-1V4h3v2h2V4h2v2h2V4h3v4l2 1v12z" fill="#4c8dff" opacity=".25"/><path d="M4 21V9l2-1V4h3v2h2V4h2v2h2V4h3v4l2 1v12zM10 21v-5a2 2 0 0 1 4 0v5" stroke="#9cc0ff" stroke-width="1.6" stroke-linejoin="round"/></svg></div><h1>Tower Defense</h1></div>
+      <div class="brand"><div class="logo"><svg width="24" height="24" viewBox="0 0 24 24"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#4c8dff"/></linearGradient></defs><path d="M5 21.500V10L3.500 8.500V3.500h3.500V5.500h2.500V3.500h5V5.500H17V3.500h3.500v5L19 10v11.500z" fill="url(#lg2)"/><path d="M5 10h14" stroke="#fff" stroke-opacity=".5" stroke-width="1.200"/><path d="M9.500 21.500V16a2.500 2.500 0 0 1 5 0v5.500z" fill="#0d1420" opacity=".75"/><rect x="11.200" y="11.500" width="1.600" height="2.600" rx=".8" fill="#0d1420" opacity=".75"/></svg></div><h1>Tower Defense</h1></div>
       <div class="mmr"><button class="ib" id="mm-snd" title="Sound effects"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="2" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" stroke-linecap="round"/></svg></button><button class="ib" id="mm-mus" title="Music"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#cfd8e3" stroke-width="2"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></button>
       <div class="lvc" id="lvc" title="Player level"><b id="plv">1</b><span><i id="pxp"></i></span></div>
       <div class="gems runes" title="Runes: spend them in the Skill Tree"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M12 2l8 5v10l-8 5-8-5V7z" fill="#5ee0c8"/><path d="M12 6v12M8.5 9l7 6M15.5 9l-7 6" stroke="#0b3a33" stroke-width="1.6" stroke-linecap="round"/></svg><b id="runes">0</b></div>
@@ -1495,12 +1558,12 @@ function evTick(dt){if(!st.run||!st.ev)return;st.evt=(st.evt||0)-dt;if(st.evt>0)
   else st.evt=99}
 // Spells: active abilities on a cooldown (seconds of game time)
 const SPELLS=[
-  {k:'met',n:'Meteor',cd:35,col:'255,140,50',d:'Click the map to drop a meteor that blasts and burns enemies',ic:'<svg viewBox="0 0 24 24"><path d="M3 3l9 9" stroke="#ffb347" stroke-width="3" stroke-linecap="round"/><path d="M7 2l6 6M2 7l6 6" stroke="#ff7a1a" stroke-width="1.6" stroke-linecap="round" opacity=".7"/><circle cx="15" cy="15" r="6" fill="#ff7a1a"/><circle cx="13.5" cy="13.5" r="2.5" fill="#ffd27a"/></svg>'},
-  {k:'frz',n:'Blizzard',cd:50,col:'130,210,255',d:'Freeze every enemy on the map for 4 seconds',ic:'<svg viewBox="0 0 24 24" fill="none" stroke="#9fdcff" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg>'},
-  {k:'gld',n:'Gold Rush',cd:60,col:'244,193,82',d:'Instantly gain bonus gold',ic:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="17" rx="8" ry="3" fill="#b8860b"/><ellipse cx="12" cy="15" rx="8" ry="3" fill="#f4c152"/><ellipse cx="12" cy="11" rx="8" ry="3" fill="#b8860b"/><ellipse cx="12" cy="9" rx="8" ry="3" fill="#f6d36b"/></svg>'},
-  {k:'ovc',n:'Overcharge',cd:70,req:'o6',col:'255,214,102',d:'All towers attack twice as fast for 8 seconds',ic:'<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z" fill="#ffd166" stroke="#b8860b" stroke-width="1"/></svg>'},
-  {k:'mid',n:'Midas',cd:75,req:'e6',col:'255,200,60',d:'For 10 seconds, defeated enemies drop triple gold',ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#f4c152" stroke="#b8860b"/><path d="M12 7v10M9.5 9.5H14a1.5 1.5 0 0 1 0 3H10a1.5 1.5 0 0 0 0 3h4.5" stroke="#8a5a00" stroke-width="1.6" fill="none"/></svg>'},
-  {k:'twp',n:'Time Warp',cd:80,req:'m6',col:'170,150,255',d:'All enemies move at 40% speed for 10 seconds',ic:'<svg viewBox="0 0 24 24" fill="none" stroke="#b9a8ff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>'}
+  {k:'met',n:'Meteor',cd:35,col:'255,140,50',d:'Click the map to drop a meteor that blasts and burns enemies',ic:'<svg viewBox="0 0 24 24"><path d="M2 2l9 10-3 3z" fill="#ff7a1a" opacity=".55"/><path d="M5 1.500l8 9-2.500 2.500z" fill="#ffb347" opacity=".8"/><path d="M1.500 6l9 7-2 2.500z" fill="#ffcf5a" opacity=".6"/><circle cx="15" cy="15" r="6.500" fill="#b8431a"/><circle cx="14.500" cy="14.500" r="6" fill="#ff7a1a"/><circle cx="13" cy="13" r="3" fill="#ffd27a"/><circle cx="17.500" cy="16.500" r="1.300" fill="#8a2f0f" opacity=".6"/><circle cx="14.500" cy="18.500" r=".9" fill="#8a2f0f" opacity=".6"/></svg>'},
+  {k:'frz',n:'Blizzard',cd:50,col:'130,210,255',d:'Freeze every enemy on the map for 4 seconds',ic:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><circle cx="12" cy="12" r="9.500" fill="#1d4a6e" opacity=".55"/><path d="M12 2.500v19M3.800 7.250l16.400 9.500M3.800 16.750l16.400-9.500" stroke="#bfe9ff" stroke-width="2"/><path d="M9.500 4.300L12 6l2.500-1.700M9.500 19.700L12 18l2.500 1.700M4.300 10l2.700 1.300.2-3M19.700 14l-2.700-1.300-.2 3M4.300 14l2.700-1.300.2 3M19.700 10l-2.700 1.300-.2-3" stroke="#e8f8ff" stroke-width="1.500"/><circle cx="12" cy="12" r="2" fill="#fff"/></svg>'},
+  {k:'gld',n:'Gold Rush',cd:60,col:'244,193,82',d:'Instantly gain bonus gold',ic:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="18.500" rx="8.500" ry="3.200" fill="#8a5a00"/><ellipse cx="12" cy="17" rx="8.500" ry="3.200" fill="#f4c152"/><ellipse cx="12" cy="14.200" rx="8.500" ry="3.200" fill="#a87a22"/><ellipse cx="12" cy="12.700" rx="8.500" ry="3.200" fill="#f6d36b"/><ellipse cx="12" cy="9.900" rx="8.500" ry="3.200" fill="#a87a22"/><ellipse cx="12" cy="8.400" rx="8.500" ry="3.200" fill="#ffe08a"/><ellipse cx="12" cy="8.400" rx="5.500" ry="1.800" fill="none" stroke="#c9952e" stroke-width="1"/><path d="M18.500 2l.7 1.800 1.800.7-1.800.7-.7 1.800-.7-1.800-1.800-.7 1.800-.7z" fill="#fff"/></svg>'},
+  {k:'ovc',n:'Overcharge',cd:70,req:'o6',col:'255,214,102',d:'All towers attack twice as fast for 8 seconds',ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#6b4a00" opacity=".5"/><path d="M13.500 1.500L4 13.500h6.500L9 22.500l10.500-13H13z" fill="#b8860b"/><path d="M13 2.500L5 13h6l-1.200 7.500L18.500 10H12.500z" fill="#ffd166"/><path d="M12 5l-4 6.500h3.500" stroke="#fff" stroke-opacity=".6" stroke-width="1.200" fill="none" stroke-linecap="round"/></svg>'},
+  {k:'mid',n:'Midas',cd:75,req:'e6',col:'255,200,60',d:'For 10 seconds, defeated enemies drop triple gold',ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="#a87a22"/><circle cx="12" cy="11.500" r="9" fill="#f4c152"/><circle cx="12" cy="11.500" r="6.500" fill="none" stroke="#c9952e" stroke-width="1.300"/><path d="M12 7v9M9.500 9.200H14a1.500 1.500 0 0 1 0 3H10a1.500 1.500 0 0 0 0 3h4.500" stroke="#8a5a00" stroke-width="1.700" fill="none" stroke-linecap="round"/><ellipse cx="8.500" cy="7" rx="2.400" ry="1.100" fill="#fff" opacity=".6" transform="rotate(-30 8.500 7)"/></svg>'},
+  {k:'twp',n:'Time Warp',cd:80,req:'m6',col:'170,150,255',d:'All enemies move at 40% speed for 10 seconds',ic:'<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><circle cx="12" cy="12" r="9.500" fill="#3a2f7a"/><circle cx="12" cy="12" r="9.500" stroke="#b9a8ff" stroke-width="2"/><path d="M12 6.500v5.500l3.500 3.500" stroke="#fff" stroke-width="2.200"/><path d="M12 3.500v1.500M12 19v1.500M3.500 12H5M19 12h1.500" stroke="#b9a8ff" stroke-width="1.500"/><circle cx="12" cy="12" r="1.500" fill="#fff"/></svg>'}
 ];
 const SPK={};SPELLS.forEach(s=>SPK[s.k]=s);
 const spellOn=s=>!s.req||sk(s.req)>0;
@@ -2198,9 +2261,9 @@ function sph(x,y,r,c,hi=.5,lo=.4){x=q2(x);y=q2(y);r=Math.max(.5,q2(r));return cg
 function lin(x0,y0,x1,y1,c,hi=.35,lo=.35){x0=q2(x0);y0=q2(y0);x1=q2(x1);y1=q2(y1);return cg('l'+c+x0+','+y0+','+x1+','+y1+','+hi+','+lo,()=>{const gr=g.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,shade(c,hi));gr.addColorStop(.45,c);gr.addColorStop(1,shade(c,-lo));return gr})}
 const fo=(f,c,lw=1)=>{g.fillStyle=f;g.fill();if(c){g.strokeStyle=c;g.lineWidth=lw;g.stroke()}};
 const rp=(x,y,w,h,r)=>{g.beginPath();if(g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h)};
-function ball(x,y,r,c,ol=1){g.beginPath();g.arc(x,y,r,0,7);fo(sph(x,y,r,c),ol?shade(c,-.6):0,ol)}
+function ball(x,y,r,c,ol=1){g.beginPath();g.arc(x,y,r,0,7);fo(sph(x,y,r,c),ol?shade(c,-.6):0,ol);if(r>=2.6){g.fillStyle='rgba(255,255,255,.34)';g.beginPath();g.ellipse(x-r*.36,y-r*.42,r*.27,r*.15,-.6,0,7);g.fill();g.fillStyle='rgba(255,255,255,.1)';g.beginPath();g.arc(x+r*.3,y+r*.38,r*.2,0,7);g.fill()}}
 function egg(x,y,rx,ry,c,ol=1,rot=0){g.save();g.translate(x,y);if(rot)g.rotate(rot);g.scale(1,ry/rx);g.beginPath();g.arc(0,0,rx,0,7);g.fillStyle=sph(0,0,rx,c);g.fill();g.restore();if(ol){g.strokeStyle=shade(c,-.6);g.lineWidth=ol;g.stroke()}}
-function bar(x,y,w,h,c,r=1.5,ol=1){rp(x,y,w,h,r);fo(lin(0,y,0,y+h,c),ol?shade(c,-.6):0,ol)}
+function bar(x,y,w,h,c,r=1.5,ol=1){rp(x,y,w,h,r);fo(lin(0,y,0,y+h,c),ol?shade(c,-.6):0,ol);if(w>=4&&h>=3){g.fillStyle='rgba(255,255,255,.26)';g.fillRect(x+r*.6,y+.5,w-r*1.2,Math.min(1,h*.22));g.fillStyle='rgba(0,0,0,.2)';g.fillRect(x+r*.6,y+h-Math.min(1,h*.22)-.4,w-r*1.2,Math.min(1,h*.22))}}
 const gloss=(x,y,rx,ry,a=.5,rot=-.5)=>{g.fillStyle='rgba(255,255,255,'+a+')';g.beginPath();g.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),rot,0,7);g.fill()};
 function crystal(x,y,w,h,rot,c){g.save();g.translate(x,y);if(rot)g.rotate(rot);
   g.beginPath();g.moveTo(0,-h);g.lineTo(w,-h*.5);g.lineTo(w,h*.55);g.lineTo(0,h);g.lineTo(-w,h*.55);g.lineTo(-w,-h*.5);g.closePath();fo(c,shade(c,-.55),.7);
@@ -3607,7 +3670,7 @@ function tRows(k){const b=T[k],r=[['Build cost',b.cost+' gold']];
   r.push(['Signature skin',SIGK[k].n]);
   return r}
 function renderTowers(){
-  $('tgrid').innerHTML=KEYS.map(k=>{const u=save.un.includes(k);return'<button class="tc'+(u?'':' lock')+(k===selT?' on':'')+'" data-k="'+k+'">'+(u?'':'<span class="lk">'+LOCK+'</span>')+'<canvas width="112" height="112"></canvas><b>'+T[k].n+'</b><small>'+(u?COIN+T[k].cost:save.lvl<towerLv(k)?'Level '+towerLv(k):GEM+T[k].gp)+'</small></button>'}).join('');
+  $('tgrid').innerHTML=KEYS.map(k=>{const u=save.un.includes(k);return'<button class="tc'+(u?'':' lock')+(k===selT?' on':'')+'" data-k="'+k+'" style="--tc:'+rgbOf(T[k].col).join(',')+'">'+(u?'':'<span class="lk">'+LOCK+'</span>')+'<canvas width="112" height="112"></canvas><b>'+T[k].n+'</b><small>'+(u?COIN+T[k].cost:save.lvl<towerLv(k)?'Level '+towerLv(k):GEM+T[k].gp)+'</small></button>'}).join('');
   [...$('tgrid').children].forEach(b=>{tIcon(b.querySelector('canvas'),b.dataset.k);b.onclick=()=>{selT=b.dataset.k;renderTowers()}});
   const k=selT,u=save.un.includes(k),b=T[k];
   $('tdet').innerHTML='<canvas width="240" height="240"></canvas><h3>'+b.n+'</h3><p>'+DESC[k]+'</p><div class="kv">'+tRows(k).map(([a,v])=>'<span>'+a+'</span><b>'+v+'</b>').join('')+'</div>'+(SPEC[k]?'<div class="tsp"><span class="lbl">Specializations · at level '+SPLV+'</span>'+SPEC[k].map((x,i)=>'<p class="'+(i?'b':'')+'"><b>★ '+x.n+'</b>'+x.d+'</p>').join('')+'</div>':'')+'<div class="acts">'+
