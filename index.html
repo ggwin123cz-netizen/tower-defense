@@ -542,7 +542,21 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .eroster{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .eroster .fo{padding:4px 8px 4px 4px}.eroster .fo canvas{width:34px;height:34px}.eroster .fo b{font-size:11.5px}.eroster .fo small{font-size:10px}
 
-.runopt{display:flex;flex-wrap:wrap;gap:8px}.runopt button{padding:9px 14px;font-size:13px}
+.runopt{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:8px}
+.runopt button{--rc:124,170,255;position:relative;justify-content:flex-start;gap:10px;padding:10px 11px;text-align:left;border-radius:12px;border-color:rgba(var(--rc),.25);background:linear-gradient(160deg,rgba(var(--rc),.1),rgba(13,18,26,.5) 65%);transition:transform .18s cubic-bezier(.2,.8,.3,1.4),border-color .18s,box-shadow .18s,background .18s}
+.runopt .ri{width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;color:rgb(var(--rc));background:rgba(var(--rc),.14);box-shadow:inset 0 0 0 1px rgba(var(--rc),.3);transition:transform .25s cubic-bezier(.2,.8,.3,1.5)}
+.runopt .ri svg{width:20px;height:20px}
+.runopt .rt{flex:1;min-width:0}.runopt .rt b{display:block;font-size:13.5px;color:#fff}.runopt .rt small{display:block;margin-top:2px;font-size:11px;font-weight:500;color:var(--mut);line-height:1.3}
+.runopt em{display:inline-block;vertical-align:1px;margin-left:6px;font-style:normal;font:700 10.5px/1 Inter,sans-serif;padding:3px 6px;border-radius:99px;color:var(--gold);background:rgba(244,193,82,.12);border:1px solid rgba(244,193,82,.3)}
+.runopt i{position:relative;flex:none;width:28px;height:16px;border-radius:99px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--line2);transition:background .18s}
+.runopt i::after{content:'';position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#7b8797;transition:transform .2s cubic-bezier(.2,.8,.3,1.5),background .18s}
+.runopt button.on,.runopt button.on:hover:not(:disabled){border-color:rgb(var(--rc));background:linear-gradient(160deg,rgba(var(--rc),.28),rgba(var(--rc),.07));box-shadow:inset 0 0 0 1px rgb(var(--rc)),0 8px 20px rgba(var(--rc),.2)}
+.runopt button.on .ri{background:rgba(var(--rc),.3);box-shadow:inset 0 0 0 1px rgb(var(--rc)),0 0 14px rgba(var(--rc),.45)}
+.runopt button.on i{background:rgba(var(--rc),.45)}.runopt button.on i::after{transform:translateX(12px);background:#fff}
+.runopt button.on .rt small{color:#d6dfeb}
+@media (hover:hover){.runopt button:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(var(--rc),.7);background:linear-gradient(160deg,rgba(var(--rc),.18),rgba(13,18,26,.5) 70%)}.runopt button:hover .ri{transform:scale(1.12) rotate(-6deg)}}
+#rmult:not(:empty){margin-left:4px;padding:3px 9px;border-radius:99px;background:rgba(244,193,82,.12);border:1px solid rgba(244,193,82,.35);font-weight:700;font-size:11px}
+@media (max-width:600px){.runopt{grid-template-columns:1fr}}
 /* Multiplayer: lobby, room settings and the in-battle player list */
 .chatov{position:absolute;left:10px;bottom:46px;width:min(46%,380px);display:flex;flex-direction:column;gap:3px;pointer-events:none;z-index:5}
 .chatov .cl{padding:4px 9px;border-radius:7px;background:rgba(10,14,19,.78);font-size:12px;line-height:1.35;color:#e7edf4;transition:opacity 1.8s;word-break:break-word}
@@ -4520,11 +4534,18 @@ $('mpbar').addEventListener('click',e=>{
   }else if(q){NET.prefill=q;setTimeout(()=>{openMenu();scr('lobby')},50)}
 })();
 
+// How each run option looks on the Play screen: colour, icon and a short line of what it does
+const ROPT={
+  en:{c:'94,234,212',s:'No last wave',ic:'<path d="M6.500 8.500a3.500 3.500 0 1 0 0 7c2.500 0 3.800-3.500 5.500-3.500s3 3.500 5.500 3.500a3.500 3.500 0 1 0 0-7c-2.500 0-3.800 3.500-5.500 3.500S9 8.500 6.500 8.500z" fill="none" stroke="currentColor" stroke-width="2.400" stroke-linejoin="round"/>'},
+  swift:{c:'255,210,80',s:'Enemies 25% faster',ic:'<path d="M4 5l7 7-7 7M12.500 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round" stroke-linejoin="round"/>'},
+  tough:{c:'255,110,110',s:'+50% enemy health',ic:'<path d="M12 2.500l8 3v6c0 5-3.400 8.600-8 10-4.600-1.400-8-5-8-10v-6z" fill="currentColor"/><path d="M12 8v7M8.500 11.500h7" stroke="#fff" stroke-width="2.200" stroke-linecap="round"/>'},
+  poor:{c:'244,170,70',s:'40% less gold',ic:'<circle cx="12" cy="12" r="9" fill="currentColor"/><circle cx="12" cy="12" r="6" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.200"/><path d="M8 12h8" stroke="#3a2600" stroke-width="2.600" stroke-linecap="round"/>'},
+  frail:{c:'200,140,255',s:'Half the lives',ic:'<path d="M12 21s-8.500-5.400-8.500-11.700A4.700 4.700 0 0 1 12 6.300a4.700 4.700 0 0 1 8.500 3C20.500 15.600 12 21 12 21z" fill="currentColor"/><path d="M12.500 6.500l-2.300 3.800 3.300 2-2.300 4.200" fill="none" stroke="#1a1026" stroke-width="1.800" stroke-linecap="round" stroke-linejoin="round"/>'}};
 function paintRun(){
   runCalc();
-  const bs=[['en','Endless','Keep fighting past the last wave. Rewards grow with every wave (+10%)',RUN.en]].concat(MODS.map(m=>[m.id,m.n,m.d+' (+'+Math.round(m.b*100)+'% rewards)',!!RUN.mods[m.id]]));
-  $('runopt').innerHTML=bs.map(b=>'<button data-r="'+b[0]+'" class="'+(b[3]?'on':'')+'" title="'+b[2]+'">'+b[1]+'</button>').join('');
-  $('rmult').textContent=RUN.rm>1?'· Rewards ×'+RUN.rm.toFixed(2):'';
+  const bs=[['en','Endless','Keep fighting past the last wave. Rewards grow with every wave (+10%)',RUN.en,10]].concat(MODS.map(m=>[m.id,m.n,m.d+' (+'+Math.round(m.b*100)+'% rewards)',!!RUN.mods[m.id],Math.round(m.b*100)]));
+  $('runopt').innerHTML=bs.map(b=>{const o=ROPT[b[0]];return'<button data-r="'+b[0]+'" class="'+(b[3]?'on':'')+'" style="--rc:'+o.c+'" title="'+b[2]+'" aria-pressed="'+b[3]+'"><span class="ri"><svg viewBox="0 0 24 24">'+o.ic+'</svg></span><span class="rt"><b>'+b[1]+'<em>+'+b[4]+'%</em></b><small>'+o.s+'</small></span><i></i></button>'}).join('');
+  $('rmult').textContent=RUN.rm>1?'Rewards ×'+RUN.rm.toFixed(2):'';
 }
 $('runopt').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const k=b.dataset.r;if(k==='en')RUN.en=!RUN.en;else RUN.mods[k]=!RUN.mods[k];paintRun();paintStart();paintElb()};
 setMap(0);buildPicker();reset();openMenu();if(coarse())$('phh').textContent='Tap a tile twice to build';
