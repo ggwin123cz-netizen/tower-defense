@@ -1177,19 +1177,31 @@ fillSave();
 // actually playing, shows a midgame ad when a game ends, offers an optional rewarded ad for double gems on the end screen,
 // keeps quiet while an ad plays or when CrazyGames mutes it, and leaves out our own login, online boards and outside links.
 const CGON=/(^|\.)crazygames\./i.test(location.hostname)||/[?&](cg=1|useLocalSdk=true)/.test(location.search);
-const CG={sdk:null,on:CGON,ad:false,mute:false,chatOff:false,play:false,adb:false,rwUsed:false,t0:0};
+const CG={room:'',sdk:null,on:CGON,ad:false,mute:false,chatOff:false,play:false,adb:false,rwUsed:false,t0:0};
 const cgSafe=f=>{try{return f()}catch(e){return undefined}};
 if(CGON){const sc=document.createElement('script');sc.src='https://sdk.crazygames.com/crazygames-sdk-v3.js';
   sc.onload=async()=>{try{const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;await S.init();if(S.environment==='disabled')return;CG.sdk=S;
     const st0=cgSafe(()=>S.game.settings)||{};CG.mute=!!st0.muteAudio;CG.chatOff=!!st0.disableChat;masterVol();
     cgSafe(()=>S.game.addSettingsChangeListener(v=>{CG.mute=!!(v&&v.muteAudio);CG.chatOff=!!(v&&v.disableChat);masterVol()}));
     try{CG.adb=!!(await S.ad.hasAdblock())}catch(e){}
-    const room=cgSafe(()=>S.game.getInviteParam('room'));if(room&&!MP){NET.prefill=String(room).toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);if(NET.prefill&&!inGame){openMenu();scr('lobby')}}
+    // Playing with friends: a friend's invite (or the Join button) opens the lobby and joins that room by itself, and a party
+    // leader who started 'play with friends' gets a fresh room straight away, with no menus in between
+    const room=cgSafe(()=>S.game.getInviteParam('room'));
+    if(room&&!MP)cgLobby(String(room));
+    else if(cgSafe(()=>S.game.isInstantMultiplayer)&&!MP)cgLobby('');
+    cgSafe(()=>S.game.addJoinRoomListener(p=>{const r=p&&(p.room||p.roomId);if(r&&!MP&&!NET.code)cgLobby(String(r))}));
   }catch(e){}};document.head.appendChild(sc)}
 // Master volume: silent while an ad plays or when CrazyGames asks for no sound
 function masterVol(){const v=(CG.ad||CG.mute)?0:.55*(save.vol??1);if(AU&&AU.m)AU.m.gain.value=v;return v}
 // Tell CrazyGames when real play starts and stops (menus, pause, end screen and ads are breaks)
-function cgPlay(){if(!CG.sdk)return;const p=inGame&&!st.over&&$('mm').hidden&&!st.pause&&!paused&&!CG.ad;if(p!==CG.play){CG.play=p;cgSafe(()=>p?CG.sdk.game.gameplayStart():CG.sdk.game.gameplayStop());if(p&&!CG.t0)CG.t0=Date.now()}}
+// Open the lobby and join the room with this code, or create a new room when there is no code
+function cgLobby(code){code=code.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);if(MP||NET.code)return;NET.prefill=code;if(inGame&&!MP)return;openMenu();scr('lobby');
+  const name=(save.mpn||'Player').slice(0,16);netOpen(()=>netSend(code.length===4?{t:'join',code,name,info:myInfo()}:{t:'create',name,info:myInfo()}))}
+// Tell CrazyGames about the room we are in: the invite button, and who is in it
+function cgRoom(){const key=NET.code?NET.code+'|'+NET.players.length:'';if(key===CG.room)return;const had=CG.room;CG.room=key;
+  if(NET.code){cgSafe(()=>CG.sdk.game.showInviteButton({room:NET.code}));cgSafe(()=>CG.sdk.game.updateRoom({isJoinable:NET.players.length<4,inviteParams:{room:NET.code},currentPlayers:NET.players.length,maxPlayers:4}))}
+  else if(had){cgSafe(()=>CG.sdk.game.hideInviteButton());cgSafe(()=>CG.sdk.game.leftRoom())}}
+function cgPlay(){if(!CG.sdk)return;cgRoom();const p=inGame&&!st.over&&$('mm').hidden&&!st.pause&&!paused&&!CG.ad;if(p!==CG.play){CG.play=p;cgSafe(()=>p?CG.sdk.game.gameplayStart():CG.sdk.game.gameplayStop());if(p&&!CG.t0)CG.t0=Date.now()}}
 function cgAd(kind,done){if(!CG.sdk){done&&done(false,'none');return}
   cgSafe(()=>CG.sdk.ad.requestAd(kind,{adStarted:()=>{CG.ad=true;masterVol();cgPlay()},adFinished:()=>{CG.ad=false;masterVol();done&&done(true)},adError:e=>{CG.ad=false;masterVol();done&&done(false,e&&e.code||e)}}))}
 // End of a game: a midgame ad after a real game (a few waves in), and the optional double-gems offer
