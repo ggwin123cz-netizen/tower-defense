@@ -1180,7 +1180,7 @@ const CGON=/(^|\.)crazygames\./i.test(location.hostname)||/[?&](cg=1|useLocalSdk
 const CG={room:'',sdk:null,on:CGON,ad:false,mute:false,chatOff:false,play:false,adb:false,rwUsed:false,t0:0};
 const cgSafe=f=>{try{return f()}catch(e){return undefined}};
 if(CGON){const sc=document.createElement('script');sc.src='https://sdk.crazygames.com/crazygames-sdk-v3.js';
-  sc.onload=async()=>{try{const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;await S.init();if(S.environment==='disabled')return;CG.sdk=S;
+  sc.onload=async()=>{try{const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;await S.init();if(S.environment==='disabled')return;CG.sdk=S;cgSafe(()=>S.game.loadingStart());const ld=()=>cgSafe(()=>S.game.loadingStop());(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>requestAnimationFrame(()=>requestAnimationFrame(ld)));setTimeout(ld,4000);
     const st0=cgSafe(()=>S.game.settings)||{};CG.mute=!!st0.muteAudio;CG.chatOff=!!st0.disableChat;masterVol();
     cgSafe(()=>S.game.addSettingsChangeListener(v=>{CG.mute=!!(v&&v.muteAudio);CG.chatOff=!!(v&&v.disableChat);masterVol()}));
     try{CG.adb=!!(await S.ad.hasAdblock())}catch(e){}
@@ -1199,8 +1199,8 @@ function cgLobby(code){code=code.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);
   const name=(save.mpn||'Player').slice(0,16);netOpen(()=>netSend(code.length===4?{t:'join',code,name,info:myInfo()}:{t:'create',name,info:myInfo()}))}
 // Tell CrazyGames about the room we are in: the invite button, and who is in it
 function cgRoom(){const key=NET.code?NET.code+'|'+NET.players.length:'';if(key===CG.room)return;const had=CG.room;CG.room=key;
-  if(NET.code){cgSafe(()=>CG.sdk.game.showInviteButton({room:NET.code}));cgSafe(()=>CG.sdk.game.updateRoom({isJoinable:NET.players.length<4,inviteParams:{room:NET.code},currentPlayers:NET.players.length,maxPlayers:4}))}
-  else if(had){cgSafe(()=>CG.sdk.game.hideInviteButton());cgSafe(()=>CG.sdk.game.leftRoom())}}
+  if(NET.code)cgSafe(()=>CG.sdk.game.updateRoom({roomId:NET.code,isJoinable:NET.players.length<4,inviteParams:{room:NET.code}}));
+  else if(had)cgSafe(()=>CG.sdk.game.leftRoom())}
 function cgPlay(){if(!CG.sdk)return;cgRoom();const p=inGame&&!st.over&&$('mm').hidden&&!st.pause&&!paused&&!CG.ad;if(p!==CG.play){CG.play=p;cgSafe(()=>p?CG.sdk.game.gameplayStart():CG.sdk.game.gameplayStop());if(p&&!CG.t0)CG.t0=Date.now()}}
 function cgAd(kind,done){if(!CG.sdk){done&&done(false,'none');return}
   cgSafe(()=>CG.sdk.ad.requestAd(kind,{adStarted:()=>{CG.ad=true;masterVol();cgPlay()},adFinished:()=>{CG.ad=false;masterVol();done&&done(true)},adError:e=>{CG.ad=false;masterVol();done&&done(false,e&&e.code||e)}}))}
