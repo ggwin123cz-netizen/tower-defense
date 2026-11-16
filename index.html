@@ -731,7 +731,7 @@ h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;
     <div id="types"></div>
     <p id="tsel"></p>
   </section>
-  <p class="hint" id="khint"><kbd>1</kbd>–<kbd>0</kbd> <kbd>Q</kbd>–<kbd>T</kbd> towers · <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> spells · <kbd>Space</kbd> wave · <kbd>P</kbd> pause · <kbd>M</kbd> sound · <kbd>Esc</kbd> menu</p>
+  <p class="hint" id="khint"><kbd>1</kbd>–<kbd>0</kbd> <kbd>Q</kbd>–<kbd>T</kbd> towers · <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> spells · <kbd>Space</kbd> wave · <kbd>P</kbd> pause · <kbd>M</kbd> sound</p>
 </aside>
 <div id="accq" hidden></div>
 <div id="info" hidden>
@@ -3240,7 +3240,7 @@ function draw(){
   if(st.bliz>0){g.globalAlpha=Math.min(1,st.bliz)*.5;g.fillStyle=cg('frostv',()=>{const r=g.createRadialGradient(W*C/2,H*C/2,H*C*.28,W*C/2,H*C/2,W*C*.62);r.addColorStop(0,'rgba(200,235,255,0)');r.addColorStop(1,'rgba(220,245,255,.8)');return r});g.fillRect(0,0,W*C,H*C);g.globalAlpha=1}
   if(st.twp>0){g.fillStyle='rgba(120,90,255,'+Math.min(.14,st.twp*.05)+')';g.fillRect(0,0,W*C,H*C)}
   if(st.mid>0){for(let i=0;i<10;i++){const x=(i*97+tm*30)%(W*C),y=(i*61+tm*40)%(H*C);g.globalAlpha=Math.min(1,st.mid)*.7;star(x,y,2,'#ffd34d')}g.globalAlpha=1}
-  tutDraw();
+  tutDraw();goalDraw();
   if(st.pause&&!st.over){g.fillStyle='rgba(8,11,16,.55)';g.fillRect(0,0,W*C,H*C);g.textAlign='center';g.textBaseline='middle';g.font='700 44px '+FONT;g.fillStyle='#fff';g.fillText('PAUSED',W*C/2,H*C/2-8);g.font='600 12px Inter,sans-serif';g.fillStyle='#b7c2d0';g.fillText('Press P or the Pause button to resume · you can still build and upgrade',W*C/2,H*C/2+24)}
 }
 function ui(){cgPlay();ui0();if(MP)mpUi();tutTick()}
@@ -3365,6 +3365,10 @@ function tutTile(){if(st.tutC&&canBuild(st.type,st.tutC.x,st.tutC.y))return st.t
     const sc=n-Math.abs(x-W/2)*.2-Math.abs(y-H*.55)*.25;if(sc>bs){bs=sc;b={x,y}}}
   return st.tutC=b}
 // Draws the current step's pointer on the board: a glowing tile or ring, a bouncing arrow and a short label
+// "Defend the castle" goal for the first seconds of a battle
+function goalDraw(){if(!inGame||st.over||st.wave>0||st.run||!$('mm').hidden)return;if(!st.gt)st.gt=tm;const a=Math.min(1,(5-(tm-st.gt))*1.5,(tm-st.gt)*3);if(a<=0)return;
+  const tx='DEFEND THE CASTLE  ·  '+(RUN.en?'ENDLESS':MAXW+' WAVES');g.save();g.globalAlpha=a;g.font='700 15px '+FONT;const w=g.measureText(tx).width+28,x=W*C/2,y=H*C-30;
+  rr(x-w/2,y-15,w,30,15,'rgba(14,19,26,.88)');g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f4c152';g.fillText(tx,x,y+1);g.restore()}
 function tutDraw(){if(save.tips||MP||!inGame||st.over||!$('mm').hidden)return;const s=TUT[st.tut];if(!s||!s.at)return;const p=s.at();if(!p)return;
   const b=Math.abs(Math.sin(tm*4)),a=.55+.45*b;g.save();g.shadowColor='rgba(244,193,82,.9)';g.shadowBlur=16;g.lineWidth=3;g.strokeStyle='rgba(244,193,82,'+a+')';
   if(p.tile){g.fillStyle='rgba(244,193,82,'+(.12+.12*b)+')';g.fillRect(p.x-C/2+2,p.y-C/2+2,C-4,C-4);g.strokeRect(p.x-C/2+2,p.y-C/2+2,C-4,C-4)}
@@ -3880,7 +3884,7 @@ addEventListener('keydown',e=>{
   if(kl==='f'){$('fs').click();return}
   if(kl==='m'){setSnd(!save.snd);return}
   const si=SPKEYS.indexOf(e.key.toUpperCase());if(e.key.length===1&&si>=0&&myLoad()[si]){castSpell(myLoad()[si]);return}
-  const ki=HOT.indexOf(e.key.toUpperCase());if(e.key.length===1&&ki>=0&&ki<AV.length){st.type=AV[ki];st.sel=null}
+  const dg=/^(Digit|Numpad)(\d)$/.exec(e.code||''),ki=dg?(dg[2]==='0'?9:+dg[2]-1):HOT.indexOf(e.key.toUpperCase());if((dg||e.key.length===1)&&ki>=0&&ki<AV.length){st.type=AV[ki];st.sel=null}
   if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();waveGo()}
 });
 /* ---------- Multiplayer: the host's browser runs the game, guests send commands and draw the host's state ---------- */
