@@ -201,6 +201,9 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 /* First-game tips: over the board, below it on narrow screens */
 #tut{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;width:min(360px,calc(100% - 20px));padding:10px 14px 12px;border-radius:12px;background:rgba(14,19,26,.94);border:1px solid rgba(244,193,82,.45);box-shadow:0 12px 30px rgba(0,0,0,.45);pointer-events:none;animation:tutin .3s ease-out}
 #tut p kbd{color:#fff;background:rgba(255,255,255,.12)}
+@keyframes newb{50%{transform:scale(1.12)}}
+.newb{position:absolute;top:5px;left:5px;z-index:2;font:800 9px/1 Inter,sans-serif;font-style:normal;letter-spacing:.04em;padding:3px 6px;border-radius:99px;background:#f4c152;color:#2a1c00;box-shadow:0 0 12px rgba(244,193,82,.6);animation:newb 1.4s ease-in-out infinite;pointer-events:none}
+.tile .newb{top:auto;left:auto;bottom:8px;right:8px}
 #keys{position:absolute;left:10px;bottom:10px;z-index:4;display:flex;align-items:flex-start;gap:6px;padding:8px 10px;border-radius:10px;background:rgba(14,19,26,.82);border:1px solid var(--line2);pointer-events:none;animation:tutin2 .3s ease-out}
 #keysl{display:grid;grid-template-columns:auto auto;gap:4px 12px;font-size:11px;color:#c9d3df}
 #keysl i{font-style:normal;display:flex;align-items:center;gap:6px}
@@ -1182,6 +1185,7 @@ function fillSave(){delete save.lang;migrateWorlds(save);if(save.wx===undefined)
   // Older saves get a starting level based on the stars they already earned
   if(save.runes===undefined){const ts=Object.values(save.stars).reduce((a,v)=>a+v,0);save.lvl=1+Math.min(15,Math.floor(ts/3));save.xp=0;save.runes=2+save.lvl}}
 fillSave();
+if(FRESH){save.nu=1;save.un=['sip','del','mraz']}
 
 /* ---------- Sound: everything is synthesized with Web Audio, no files needed ---------- */
 /* ---------- CrazyGames: SDK, ads and gameplay events, only when the game runs on CrazyGames ---------- */
@@ -1971,6 +1975,7 @@ function end(win){if(!MP)runDrop();$('ovteam').hidden=true;st.over=true;inGame=f
   ups.forEach((l,i)=>setTimeout(()=>{toast('Level '+l+'!','+'+lvRunes(l)+' rune'+(lvRunes(l)>1?'s':'')+' · +'+lvGems(l)+' gems','<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3l3 6 6 1-4.5 4 1 6.5L12 17l-5.5 3.5 1-6.5L3 10l6-1z" fill="#6aa2ff"/></svg>','#6aa2ff');
     const tw=KEYS.filter(k=>towerLv(k)===l).map(k=>T[k].n),dn=DIFLV.map((v,d)=>v===l&&d>1?DIFFS[d].n:null).filter(Boolean);
     if(tw.length||dn.length)setTimeout(()=>toast('New unlock available',[...tw.map(n=>n+' tower'),...dn.map(n=>n+' difficulty')].join(' · '),LOCK.replace(/13/g,'20'),'#f4c152'),600)},900+i*700));
+  gateGrant().forEach((g,i)=>setTimeout(()=>toast('Unlocked!',g.n+(g.tw?' · '+T[g.tw].n+' tower':''),'<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3l3 6 6 1-4.5 4 1 6.5L12 17l-5.5 3.5 1-6.5L3 10l6-1z" fill="#f4c152"/></svg>','#f4c152'),300+i*600));
   MAPS.forEach((m,i)=>{if(!wo[i]&&worldOpen(i))setTimeout(()=>toast('New world unlocked!',m.n+' is ready to play','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38d68a" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>','#38d68a'),1200)});
   persist();
   const pTo=save.lvl>=MAXLV?100:save.xp/xpNeed(save.lvl)*100,pFrom=ups.length?0:xp0/xpNeed(lv0)*100;
@@ -3316,8 +3321,8 @@ function thumb(m,l,c,L){const x=c.getContext('2d'),s=c.width/(W*C),M=L||MAPS[m].
 // In-game tower picker: only unlocked towers
 function buildPicker(){
   AV=RUN.ch&&RUN.ch.t.only?KEYS.filter(k=>RUN.ch.t.only.includes(k)):RUN.dly?dailyOf(RUN.dly).tw:KEYS.filter(k=>(MP&&MP.set.ut)||save.un.includes(k));
-  twTip(null);$('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" style="--tc:${rgbOf(T[k].col).join(',')}" aria-label="${T[k].n}: ${DESC[k]}"><canvas width="80" height="80"></canvas><span><i>${T[k].n}</i><b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}</button>`).join('');
-  AV.forEach(k=>{const b=$('t-'+k);tIcon(b.querySelector('canvas'),k);b.onclick=()=>{st.type=k;st.sel=null};b.onmouseenter=()=>twTip(k,b);b.onmouseleave=()=>twTip(null)});
+  twTip(null);$('types').innerHTML=AV.map((k,i)=>`<button class="tw" id="t-${k}" style="--tc:${rgbOf(T[k].col).join(',')}" aria-label="${T[k].n}: ${DESC[k]}"><canvas width="80" height="80"></canvas><span><i>${T[k].n}</i><b>${COIN}${bcost(k)}</b></span>${HOT[i]?'<kbd>'+HOT[i]+'</kbd>':''}${save.newtw&&save.newtw[k]?'<em class="newb">NEW!</em>':''}</button>`).join('');
+  AV.forEach(k=>{const b=$('t-'+k);tIcon(b.querySelector('canvas'),k);b.onclick=()=>{st.type=k;st.sel=null;if(save.newtw&&save.newtw[k]){delete save.newtw[k];persist();const e=b.querySelector('.newb');if(e)e.remove()}};b.onmouseenter=()=>twTip(k,b);b.onmouseleave=()=>twTip(null)});
 }
 // What a freshly built tower of kind k does (with the player's skills), for the stats window over the tower picker
 const SPX={del:t=>'Splash: hits everything within <b>'+Math.round(t.spl)+'</b> of the impact',mraz:t=>'Slows enemies by <b>'+Math.round((1-t.sf)*100)+'%</b> for '+t.sdur.toFixed(1)+'s',
@@ -3481,7 +3486,23 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&ACC.user&&
 
 /* ---------- Main menu ---------- */
 let selT='sip',skT='sip';
-function scr(id){['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account','daily'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount,daily:renderDaily})[id]()}
+// New players (save.nu) unlock the advanced parts step by step: w = battlefields won.
+// Players from before this change (no save.nu) keep everything.
+const GATES=[{w:1,ids:['m-towers','m-skills','m-quests','g-spl'],n:'Towers shop · Skills · Quests',tw:'pla'},
+             {w:2,ids:['m-skins','m-chests','m-daily','m-ach','g-chal','g-runopt'],n:'Skins · Chests · Daily · Challenges',tw:'dul'}];
+const wonN=()=>Object.values(save.stars||{}).filter(v=>v>0).length;
+const gateOpen=id=>{if(!save.nu)return true;const g=GATES.find(g=>g.ids.includes(id));return!g||wonN()>=g.w};
+// Grant what the player's wins have opened (and the tower that comes with it); returns the newly opened gates
+function gateGrant(){if(!save.nu)return[];save.seen=save.seen||{};save.got=save.got||0;const out=[];
+  GATES.forEach((g,i)=>{if(wonN()>=g.w&&save.got<=i){save.got=i+1;out.push(g);if(g.tw&&!save.un.includes(g.tw)){save.un.push(g.tw);save.newtw=save.newtw||{};save.newtw[g.tw]=1}}});
+  if(save.got>=GATES.length&&GATES.every(g=>g.ids.every(id=>id.startsWith('g-')||save.seen[id]))){delete save.nu;delete save.seen;delete save.got}
+  if(out.length)persist();return out}
+// Show or hide the gated menu tiles and Play-screen sections, with a NEW! badge on a tile until it is first opened
+function gatePaint(){GATES.forEach(g=>g.ids.forEach(id=>{const sec=id.startsWith('g-'),o=gateOpen(id),el=$(sec?id.slice(2):id);if(!el)return;el.hidden=!o;
+  if(sec){if(el.previousElementSibling)el.previousElementSibling.hidden=!o;return}
+  let b=el.querySelector('.newb');const nw=o&&save.nu&&!(save.seen&&save.seen[id]);if(nw&&!b){b=document.createElement('em');b.className='newb';b.textContent='NEW!';el.appendChild(b)}if(!nw&&b)b.remove()}))}
+function gateSeen(id){if(!save.nu)return;save.seen=save.seen||{};if(!save.seen[id]){save.seen[id]=1;persist();gateGrant()}}
+function scr(id){['home','play','towers','skins','chests','ach','skills','quests','settings','lobby','account','daily'].forEach(s=>$('s-'+s).hidden=s!==id);questsFresh();hdr();({home:renderHome,play:renderPlay,towers:renderTowers,skins:renderSkins,chests:renderChests,ach:renderAch,skills:renderSkills,quests:renderQuests,settings:renderSettings,lobby:renderLobby,account:renderAccount,daily:renderDaily})[id]();gatePaint()}
 function renderSettings(){const tg=(k,n,d)=>'<div class="setr"><div class="tx"><b>'+n+'</b><small>'+d+'</small></div><button data-t="'+k+'" class="'+(save[k]?'on':'')+'">'+(save[k]?'On':'Off')+'</button></div>';
   $('setl').innerHTML=tg('snd','Sound effects','Shots, hits and spell sounds')+tg('mus','Music','Background music')+'<div class="setr"><div class="tx"><b>Master volume</b><small>'+Math.round(save.vol*100)+'%</small></div><input type="range" id="vol" min="0" max="100" value="'+Math.round(save.vol*100)+'"></div>'+tg('dmg','Damage numbers','Floating numbers for big hits and crits')+tg('shk','Screen shake','Camera shake on explosions and leaks')+tg('wx','Weather events','Fog, storms, blood moons and more on some waves')+'<div class="setr"><div class="tx"><b>Fullscreen</b><small>Also available with the F key</small></div><button id="sfs">Toggle</button></div><div class="setr"><div class="tx"><b>Refund skill tree</b><small>Get all spent runes back</small></div><button id="srs">Refund</button></div><div class="setr"><div class="tx"><b>Move your progress</b><small>Copy a code here, then paste it on another device or another link of the game</small></div><button id="sexp">Copy code</button><button id="simp">Paste code</button></div><div class="setr dng"><div class="tx"><b>Reset all progress</b><small>Deletes gems, levels, skills, towers, skins and stars</small></div><button id="m-reset2">Reset</button></div>';
   $('setl').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;if(k==='snd')setSnd(!save.snd);else if(k==='mus')setMus(!save.mus);else{save[k]=save[k]?0:1;persist()}renderSettings()});
@@ -3662,7 +3683,7 @@ buildSpells();
 $('pause').onclick=()=>{if(inGame&&!st.over&&!(MP&&!MP.host))st.pause=!st.pause};
 $('snd').onclick=()=>setSnd(!save.snd);$('mm-snd').onclick=()=>setSnd(!save.snd);$('mm-mus').onclick=()=>setMus(!save.mus);
 $('u-t').onclick=()=>{const t=st.sel;if(!t)return;const v=TGO[(TGO.indexOf(t.tg||'first')+1)%TGO.length];if(MP&&!MP.host){if(t.ow===MP.id){t.tg=v;mpSend({c:'tg',id:t._id,v})}}else if(!MP||t.ow===MP.id)t.tg=v};
-$('m-ach').onclick=()=>scr('ach');
+$('m-ach').onclick=()=>{gateSeen('m-ach');scr('ach')};
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button'))sfx('click')},true);
 sndUI();
 
@@ -3673,7 +3694,7 @@ $('maps').innerHTML=MAPS.map((m,i)=>'<button class="mp" data-i="'+i+'"><canvas w
 $('maps').onclick=e=>{const b=e.target.closest('[data-i]');if(b){mapI=+b.dataset.i;paintMaps();renderRoster()}};
 $('lays').onclick=e=>{const b=e.target.closest('[data-l]');if(b){layI=+b.dataset.l;renderLays();renderRoster()}};
 document.querySelectorAll('.back').forEach(b=>b.onclick=()=>scr(b.dataset.to));
-$('m-play').onclick=()=>scr('play');$('m-daily').onclick=()=>scr('daily');$('m-towers').onclick=()=>scr('towers');$('m-skins').onclick=()=>scr('skins');$('m-chests').onclick=()=>scr('chests');$('m-skills').onclick=()=>scr('skills');$('m-quests').onclick=()=>scr('quests');$('m-resume').onclick=()=>{if(inGame)closeMenu();else runResume()};
+$('m-play').onclick=()=>scr('play');$('m-daily').onclick=()=>{gateSeen('m-daily');scr('daily')};$('m-towers').onclick=()=>{gateSeen('m-towers');scr('towers')};$('m-skins').onclick=()=>{gateSeen('m-skins');scr('skins')};$('m-chests').onclick=()=>{gateSeen('m-chests');scr('chests')};$('m-skills').onclick=()=>{gateSeen('m-skills');scr('skills')};$('m-quests').onclick=()=>{gateSeen('m-quests');scr('quests')};$('m-resume').onclick=()=>{if(inGame)closeMenu();else runResume()};
 // Progress lives in this browser only; a code moves it to another device or another link of the game
 /* ---------- Online extras: endless leaderboards (Firestore) ---------- */
 // Endless boards: endless/{battlefield-difficulty}/scores/{uid}, one per built-in battlefield and difficulty, solo endless runs only.
