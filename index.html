@@ -12,7 +12,7 @@
 [hidden]{display:none!important}
 :root{--bg:#0a0e13;--panel:#11171f;--panel2:#161e28;--hover:#1c2632;--line:#222c39;--line2:#2f3b4c;--fg:#e7edf4;--mut:#8592a3;--dim:#5d6a7b;--acc:#4c8dff;--gold:#f4c152;--life:#ff5a6a;--wave:#6cc3ff;--ok:#38d68a;--gem:#c89bff;color-scheme:dark}
 html,body{height:100%}
-body{margin:0;background:radial-gradient(900px 500px at 75% -10%,rgba(76,141,255,.10),transparent 70%),radial-gradient(700px 500px at 0 110%,rgba(56,214,138,.06),transparent 70%),var(--bg);color:var(--fg);font:500 14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;margin:0;background:radial-gradient(900px 500px at 75% -10%,rgba(76,141,255,.10),transparent 70%),radial-gradient(700px 500px at 0 110%,rgba(56,214,138,.06),transparent 70%),var(--bg);color:var(--fg);font:500 14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;height:100vh;padding:18px}
 
 /* Board */
@@ -224,6 +224,8 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 @media (max-width:900px){#keys{display:none}}
 @media (max-width:900px){#tut{position:relative;top:auto;left:auto;transform:none;width:auto;border-radius:0;border-width:1px 0 0;box-shadow:none;animation:none}}
 
+/* Short screens: smaller title, no showcase picture, so Play is visible without scrolling */
+@media (max-height:560px){.hero h2{font-size:44px}.hero p{margin:6px 0 8px}.hero #show{display:none!important}.scr{padding:14px}.home{gap:16px}}
 /* Main menu */
 #mm{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(1000px 600px at 75% 0,rgba(76,141,255,.16),transparent 70%),radial-gradient(800px 600px at 0 100%,rgba(140,90,255,.10),transparent 70%),rgba(8,11,15,.86);backdrop-filter:blur(10px)}
 #mmbg{position:absolute;inset:0;width:100%;height:100%;display:none}
@@ -613,6 +615,8 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
   .home,.play,.split{grid-template-columns:minmax(0,1fr)}.hero h2{font-size:52px}.tgrid{grid-template-columns:repeat(3,1fr)}.skgrid{grid-template-columns:repeat(2,1fr)}.chests{grid-template-columns:repeat(2,minmax(0,1fr))}#diff{grid-template-columns:repeat(2,minmax(0,1fr))}.scr{padding:16px}}
 /* Phones held upright: the board stays at the top while the controls scroll under it */
 @media (max-width:900px) and (orientation:portrait){.wrap{position:sticky;top:0;z-index:6}}
+/* Short landscape screens (phones, small iframes): board and controls side by side, no scrolling to reach Start wave */
+@media (max-width:900px) and (orientation:landscape) and (max-height:620px){main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px;height:100vh;padding:8px}.wrap{width:min(100%,calc((100vh - 16px)*1.6))}.side{overflow-y:auto;gap:6px}#tut{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:min(280px,calc(100% - 12px));border-radius:12px;border-width:1px;box-shadow:0 12px 30px rgba(0,0,0,.45);animation:tutin .3s ease-out}}
 
 /* ---------- Polish pass: glassy panels, tinted cards, richer buttons and icons ---------- */
 button{background:linear-gradient(180deg,#1b2633,#141c27);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
@@ -675,6 +679,8 @@ h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;
 .go{letter-spacing:.02em}
 #startgame{position:relative;overflow:hidden}
 #startgame:not(:disabled)::after{content:'';position:absolute;top:0;bottom:0;left:-50%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-18deg);animation:sheen 3.2s ease-in-out infinite}
+details.priv{margin-top:12px;font-size:11.5px;color:var(--mut)}details.priv summary{cursor:pointer}details.priv p{margin:6px 0 0;line-height:1.5}
+input,textarea{-webkit-user-select:text;user-select:text}
 @media (prefers-reduced-motion:reduce){#start::after,#startgame::after,.sp.ready svg{animation:none!important}}
 </style>
 </head>
@@ -1169,7 +1175,7 @@ let save={gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}};
 // A brand-new player (nothing saved yet) skips the menus and lands straight in the first battle
 let FRESH=false;try{FRESH=!localStorage.getItem(SAVE_KEY)&&!localStorage.getItem('td-run-v1')}catch(e){}
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&typeof s==='object')save=Object.assign(save,s)}catch(e){}
-const persist0=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch(e){}};
+const persist0=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch(e){}try{cgPush()}catch(e){}};
 const persist=()=>{accDirty();persist0()};
 // Online account state (see Accounts below); declared here because saves happen while the page is still loading
 const ACC={user:null,name:'',n:0,t:0,at:0,busy:false,ask:0,err:'',loading:null,recheck:0};let FB=null;
@@ -1193,13 +1199,17 @@ if(FRESH){save.nu=1;save.un=['sip','del','mraz']}
 // actually playing, shows a midgame ad when a game ends, offers an optional rewarded ad for double gems on the end screen,
 // keeps quiet while an ad plays or when CrazyGames mutes it, and leaves out our own login, online boards and outside links.
 const CGON=/(^|\.)crazygames\./i.test(location.hostname)||/[?&](cg=1|useLocalSdk=true)/.test(location.search);
-const CG={room:'',sdk:null,on:CGON,ad:false,mute:false,chatOff:false,play:false,adb:false,rwUsed:false,t0:0};
+const CG={user:null,pushT:0,room:'',sdk:null,on:CGON,ad:false,mute:false,chatOff:false,play:false,adb:false,rwUsed:false,t0:0};
 const cgSafe=f=>{try{return f()}catch(e){return undefined}};
 if(CGON){const sc=document.createElement('script');sc.src='https://sdk.crazygames.com/crazygames-sdk-v3.js';
   sc.onload=async()=>{try{const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;await S.init();if(S.environment==='disabled')return;CG.sdk=S;cgSafe(()=>S.game.loadingStart());const ld=()=>cgSafe(()=>S.game.loadingStop());(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>requestAnimationFrame(()=>requestAnimationFrame(ld)));setTimeout(ld,4000);
     const st0=cgSafe(()=>S.game.settings)||{};CG.mute=!!st0.muteAudio;CG.chatOff=!!st0.disableChat;masterVol();
     cgSafe(()=>S.game.addSettingsChangeListener(v=>{CG.mute=!!(v&&v.muteAudio);CG.chatOff=!!(v&&v.disableChat);masterVol()}));
     try{CG.adb=!!(await S.ad.hasAdblock())}catch(e){}
+    // The CrazyGames account: its username is the player's name in co-op, and its cloud (Data module) keeps the progress
+    try{CG.user=await S.user.getUser()}catch(e){CG.user=null}
+    cgSafe(()=>S.user.addAuthListener(u=>{if(u&&!CG.user)location.reload()}));
+    cgPull();
     // Playing with friends: a friend's invite (or the Join button) opens the lobby and joins that room by itself, and a party
     // leader who started 'play with friends' gets a fresh room straight away, with no menus in between
     const room=cgSafe(()=>S.game.getInviteParam('room'));
@@ -1211,8 +1221,16 @@ if(CGON){const sc=document.createElement('script');sc.src='https://sdk.crazygame
 function masterVol(){const v=(CG.ad||CG.mute)?0:.55*(save.vol??1);if(AU&&AU.m)AU.m.gain.value=v;return v}
 // Tell CrazyGames when real play starts and stops (menus, pause, end screen and ads are breaks)
 // Open the lobby and join the room with this code, or create a new room when there is no code
+// Name used in co-op: the CrazyGames username when logged in, else the one typed in the lobby
+const myName=()=>((CG.user&&CG.user.username)||save.mpn||'Player').slice(0,16);
+const cgScore=o=>(o&&((o.lvl||0)*1e6+(o.xp||0)+Object.keys(o.stars||{}).length*1e3))||0;
+function cgPull(){if(!CG.sdk)return;let raw=null;try{raw=CG.sdk.data.getItem(SAVE_KEY)}catch(e){}
+  if(raw){let o=null;try{o=JSON.parse(raw)}catch(e){}
+    if(o&&cgScore(o)>cgScore(save)){let d=0;try{d=sessionStorage.getItem('cg-pulled')}catch(e){}if(!d){try{localStorage.setItem(SAVE_KEY,raw);sessionStorage.setItem('cg-pulled','1')}catch(e){return}location.reload();return}}}
+  cgPush(1)}
+function cgPush(now){if(!CG.sdk)return;clearTimeout(CG.pushT);const go=()=>cgSafe(()=>CG.sdk.data.setItem(SAVE_KEY,JSON.stringify(save)));if(now)go();else CG.pushT=setTimeout(go,2500)}
 function cgLobby(code){code=code.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);if(MP||NET.code)return;NET.prefill=code;if(inGame&&!MP&&st.qs&&st.wave<1){inGame=false;runDrop()}if(inGame&&!MP)return;openMenu();scr('lobby');
-  const name=(save.mpn||'Player').slice(0,16);netOpen(()=>netSend(code.length===4?{t:'join',code,name,info:myInfo()}:{t:'create',name,info:myInfo()}))}
+  const name=myName();netOpen(()=>netSend(code.length===4?{t:'join',code,name,info:myInfo()}:{t:'create',name,info:myInfo()}))}
 // Tell CrazyGames about the room we are in: the invite button, and who is in it
 function cgRoom(){const key=NET.code?NET.code+'|'+NET.players.length:'';if(key===CG.room)return;const had=CG.room;CG.room=key;
   if(NET.code)cgSafe(()=>CG.sdk.game.updateRoom({roomId:NET.code,isJoinable:NET.players.length<4,inviteParams:{room:NET.code}}));
@@ -1236,7 +1254,7 @@ function auInit(){if(AU.ctx)return;const A=window.AudioContext||window.webkitAud
   AU.sfx=c.createGain();AU.sfx.gain.value=save.snd?1:0;AU.sfx.connect(AU.m);const rs=c.createGain();rs.gain.value=.2;AU.sfx.connect(rs);rs.connect(AU.rv);
   AU.mus=c.createGain();AU.mus.gain.value=save.mus?.3:0;AU.mus.connect(AU.m);const rm=c.createGain();rm.gain.value=.4;AU.mus.connect(rm);rm.connect(AU.rv);
   const b=c.createBuffer(1,c.sampleRate*.6,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.noise=b;musStart()}catch(e){}}
-addEventListener('pointerdown',auInit);addEventListener('keydown',auInit);
+addEventListener('touchend',()=>{if(AU.ctx&&AU.ctx.state!=='running')AU.ctx.resume().catch(()=>{})},{passive:true});addEventListener('pointerdown',auInit);addEventListener('keydown',auInit);
 // Route a voice through an optional stereo panner to its destination
 function auOut(c,n,pn,dest){if(pn&&c.createStereoPanner){const p=c.createStereoPanner();p.pan.value=pn;n.connect(p);p.connect(dest)}else n.connect(dest)}
 // One oscillator note: pitch slide, attack/decay (or held pad) envelope, and optional lowpass, vibrato, detune and thickening (thick = chorus in cents)
@@ -3878,7 +3896,7 @@ addEventListener('keydown',e=>{
   if(e.target&&e.target.tagName==='INPUT')return;
   if(!$('chm').hidden){if(e.key==='Escape'&&CH&&CH.done)closeChest();return}
   if(!$('mm').hidden){if(e.key==='Escape'&&inGame)closeMenu();return}
-  if(e.key==='Escape'){if(st.aim)st.aim=null;else openMenu();return}
+  if(e.key==='Escape'){if(st.aim)st.aim=null;return}
   const kl=e.key.toLowerCase();
   if(kl==='p'&&inGame&&!st.over){if(!(MP&&!MP.host))st.pause=!st.pause;return}
   if(kl==='f'){$('fs').click();return}
@@ -3908,6 +3926,7 @@ function lbMsg(s){NET.msg=s;const el=$('lb-msg');if(el)el.textContent=s}
 /* --- Connection --- */
 // The co-op server. A copy of the game served from somewhere else (GitHub Pages, a file) connects to it directly.
 const MP_SERVER='wss://tower-defense1.onrender.com';
+try{fetch(MP_SERVER.replace(/^wss/,'https')+'/',{mode:'no-cors',cache:'no-store'}).catch(()=>{})}catch(e){}
 function wakeMP(){if((location.protocol==='https:'?'wss://':'ws://')+location.host!==MP_SERVER)fetch(MP_SERVER.replace('wss:','https:')+'/healthz',{mode:'no-cors',cache:'no-store'}).catch(()=>{})}
 function netOpen(then,url){
   if(NET.ws&&NET.ws.readyState===1){then();return}
@@ -3933,7 +3952,7 @@ function netMsg(m){
   switch(m.t){
     case 'joined':
       NET.you=m.you;NET.code=m.code;NET.players=m.players;NET.info={};NET.tok=m.tok||'';NET.rc=0;
-      try{sessionStorage.setItem('td-room',JSON.stringify({code:m.code,tok:NET.tok,name:save.mpn||'Player'}))}catch(e){}
+      try{sessionStorage.setItem('td-room',JSON.stringify({code:m.code,tok:NET.tok,name:myName()}))}catch(e){}
       if(m.playing&&!m.back)toast('Game in progress','Joining the running game\u2026',null,'#38d68a');
       if(m.you===1){NET.set=defaultSet();netSend({t:'settings',settings:NET.set})}else{NET.set=m.settings||defaultSet();sendInfo(true)}
       lbMsg('');renderLobby();break;
@@ -3989,11 +4008,12 @@ function renderLobby(){
   const el=$('lb');if(!el)return;
   const nm=escH(save.mpn||'');
   if(!NET.code){
-    el.innerHTML='<div class="lbc" style="max-width:480px"><div class="lbf"><label>Your name</label><input type="text" id="lb-name" maxlength="16" placeholder="Player" value="'+nm+'"></div>'
+    el.innerHTML='<div class="lbc" style="max-width:480px">'+(CG.user&&CG.user.username?'<div class="lbf"><label>Playing as</label><b>'+escH(myName())+'</b></div>':'<div class="lbf"><label>Your name</label><input type="text" id="lb-name" maxlength="16" placeholder="Player" value="'+nm+'"></div>')
      +'<button class="go" data-act="create">Create a room</button>'
      +'<div class="lbor"><span>or join a friend</span></div>'
      +'<div class="lbf"><label>Room code</label><div class="lbrow"><input type="text" id="lb-code" maxlength="4" placeholder="ABCD" value="'+escH(NET.prefill)+'" autocomplete="off"><button data-act="join">Join</button></div></div>'
      +'<p class="lbmsg" id="lb-msg">'+escH(NET.msg)+'</p>'
+     +'<details class="priv"><summary>Privacy</summary><p>Online play sends your name, room code and chat messages to our game server so players in the same room can see them. Chat is filtered, nothing is sold or shared, and rooms are forgotten when they close. Your progress stays in your browser (or in your CrazyGames account).</p></details>'
      +'<p class="note">Up to 4 players share one castle. Each player builds their own towers, earns their own gold and keeps their own progress. The host chooses the settings and starts every wave.</p></div>';
     return;
   }
@@ -4024,7 +4044,7 @@ function renderLobby(){
     const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
     const a=b.dataset.act;
     if(a==='create'||a==='join'){
-      const name=($('lb-name').value||'').trim()||'Player';save.mpn=name;persist();
+      const name=CG.user&&CG.user.username?myName():($('lb-name').value||'').trim()||'Player';if(!(CG.user&&CG.user.username)){save.mpn=name;persist()}
       const code=(($('lb-code')||{}).value||'').trim().toUpperCase();
       if(a==='join'&&code.length!==4){lbMsg('Enter the 4-letter room code.');return}
       netOpen(()=>netSend(a==='create'?{t:'create',name,info:myInfo()}:{t:'join',code,name,info:myInfo()}));
@@ -4435,7 +4455,7 @@ $('mpbar').addEventListener('click',e=>{
   let sv=null;try{sv=JSON.parse(sessionStorage.getItem('td-room')||'null')}catch(e){}
   if(sv&&sv.code&&sv.tok&&(!q||q===sv.code)){
     NET.prefill=sv.code;NET.tok=sv.tok;NET.pend=1;
-    setTimeout(()=>{openMenu();scr('lobby');lbMsg('Rejoining your room\u2026');netOpen(()=>netSend({t:'join',code:sv.code,name:sv.name||save.mpn||'Player',tok:sv.tok,info:myInfo()}))},80);
+    setTimeout(()=>{openMenu();scr('lobby');lbMsg('Rejoining your room\u2026');netOpen(()=>netSend({t:'join',code:sv.code,name:sv.name||myName(),tok:sv.tok,info:myInfo()}))},80);
   }else if(q){NET.prefill=q;NET.pend=1;setTimeout(()=>{openMenu();scr('lobby')},50)}
 })();
 

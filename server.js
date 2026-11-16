@@ -39,8 +39,32 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocketServer({ server, maxPayload: 512 * 1024, perMessageDeflate: { threshold: 512 } });
 
+// Chat and name moderation: blocked words are replaced by stars, also when disguised (f.u.c.k, sh1t, spaces between letters)
+const BAD = ['fuck','shit','bitch','cunt','asshole','pussy','whore','slut','bastard','nigga','nigger','retard','nazi','hitler','porn','penis','vagina','boob','kurva','kokot','debil','zasran','svine','hovno','jebat','jebnut','mrdat','prdel','hajzl','idiot'];
+const LEET = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '@': 'a', '$': 's', '!': 'i' };
+const fold = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+function censor(text) {
+  const t = String(text);
+  // Letters only, with the index of each letter in the original text, so a match can be starred out in place
+  const idx = []; let flat = '';
+  for (let i = 0; i < t.length; i++) {
+    const c = fold(t[i]); const m = LEET[c] || c;
+    if (/[a-z]/.test(m)) { flat += m; idx.push(i); }
+  }
+  const out = t.split('');
+  for (const w of BAD) {
+    let at = flat.indexOf(w);
+    while (at !== -1) {
+      const a = idx[at], b = idx[at + w.length - 1];
+      for (let i = a; i <= b; i++) if (out[i] !== ' ') out[i] = '*';
+      at = flat.indexOf(w, at + 1);
+    }
+  }
+  return out.join('');
+}
 const clean = (s, max, fallback) => {
   s = String(s || '').replace(/[\u0000-\u001f<>&"']/g, '').trim().slice(0, max);
+  s = censor(s);
   return s || fallback;
 };
 const send = (ws, obj) => {
