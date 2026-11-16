@@ -200,6 +200,14 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .leak .lkt b{color:var(--gold);margin-right:6px}
 /* First-game tips: over the board, below it on narrow screens */
 #tut{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;width:min(360px,calc(100% - 20px));padding:10px 14px 12px;border-radius:12px;background:rgba(14,19,26,.94);border:1px solid rgba(244,193,82,.45);box-shadow:0 12px 30px rgba(0,0,0,.45);pointer-events:none;animation:tutin .3s ease-out}
+#tut p kbd{color:#fff;background:rgba(255,255,255,.12)}
+#keys{position:absolute;left:10px;bottom:10px;z-index:4;display:flex;align-items:flex-start;gap:6px;padding:8px 10px;border-radius:10px;background:rgba(14,19,26,.82);border:1px solid var(--line2);pointer-events:none;animation:tutin2 .3s ease-out}
+#keysl{display:grid;grid-template-columns:auto auto;gap:4px 12px;font-size:11px;color:#c9d3df}
+#keysl i{font-style:normal;display:flex;align-items:center;gap:6px}
+#keysl span{display:inline-flex;gap:2px;align-items:center;min-width:22px;color:#fff}
+#keysl kbd{color:#fff;background:rgba(255,255,255,.12);font-size:9.5px}
+#keys button{pointer-events:auto;padding:0 2px;font-size:11px}
+@keyframes tutin2{from{opacity:0;transform:translateY(8px)}}
 @keyframes tutin{from{opacity:0;transform:translate(-50%,-8px)}}
 #tut .tuth{display:flex;align-items:center;gap:8px}
 #tut .tuth span{font:700 10px/1 Inter,sans-serif;padding:3px 6px;border-radius:99px;background:rgba(244,193,82,.16);color:var(--gold)}
@@ -210,6 +218,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 #tutok{margin-top:9px;padding:7px 14px;font-size:12px}
 .tuthl{animation:tuthl 1.6s ease-in-out infinite}
 @keyframes tuthl{50%{box-shadow:0 0 0 4px rgba(244,193,82,.55),0 0 22px rgba(244,193,82,.45)}}
+@media (max-width:900px){#keys{display:none}}
 @media (max-width:900px){#tut{position:relative;top:auto;left:auto;transform:none;width:auto;border-radius:0;border-width:1px 0 0;box-shadow:none;animation:none}}
 
 /* Main menu */
@@ -670,7 +679,8 @@ h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;
 <main>
 <div class="wrap">
   <canvas id="c" aria-label="Game board"></canvas>
-  <div id="tut" hidden><div class="tuth"><span id="tutn"></span><b id="tutt"></b><button class="link" id="tutx">Skip tips</button></div><p id="tutd"></p><button class="go" id="tutok" hidden>Got it</button></div>
+  <div id="tut" hidden><div class="tuth"><span id="tutn"></span><b id="tutt"></b><button class="link" id="tutx">Skip ✕</button></div><p id="tutd"></p><button class="go" id="tutok" hidden>Got it</button></div>
+  <div id="keys" hidden><div id="keysl"></div><button class="link" id="keysx" aria-label="Hide controls">✕</button></div>
   <div class="chatov" id="chatov"></div>
   <input type="text" class="chatin" id="chatin" maxlength="140" placeholder="Message to the team (Enter to send)" hidden autocomplete="off">
   <div id="ov" hidden><div class="menu">
@@ -718,7 +728,7 @@ h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;
     <div id="types"></div>
     <p id="tsel"></p>
   </section>
-  <p class="hint"><kbd>1</kbd>–<kbd>0</kbd> <kbd>Q</kbd>–<kbd>T</kbd> towers · <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> spells · <kbd>Space</kbd> wave · <kbd>P</kbd> pause · <kbd>M</kbd> sound · <kbd>Esc</kbd> menu. Select a tower to upgrade it, change its target or sell it.</p>
+  <p class="hint" id="khint"><kbd>1</kbd>–<kbd>0</kbd> <kbd>Q</kbd>–<kbd>T</kbd> towers · <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> spells · <kbd>Space</kbd> wave · <kbd>P</kbd> pause · <kbd>M</kbd> sound · <kbd>Esc</kbd> menu. Select a tower to upgrade it, change its target or sell it.</p>
 </aside>
 <div id="accq" hidden></div>
 <div id="info" hidden>
@@ -1153,6 +1163,8 @@ const SKN=SKL.filter(s=>!s.def).length+1; // collectable skins per tower (8 + it
 // Progress (gems, unlocked towers, skins) is saved in this browser
 const SAVE_KEY='td-save-v1',DEF_UN=['sip','del','mraz','pla','dul'];
 let save={gems:100,un:[...DEF_UN],sk:{},eq:{},best:{}};
+// A brand-new player (nothing saved yet) skips the menus and lands straight in the first battle
+let FRESH=false;try{FRESH=!localStorage.getItem(SAVE_KEY)&&!localStorage.getItem('td-run-v1')}catch(e){}
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&typeof s==='object')save=Object.assign(save,s)}catch(e){}
 const persist0=()=>{try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch(e){}};
 const persist=()=>{accDirty();persist0()};
@@ -1195,7 +1207,7 @@ if(CGON){const sc=document.createElement('script');sc.src='https://sdk.crazygame
 function masterVol(){const v=(CG.ad||CG.mute)?0:.55*(save.vol??1);if(AU&&AU.m)AU.m.gain.value=v;return v}
 // Tell CrazyGames when real play starts and stops (menus, pause, end screen and ads are breaks)
 // Open the lobby and join the room with this code, or create a new room when there is no code
-function cgLobby(code){code=code.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);if(MP||NET.code)return;NET.prefill=code;if(inGame&&!MP)return;openMenu();scr('lobby');
+function cgLobby(code){code=code.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);if(MP||NET.code)return;NET.prefill=code;if(inGame&&!MP&&st.qs&&st.wave<1){inGame=false;runDrop()}if(inGame&&!MP)return;openMenu();scr('lobby');
   const name=(save.mpn||'Player').slice(0,16);netOpen(()=>netSend(code.length===4?{t:'join',code,name,info:myInfo()}:{t:'create',name,info:myInfo()}))}
 // Tell CrazyGames about the room we are in: the invite button, and who is in it
 function cgRoom(){const key=NET.code?NET.code+'|'+NET.players.length:'';if(key===CG.room)return;const had=CG.room;CG.room=key;
@@ -3223,6 +3235,7 @@ function draw(){
   if(st.bliz>0){g.globalAlpha=Math.min(1,st.bliz)*.5;g.fillStyle=cg('frostv',()=>{const r=g.createRadialGradient(W*C/2,H*C/2,H*C*.28,W*C/2,H*C/2,W*C*.62);r.addColorStop(0,'rgba(200,235,255,0)');r.addColorStop(1,'rgba(220,245,255,.8)');return r});g.fillRect(0,0,W*C,H*C);g.globalAlpha=1}
   if(st.twp>0){g.fillStyle='rgba(120,90,255,'+Math.min(.14,st.twp*.05)+')';g.fillRect(0,0,W*C,H*C)}
   if(st.mid>0){for(let i=0;i<10;i++){const x=(i*97+tm*30)%(W*C),y=(i*61+tm*40)%(H*C);g.globalAlpha=Math.min(1,st.mid)*.7;star(x,y,2,'#ffd34d')}g.globalAlpha=1}
+  tutDraw();
   if(st.pause&&!st.over){g.fillStyle='rgba(8,11,16,.55)';g.fillRect(0,0,W*C,H*C);g.textAlign='center';g.textBaseline='middle';g.font='700 44px '+FONT;g.fillStyle='#fff';g.fillText('PAUSED',W*C/2,H*C/2-8);g.font='600 12px Inter,sans-serif';g.fillStyle='#b7c2d0';g.fillText('Press P or the Pause button to resume · you can still build and upgrade',W*C/2,H*C/2+24)}
 }
 function ui(){cgPlay();ui0();if(MP)mpUi();tutTick()}
@@ -3337,10 +3350,28 @@ addEventListener('resize',()=>twTip(null));addEventListener('scroll',()=>twTip(n
 
 /* ---------- First-game tips (single player, until finished or skipped) ---------- */
 const TUT=[
-  {t:'Build your first tower',d:()=>T[st.type].n+' is selected. '+(coarse()?'Tap a grass tile next to the path, then tap it again to build.':'Click a grass tile next to the path to build it.'),done:()=>st.tw.length>0},
-  {t:'Start the first wave',d:()=>'Build one or two more towers, then press Start wave (or Space). Enemies follow the path to your castle.',hl:'start',done:()=>st.wave>0},
-  {t:'Upgrade your towers',d:()=>'Every enemy that reaches the castle costs a life. Click a tower to upgrade it with the gold you earn.',done:()=>!!st.sel||st.wave>1},
-  {t:'Spells help in a pinch',d:()=>'Your spells (Z, X, C) recharge while a wave is running. Pick which ones to bring on the Play screen. Good luck!',hl:'spells',ok:1,done:()=>st.wave>2}];
+  {t:'Build a tower',d:()=>coarse()?'Tap the glowing tile twice':'Click the glowing tile',at:()=>{const c=tutTile();return c&&{x:c.x*C+C/2,y:c.y*C+C/2,tile:1,l:coarse()?'TAP TWICE':'BUILD HERE'}},done:()=>st.tw.length>0},
+  {t:'Start the wave',d:()=>coarse()?'Tap <b>Start wave</b>':'Press <kbd>Space</kbd> or <b>Start wave</b>',hl:'start',done:()=>st.wave>0},
+  {t:'Upgrade',d:()=>(coarse()?'Tap':'Click')+' a tower to make it stronger',at:()=>{const t=st.tw[0];return t&&!st.sel&&{x:t.x,y:t.y,l:'UPGRADE'}},done:()=>!!st.sel||st.wave>1},
+  {t:'Spells',d:()=>coarse()?'Tap a spell when it gets tough':'<kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> cast spells',hl:'spells',ok:1,done:()=>st.wave>2}];
+// The tile the first tutorial step points at: free grass that sees a lot of path, near the middle of the board
+function tutTile(){if(st.tutC&&canBuild(st.type,st.tutC.x,st.tutC.y))return st.tutC;let b=null,bs=-1e9;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(!canBuild(st.type,x,y))continue;let n=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(road.has((x+dx)+','+(y+dy)))n++;
+    const sc=n-Math.abs(x-W/2)*.2-Math.abs(y-H*.55)*.25;if(sc>bs){bs=sc;b={x,y}}}
+  return st.tutC=b}
+// Draws the current step's pointer on the board: a glowing tile or ring, a bouncing arrow and a short label
+function tutDraw(){if(save.tips||MP||!inGame||st.over||!$('mm').hidden)return;const s=TUT[st.tut];if(!s||!s.at)return;const p=s.at();if(!p)return;
+  const b=Math.abs(Math.sin(tm*4)),a=.55+.45*b;g.save();g.shadowColor='rgba(244,193,82,.9)';g.shadowBlur=16;g.lineWidth=3;g.strokeStyle='rgba(244,193,82,'+a+')';
+  if(p.tile){g.fillStyle='rgba(244,193,82,'+(.12+.12*b)+')';g.fillRect(p.x-C/2+2,p.y-C/2+2,C-4,C-4);g.strokeRect(p.x-C/2+2,p.y-C/2+2,C-4,C-4)}
+  else{g.beginPath();g.arc(p.x,p.y,24+b*3,0,7);g.stroke()}
+  const ay=p.y-C/2-8-b*8;g.fillStyle='#f4c152';g.beginPath();g.moveTo(p.x,ay);g.lineTo(p.x-11,ay-13);g.lineTo(p.x-4,ay-13);g.lineTo(p.x-4,ay-24);g.lineTo(p.x+4,ay-24);g.lineTo(p.x+4,ay-13);g.lineTo(p.x+11,ay-13);g.closePath();g.fill();
+  g.shadowBlur=0;g.font='700 12px '+FONT;const tw=g.measureText(p.l).width+18,lx=Math.max(tw/2+4,Math.min(W*C-tw/2-4,p.x)),ly=ay-38;
+  rr(lx-tw/2,ly-11,tw,22,11,'rgba(14,19,26,.92)');g.textAlign='center';g.textBaseline='middle';g.fillStyle='#f4c152';g.fillText(p.l,lx,ly+1);g.restore()}
+// Controls card for the first battles: what the mouse/touch and keys do, until wave 3 or until closed
+function keysInit(){const k=t=>'<kbd>'+t+'</kbd>',mouse='<svg viewBox="0 0 24 24" width="14" height="14"><rect x="6" y="3" width="12" height="18" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3v6" stroke="currentColor" stroke-width="2"/></svg>',tap='<svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  $('keysl').innerHTML=(coarse()?[[tap+' ×2','Build'],[tap,'Upgrade']]:[[mouse,'Build · upgrade'],[k('Space'),'Wave'],[k('1')+'–'+k(HOT[Math.max(0,Math.min(AV.length,10)-1)]),'Towers'],[k('Z')+k('X')+k('C'),'Spells'],[k('P'),'Pause'],[k('F'),'Fullscreen'],[k('M'),'Sound']]).map(r=>'<i><span>'+r[0]+'</span>'+r[1]+'</i>').join('');
+  $('keysx').onclick=()=>{save.keys=1;persist();$('keys').hidden=true}}
+function keysTick(){const el=$('keys'),on=!save.keys&&inGame&&!st.over&&$('mm').hidden&&!MP&&st.wave<3;if(on===el.hidden){el.hidden=!on;$('khint').hidden=on}if(inGame&&st.wave>=3&&!save.keys){save.keys=1;persist()}}
 // Feature tips: after the first-game tutorial, each of these shows once (save.ft) the first time it matters
 const FTIP=[
   {id:'boss',t:'Boss wave next',when:()=>st.wave===4&&!st.run,d:()=>{const B=MAPS[cur].e.tank;return'Every 5th wave brings the '+B.n+(B.ab?' — '+BOSSN[B.ab]+': '+AB[B.ab].n.toLowerCase():'')+'. A boss that reaches the castle costs 2 lives.'},ok:1},
@@ -3353,13 +3384,13 @@ function ftTick(el){save.ft=save.ft||{};
   if(!st.ftc){const f=FTIP.find(f=>!save.ft[f.id]&&f.when());if(!f){if(!el.hidden){el.hidden=true;tutHl(null)}return}st.ftc=f;st.ftd=f.d()}
   const f=st.ftc,d=st.ftd,k='f|'+f.id+'|'+d;if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent='Tip';$('tutt').textContent=f.t;$('tutd').textContent=d;$('tutok').hidden=false;tutHl(f.hl)}
   if(el.hidden){el.hidden=false;tutHl(f.hl)}}
-function tutTick(){const el=$('tut');
+function tutTick(){const el=$('tut');keysTick();
   if(save.tips&&inGame&&!st.over&&$('mm').hidden){ftTick(el);return}
   if(MP||save.tips||!inGame||st.over||!$('mm').hidden){if(!el.hidden){el.hidden=true;tutHl(null)}return}
   while(st.tut<TUT.length&&TUT[st.tut].done())st.tut++;
   if(st.tut>=TUT.length){tutEnd();return}
   const s=TUT[st.tut],d=s.d(),k=st.tut+'|'+d;
-  if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent=(st.tut+1)+'/'+TUT.length;$('tutt').textContent=s.t;$('tutd').textContent=d;$('tutok').hidden=!s.ok;tutHl(s.hl)}
+  if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent=(st.tut+1)+'/'+TUT.length;$('tutt').textContent=s.t;$('tutd').innerHTML=d;$('tutok').hidden=!s.ok;tutHl(s.hl)}
   if(el.hidden){el.hidden=false;tutHl(s.hl)}}
 function tutHl(id){document.querySelectorAll('.tuthl').forEach(e=>e.classList.remove('tuthl'));if(id)$(id).classList.add('tuthl')}
 function tutEnd(){save.tips=1;persist();$('tut').hidden=true;tutHl(null)}
@@ -3621,6 +3652,8 @@ function showReveal(){const s=SK[CH.id],R=RAR[CH.r],more=chestPool(CH.r).length&
 function closeChest(){CH=null;$('chm').hidden=true;scr('chests')}
 $('chc').onclick=()=>{if(CH&&!CH.done)CH.t0=performance.now()-(CH_T+.9)*1000};
 
+// First visit: the easiest battlefield on Easy with default spells, no menus in between
+function quickStart(){mapI=0;layI=0;dif=0;RUN.en=false;RUN.mods={};startGame();st.qs=1;persist()}
 function startGame(){CG.rwUsed=false;if(!worldOpen(mapI)||!layOpen(mapI,layI)||!difOpen(dif))return;RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;runCalc();setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;closeMenu();runSave()}
 // Spell bar: the three base spells plus any learned in the skill tree
 function buildSpells(){const L=myLoad().map(k=>SPK[k]);$('spells').innerHTML=L.map((s,i)=>'<button class="sp" id="sp-'+s.k+'" title="'+s.n+' ('+SPKEYS[i]+'): '+s.d+'" style="--sc:rgb('+s.col+')">'+s.ic+'<span>'+s.n+'</span><kbd>'+SPKEYS[i]+'</kbd><i class="cd"></i><em></em></button>').join('');$('spells').hidden=!L.length;
@@ -4372,9 +4405,9 @@ $('mpbar').addEventListener('click',e=>{
   let q='';try{q=(new URLSearchParams(location.search).get('room')||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,4)}catch(e){}
   let sv=null;try{sv=JSON.parse(sessionStorage.getItem('td-room')||'null')}catch(e){}
   if(sv&&sv.code&&sv.tok&&(!q||q===sv.code)){
-    NET.prefill=sv.code;NET.tok=sv.tok;
+    NET.prefill=sv.code;NET.tok=sv.tok;NET.pend=1;
     setTimeout(()=>{openMenu();scr('lobby');lbMsg('Rejoining your room\u2026');netOpen(()=>netSend({t:'join',code:sv.code,name:sv.name||save.mpn||'Player',tok:sv.tok,info:myInfo()}))},80);
-  }else if(q){NET.prefill=q;setTimeout(()=>{openMenu();scr('lobby')},50)}
+  }else if(q){NET.prefill=q;NET.pend=1;setTimeout(()=>{openMenu();scr('lobby')},50)}
 })();
 
 // How each run option looks on the Play screen: colour, icon and a short line of what it does
@@ -4391,7 +4424,7 @@ function paintRun(){
   $('rmult').textContent=RUN.rm>1?'Rewards ×'+RUN.rm.toFixed(2):'';
 }
 $('runopt').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const k=b.dataset.r;if(k==='en')RUN.en=!RUN.en;else RUN.mods[k]=!RUN.mods[k];paintRun();paintStart();paintElb()};
-setMap(0);buildPicker();reset();openMenu();if(coarse())$('phh').textContent='Tap a tile twice to build';
+setMap(0);buildPicker();reset();if(FRESH&&!NET.pend)quickStart();else openMenu();keysInit();if(coarse())$('phh').textContent='Tap a tile twice to build';
 if(FB_CONFIG){$('m-account').hidden=false;if(save.syncUid)fbLoad().catch(()=>{})}
 let last=0,achT=0;
 // One step of the game: logic, co-op updates and achievements (no drawing)
