@@ -2003,7 +2003,7 @@ function end(win){if(!MP)runDrop();$('ovteam').hidden=true;st.over=true;inGame=f
   $('ovt').textContent=RUN.en?'Run over':win?'Victory':'Defeat';$('ovs').textContent=win?(MP?'Your team':'You')+' defended all '+MAXW+' waves on '+D.n+(lost?'.':' without losing a life!'):(RUN.en?'The castle fell on wave '+st.wave+'. Your best on this map: wave '+Math.max(st.wave,(save.endless||{})[bk]||0)+'.':'The castle fell on wave '+st.wave+' of '+MAXW+'.');
   $('ovst').innerHTML=win?STAR(stars>=1)+STAR(stars>=2)+STAR(stars>=3):'';$('ovst').hidden=!win;
   $('oves').innerHTML='<div><b>'+st.kills+'</b><span>Enemies defeated</span></div><div><b>'+fmt(st.ge)+'</b><span>'+(MP?'Team gold earned':'Gold earned')+'</span></div><div><b>'+(mvp?T[mvp.k].n:'—')+'</b><span>MVP'+(mvp?' · '+fmt(mvp.dmg||0)+' dmg':'')+'</span></div>';leakBox(leakTop(st.lk));repBox();
-  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';$('ov').hidden=false;if(win)confetti();cgEnd(st.gems,win);if(RUN.dly)dlyEnd();if(RUN.ch)chEnd(win);elbRec();if(MP)mpOver(win)}
+  $('earn').textContent=st.gems;$('ov').dataset.s=win?'win':'lose';if(!MP)$('again').textContent=RUN.tut?(win?'Next battle':'Try again'):'Play again';$('ov').hidden=false;if(win)confetti();cgEnd(st.gems,win);if(RUN.dly)dlyEnd();if(RUN.ch)chEnd(win);elbRec();if(MP)mpOver(win)}
 let tm=0;
 const cir=(x,y,r,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill()};
 const ell=(x,y,rx,ry,c)=>{g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,7);g.fill()};
@@ -3909,7 +3909,10 @@ $('m-settings').onclick=()=>scr('settings');$('m-account').onclick=()=>scr('acco
 $('startgame').onclick=startGame;
 $('menu').onclick=openMenu;
 $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()};
-$('again').onclick=()=>{if(MP){mpBackToLobby();return}if(RUN.dly){dailyStart();return}if(RUN.ch){chStart(RUN.ch.m,RUN.ch.l);return}mapI=cur;layI=lay;startGame()};
+$('again').onclick=()=>{if(MP){mpBackToLobby();return}if(RUN.dly){dailyStart();return}if(RUN.ch){chStart(RUN.ch.m,RUN.ch.l);return}
+  // After the tutorial level: a win leads on to the next battlefield, a loss replays the tutorial
+  if(RUN.tut){if($('ov').dataset.s==='win'){mapI=cur;layI=Math.min(lay+1,MAPS[cur].ly.length-1)}else{mapI=cur;layI=lay;RUN.tutNext=1}startGame();return}
+  mapI=cur;layI=lay;startGame()};
 $('start').onclick=waveGo;$('tutx').onclick=()=>{if(save.tips){save.ft=save.ft||{};FTIP.forEach(f=>save.ft[f.id]=1);persist();st.ftc=null}else tutEnd()};$('tutok').onclick=()=>{if(st.ftc){save.ft=save.ft||{};save.ft[st.ftc.id]=1;persist();st.ftc=null;$('tut').hidden=true;tutHl(null)}else{st.tut++;if(st.tut>=TUT.length)tutEnd();else $('tut').dataset.k=''}};
 $('auto').onclick=()=>{if(MP&&!MP.host)return;auto=!auto;$('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');if(auto&&!st.run&&!st.over)startWave()};
 if(CGON){$('fs').hidden=true}
