@@ -804,7 +804,7 @@ input,textarea{-webkit-user-select:text;user-select:text}
           <span class="lbl">Run options <span id="rmult" style="text-transform:none;letter-spacing:0;color:var(--gold)"></span></span><div class="runopt" id="runopt"></div>
           <div class="startbar"><span id="sbsum"></span><button class="go" id="startgame">Start game</button></div>
         </div>
-        <div><div id="elb"></div><span class="lbl">Enemies in <span id="rname"></span></span><div class="roster" id="roster"></div><span class="lbl">Elites · from wave 8</span><div class="eroster" id="eroster"></div><span class="lbl" style="margin-top:16px">Weather in <span id="wxname"></span></span><p class="note" style="margin:0 0 8px;text-align:left">From wave 3, about one wave in three brings weather. You see it coming in the next-wave preview. Boss waves only bring good weather. You can turn weather off in Settings.</p><div class="roster" id="wxl"></div></div>
+        <div><div id="elb"></div><span class="lbl">Enemies in <span id="rname"></span></span><div class="roster" id="roster"></div><span class="lbl">Elites · from wave 8</span><div class="eroster" id="eroster"></div><span class="lbl" style="margin-top:16px">Weather in <span id="wxname"></span></span><p class="note" style="margin:0 0 8px;text-align:left">Insane only: from wave 3, about one wave in three brings weather. Boss waves only bring good weather.</p><div class="roster" id="wxl"></div></div>
       </div>
     </section>
 
@@ -1533,7 +1533,7 @@ const mastTier=b=>{const sv=SKC||save.skills||{};let p=0;for(const n of SKT)if(n
 const skOpen=s=>!s.req||s.req.every(([id,r])=>sk(id)>=r);
 const skNeed=s=>(s.req||[]).filter(([id,r])=>sk(id)<r).map(([id,r])=>SKI[id].n+' '+r).join(', ');
 const skCost=(s,r)=>s.c+Math.floor(r/2);
-function reset(){const D=DIFFS[dif];MAXW=RUN.ch?CHW:D.w;st={gold:Math.round((D.g+30*sk('e1')+35*mastTier('e'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
+function reset(){const D=DIFFS[dif];MAXW=RUN.ch?CHW:RUN.tut&&!RUN.dly?TUTW:D.w;st={gold:Math.round((D.g+30*sk('e1')+35*mastTier('e'))*RUN.gs),lives:Math.max(1,Math.round((D.l+2*sk('m4'))*RUN.lm)),wave:0,P:null,hpm:1,en:[],tw:[],bl:[],fx:[],pt:[],zap:[],beams:[],bolts:[],tq:[],seen:{},gems:0,q:0,sp:0,n:0,run:false,over:false,sel:null,type:AV[0]||'sip',hover:null,spd:1,
   scd:{},aim:null,met:[],scorch:[],zones:[],corpses:[],shake:0,hurt:0,flash:null,clr:null,kills:0,built:0,ge:0,dnc:0,pause:false,ovc:0,mid:0,twp:0,xp:0,elites:0,lives0:0,qge:0,early:0,pd:{},pk:{},dk:{},lwv:[],ev:null,nev:null,evt:0,wq:0,lk:{},tut:0,pend:null};
   if(RUN.ch&&RUN.ch.t.lives)st.lives=RUN.ch.t.lives;
   st.lives0=st.lives;SPELLS.forEach(s=>st.scd[s.k]=0);if(MP)mpAfterReset();$('ov').hidden=true;if(auto&&!(MP&&!MP.host))st.nxt=2}
@@ -1566,7 +1566,7 @@ const EVW={grass:['fog','rain','storm','wind','lucky','moon'],sea:['rain','storm
   ruins:['quake','heat','moon','fog'],shroom:['fog','rain','moon','lucky'],factory:['quake','heat','storm','moon'],moon:['quake','moon','lucky','wind']};
 const evx=k=>st.run&&st.ev===k; // is event k active right now
 const EVGOOD=['storm','lucky','rain']; // the only events a boss wave can bring, so bosses never come with extra trouble
-function rollEv(w){if(w<3||save.wx===0||RUN.ch)return null;let r=Math.random;
+function rollEv(w){if(w<3||save.wx===0||RUN.ch||dif!==3)return null;let r=Math.random;
   if(RUN.dly){let h=2166136261;for(const c of RUN.dly+'|'+w)h=Math.imul(h^c.charCodeAt(0),16777619);r=()=>{h=Math.imul(h^h>>>15,h|1);h^=h+Math.imul(h^h>>>7,h|61);return((h^h>>>14)>>>0)/4294967296}}
   if(r()>=.3)return null;let L=EVW[MAPS[cur].th]||EVW.grass;if(w%5===0)L=L.filter(k=>EVGOOD.includes(k));return L.length?L[Math.floor(r()*L.length)]:null}
 // Active event effects that are not one-off modifiers: lightning strikes and tremors
@@ -3392,11 +3392,15 @@ let TWMAX=null;
 addEventListener('resize',()=>twTip(null));addEventListener('scroll',()=>twTip(null),true);
 
 /* ---------- First-game tips (single player, until finished or skipped) ---------- */
+const tw0=()=>st.tw.find(t=>!T[t.k].trap),twAt=l=>{const t=tw0();return t&&!st.sel&&{x:t.x,y:t.y,l}};
 const TUT=[
   {t:'Build a tower',d:()=>coarse()?'Tap the glowing tile twice':'Click the glowing tile',at:()=>{const c=tutTile();return c&&{x:c.x*C+C/2,y:c.y*C+C/2,tile:1,l:coarse()?'TAP TWICE':'BUILD HERE'}},done:()=>st.tw.length>0},
   {t:'Start the wave',d:()=>coarse()?'Tap <b>Start wave</b>':'Press <kbd>Space</kbd> or <b>Start wave</b>',hl:'start',done:()=>st.wave>0},
-  {t:'Upgrade',d:()=>(coarse()?'Tap':'Click')+' a tower to make it stronger',at:()=>{const t=st.tw[0];return t&&!st.sel&&{x:t.x,y:t.y,l:'UPGRADE'}},done:()=>!!st.sel||st.wave>1},
-  {t:'Spells',d:()=>coarse()?'Tap a spell when it gets tough':'<kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> cast spells',hl:'spells',ok:1,done:()=>st.wave>2}];
+  {t:'Upgrade',d:()=>st.sel?'Buy <b>Damage</b>, <b>Speed</b> or <b>Range</b> with gold. <b>Sell</b> gives gold back.':(coarse()?'Tap':'Click')+' your tower',hl:'u-d',at:()=>twAt('UPGRADE'),done:()=>st.tw.some(t=>tot(t)>0)},
+  {t:'Pick a target',d:()=>st.sel?'<b>Target</b> sets who the tower shoots first':(coarse()?'Tap':'Click')+' your tower',hl:'u-t',at:()=>twAt('TARGET'),ok:1,done:()=>st.wave>=3||st.tw.some(t=>t.tg&&t.tg!=='first')},
+  {t:'Cast a spell',d:()=>coarse()?'Tap a spell while enemies walk':'<kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> or tap a spell while enemies walk',hl:'spells',when:()=>st.run,ok:1,done:()=>st.wave>=4||save.stats.spells>(st.sp0??(st.sp0=save.stats.spells))},
+  {t:'Go faster',d:()=>'<b>Speed</b> speeds the game up, <b>Auto</b> starts waves for you',hl:'spd',when:()=>st.wave>=2,ok:1,done:()=>st.wave>=4||st.spd>1||auto},
+  {t:'Boss wave',d:()=>'The last wave brings a boss. It costs 2 lives if it gets through.',when:()=>st.wave>=MAXW-1&&!st.run,ok:1,done:()=>st.wave>=MAXW}];
 // The tile the first tutorial step points at: free grass that sees a lot of path, near the middle of the board
 function tutTile(){if(st.tutC&&canBuild(st.type,st.tutC.x,st.tutC.y))return st.tutC;let b=null,bs=-1e9;
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(!canBuild(st.type,x,y))continue;let n=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(road.has((x+dx)+','+(y+dy)))n++;
@@ -3440,7 +3444,7 @@ function tutTick(){const el=$('tut');keysTick();
   if(MP||save.tips||!inGame||st.over||!$('mm').hidden){if(!el.hidden){el.hidden=true;tutHl(null)}return}
   while(st.tut<TUT.length&&TUT[st.tut].done())st.tut++;
   if(st.tut>=TUT.length){tutEnd();return}
-  const s=TUT[st.tut],d=s.d(),k=st.tut+'|'+d;
+  const s=TUT[st.tut];if(s.when&&!s.when()){if(!el.hidden){el.hidden=true;tutHl(null)}return}const d=s.d(),k=st.tut+'|'+d;
   if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent=(st.tut+1)+'/'+TUT.length;$('tutt').textContent=s.t;$('tutd').innerHTML=d;$('tutok').hidden=!s.ok;tutHl(s.hl)}
   if(el.hidden){el.hidden=false;tutHl(s.hl)}}
 function tutHl(id){document.querySelectorAll('.tuthl').forEach(e=>e.classList.remove('tuthl'));if(id)$(id).classList.add('tuthl')}
@@ -3720,8 +3724,10 @@ function closeChest(){CH=null;$('chm').hidden=true;scr('chests')}
 $('chc').onclick=()=>{if(CH&&!CH.done)CH.t0=performance.now()-(CH_T+.9)*1000};
 
 // First visit: the easiest battlefield on Easy with default spells, no menus in between
-function quickStart(){mapI=0;layI=0;dif=0;RUN.en=false;RUN.mods={};startGame();st.qs=1;persist()}
-function startGame(){CG.rwUsed=false;if(!worldOpen(mapI)||!layOpen(mapI,layI)||!difOpen(dif))return;RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;runCalc();setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;closeMenu();runSave()}
+// The first battle is a short tutorial level: TUTW waves, the last one a boss
+const TUTW=5;
+function quickStart(){mapI=0;layI=0;dif=0;RUN.en=false;RUN.mods={};RUN.tutNext=1;startGame();st.qs=1;persist()}
+function startGame(){CG.rwUsed=false;RUN.tut=!!RUN.tutNext;RUN.tutNext=0;if(!worldOpen(mapI)||!layOpen(mapI,layI)||!difOpen(dif))return;RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;runCalc();setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';$('spd').textContent='Speed 1×';$('spd').classList.remove('on');$('sub').textContent=MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;$('sub').title=MAPS[cur].n+' · '+MAPS[cur].ly[lay].n+' · '+DIFFS[dif].n;closeMenu();runSave()}
 // Spell bar: the three base spells plus any learned in the skill tree
 function buildSpells(){const L=myLoad().map(k=>SPK[k]);$('spells').innerHTML=L.map((s,i)=>'<button class="sp" id="sp-'+s.k+'" title="'+s.n+' ('+SPKEYS[i]+'): '+s.d+'" style="--sc:rgb('+s.col+')">'+s.ic+'<span>'+s.n+'</span><kbd>'+SPKEYS[i]+'</kbd><i class="cd"></i><em></em></button>').join('');$('spells').hidden=!L.length;
 L.forEach(s=>$('sp-'+s.k).onclick=()=>castSpell(s.k))}
@@ -3771,7 +3777,7 @@ function paintElb(){const el=$('elb');if(!el||$('s-play').hidden)return;if(!FB_C
 const RUNKEY='td-run-v1';let runT=0;
 function runSave(){if(MP||!inGame||st.over||st.run)return;try{
   localStorage.setItem(RUNKEY,JSON.stringify({v:1,wv:2,at:Date.now(),m:cur,l:lay,dif,
-    run:{en:RUN.en,mods:RUN.mods,dly:RUN.dly,ch:RUN.ch?[RUN.ch.m,RUN.ch.l]:null},
+    run:{tut:RUN.tut?1:0,en:RUN.en,mods:RUN.mods,dly:RUN.dly,ch:RUN.ch?[RUN.ch.m,RUN.ch.l]:null},
     s:{gold:st.gold,lives:st.lives,lives0:st.lives0,wave:st.wave,ge:st.ge,gems:st.gems,kills:st.kills,xp:st.xp,elites:st.elites,built:st.built,qge:st.qge,scd:st.scd,nev:st.nev,lk:st.lk,dk:st.dk,lwv:st.lwv,seen:st.seen,spH:st.spH},
     tw:st.tw.map(t=>({k:t.k,cx:t.cx,cy:t.cy,u:t.u,sp:t.sp,tg:t.tg,inv:t.inv,dmg:t.dmg||0,kills:t.kills||0}))}))}catch(e){}}
 const runSaveSoon=()=>{if(st.run||MP)return;clearTimeout(runT);runT=setTimeout(runSave,400)};
@@ -3782,7 +3788,7 @@ function runLoad(){let d=null;try{d=JSON.parse(localStorage.getItem(RUNKEY)||'nu
 const runName=d=>d.run.ch?'Challenge · '+chOf(d.run.ch[0],d.run.ch[1]).t.n:d.run.dly?'Daily challenge':(d.cust?d.cust.n:MAPS[d.m].ly[d.l].n)+' · '+DIFFS[d.dif].n;
 function runResume(){const d=runLoad();if(!d||d.cust){if(d)try{localStorage.removeItem(RUNKEY)}catch(e){}renderHome();return}
   if(d.run.dly||d.run.ch){if(!spRun()||DLY.m)DLY.keep={dif,en:RUN.en,mods:RUN.mods}}else DLY.keep=null;DLY.m=0;
-  dif=d.dif;RUN.en=!!d.run.en;RUN.mods=d.run.mods||{};RUN.dly=d.run.dly||null;RUN.ch=d.run.ch?chOf(d.run.ch[0],d.run.ch[1]):null;inGame=true;runCalc();
+  dif=d.dif;RUN.tut=!!d.run.tut;RUN.en=!!d.run.en;RUN.mods=d.run.mods||{};RUN.dly=d.run.dly||null;RUN.ch=d.run.ch?chOf(d.run.ch[0],d.run.ch[1]):null;inGame=true;runCalc();
   setMap(d.m,d.l);buildPicker();buildSpells();reset();
   Object.assign(st,d.s);
   st.tw=d.tw.filter(o=>T[o.k]).map(o=>{const n={k:o.k,u:o.u,cx:o.cx,cy:o.cy,x:o.cx*C+C/2,y:o.cy*C+C/2,cd:0,inv:o.inv,pop:0,tg:o.tg,dmg:o.dmg,kills:o.kills,_id:++NET.nid};if(o.sp===0||o.sp===1)n.sp=o.sp;stat(n);return n});
@@ -3904,7 +3910,7 @@ $('startgame').onclick=startGame;
 $('menu').onclick=openMenu;
 $('tomenu').onclick=()=>{if(MP){mpLeave();return}$('ov').hidden=true;openMenu()};
 $('again').onclick=()=>{if(MP){mpBackToLobby();return}if(RUN.dly){dailyStart();return}if(RUN.ch){chStart(RUN.ch.m,RUN.ch.l);return}mapI=cur;layI=lay;startGame()};
-$('start').onclick=waveGo;$('tutx').onclick=()=>{if(save.tips){save.ft=save.ft||{};FTIP.forEach(f=>save.ft[f.id]=1);persist();st.ftc=null}else tutEnd()};$('tutok').onclick=()=>{if(st.ftc){save.ft=save.ft||{};save.ft[st.ftc.id]=1;persist();st.ftc=null;$('tut').hidden=true;tutHl(null)}else tutEnd()};
+$('start').onclick=waveGo;$('tutx').onclick=()=>{if(save.tips){save.ft=save.ft||{};FTIP.forEach(f=>save.ft[f.id]=1);persist();st.ftc=null}else tutEnd()};$('tutok').onclick=()=>{if(st.ftc){save.ft=save.ft||{};save.ft[st.ftc.id]=1;persist();st.ftc=null;$('tut').hidden=true;tutHl(null)}else{st.tut++;if(st.tut>=TUT.length)tutEnd();else $('tut').dataset.k=''}};
 $('auto').onclick=()=>{if(MP&&!MP.host)return;auto=!auto;$('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');if(auto&&!st.run&&!st.over)startWave()};
 if(CGON){$('fs').hidden=true}
 $('fs').onclick=()=>{const d=document;try{(d.fullscreenElement?d.exitFullscreen():d.documentElement.requestFullscreen()).catch(()=>{})}catch(e){}};
@@ -4098,7 +4104,7 @@ function mpStart(){
 function beginMP(S,players,host){
   MP={host,id:NET.you,set:S,players:players.map((p,i)=>Object.assign({},p,{col:PCOL[i%4]})),evq:new Set(),evs:[],kd:[]};
   NET.last=new Map();NET.live={};NET.map={en:new Map(),tw:new Map(),bl:new Map(),zones:new Map(),met:new Map()};NET.barH='';NET.snapT=tm;
-  RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
+  RUN.tut=false;RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0;mapI=S.map;layI=S.lay;dif=S.dif;auto=host&&!!S.aw;RUN.en=!!S.en;RUN.mods={};MODS.forEach(m=>{RUN.mods[m.id]=!!S['m_'+m.id]});runCalc();
   setMap(mapI,layI);buildPicker();buildSpells();reset();inGame=true;nwKey='';
   $('auto').classList.toggle('on',auto);$('auto').textContent='Auto: '+(auto?'On':'Off');
   $('spd').textContent='Speed 1×';$('spd').classList.remove('on');
