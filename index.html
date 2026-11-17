@@ -2532,7 +2532,27 @@ const MERS={_:{},
   neon:{c:'#252f4a',ol:t=>'hsl('+((t*90)%360)+',100%,62%)',lw:1,cap:t=>'hsl('+((t*90+180)%360)+',100%,70%)',r:.8},
   galaxy:{c:'#2a1d5c',ol:()=>'#9a7bff',cap:t=>'rgba(255,255,255,'+(.5+.5*Math.sin(t*2.5))+')',r:.75}};
 const lumOf=c=>{const[r,gg,b]=rgbOf(c);return r*.3+gg*.59+b*.11};
-function drawTower(t){
+// Sticker outline: towers and enemy bodies are drawn twice. The first pass (SIL.on) turns every solid fill and stroke
+// into a fat dark stroke, which leaves a clean dark rim around the whole silhouette; the normal pass then draws on top.
+// Faint fills (shadows, glows, rgba under .5), text and images are skipped in that pass, so only the body gets a rim.
+const SIL={n:0,off:0,on:0,ctx:null,c:'rgba(16,20,14,.92)',w:3.4};
+(function(){const P=CanvasRenderingContext2D.prototype,F=P.fill,S=P.stroke,FR=P.fillRect,DI=P.drawImage,FT=P.fillText,ST=P.strokeText;
+  const faint=(x,st)=>x.globalAlpha<.5||x.globalCompositeOperation!=='source-over'||(typeof st==='string'&&/^rgba\([^)]*,\s*(0?\.[0-4]\d*|0)\s*\)$/.test(st));
+  const sc=x=>{const m=x.getTransform();return Math.sqrt(Math.abs(m.a*m.d-m.b*m.c))||1};
+  P.fill=function(...a){if(!SIL.on||this!==SIL.ctx)return F.apply(this,a);if(faint(this,this.fillStyle))return;const p=a[0]instanceof Path2D?a[0]:null;
+    this.save();this.strokeStyle=SIL.c;this.fillStyle=SIL.c;this.lineJoin='round';this.lineWidth=SIL.w*2/sc(this);p?S.call(this,p):S.call(this);this.restore()};
+  P.stroke=function(...a){if(!SIL.on||this!==SIL.ctx)return S.apply(this,a);if(faint(this,this.strokeStyle))return;
+    this.save();this.strokeStyle=SIL.c;this.lineJoin='round';this.lineWidth=this.lineWidth+SIL.w*2/sc(this);S.apply(this,a);this.restore()};
+  P.fillRect=function(...a){if(SIL.on&&this===SIL.ctx)return;return FR.apply(this,a)};
+  P.drawImage=function(...a){if(SIL.on&&this===SIL.ctx)return;return DI.apply(this,a)};
+  P.fillText=function(...a){if(SIL.on&&this===SIL.ctx)return;return FT.apply(this,a)};
+  P.strokeText=function(...a){if(SIL.on&&this===SIL.ctx)return;return ST.apply(this,a)}})();
+// Slow machine guard: if drawing the board takes too long on average, the rim pass is switched off for this session
+function silGuard(ms){if(SIL.off||document.hidden)return;SIL.avg=SIL.avg===undefined?ms:SIL.avg*.97+ms*.03;if(++SIL.n>180&&SIL.avg>12)SIL.off=1}
+// Runs fn twice: rim pass, then the real drawing
+function silDraw(fn){if(SIL.on||SIL.off){fn();return}g.save();SIL.on=1;SIL.ctx=g;try{fn()}finally{SIL.on=0;SIL.ctx=null;g.restore()}fn()}
+function drawTower(t){silDraw(()=>drawTower0(t))}
+function drawTower0(t){
   const pp=t.pop||0,n=tot(t),sc=(1+Math.min(.25,n*.02))*(1+pp*.35*Math.sin(pp*Math.PI*3)),k=t.k,fl=t.fl||0,sk=SK[t.skin||save.eq[k]]||SK.classic,MT=c=>sk.m||c;
   g.save();g.translate(t.x,t.y);g.scale(sc,sc);
   const sg=sk.tw===k?SIGD[k]:null;
@@ -2994,7 +3014,7 @@ function drawEnemy(e){
   ell(e.x,e.y+z*.8+(fly?4:0),z*.95*bs,z*.4*bs,fly?'rgba(0,0,0,.15)':'rgba(0,0,0,.28)');
   if(e.ab&&!e.icon){const c=AB[e.ab].col,p=(tm*1.2+e.ph)%1;g.strokeStyle='rgba('+c+','+(.7*(1-p))+')';g.lineWidth=1.5;g.beginPath();g.arc(e.x,e.y-2,z+3+p*9,0,7);g.stroke()}
   g.save();g.translate(e.x,e.y-2-(fly?4:0)+Math.sin(fly?ph*.45:ph)*(fly?2.5:1.6));if(bs<1){g.scale(bs,bs);g.globalAlpha=bs}if(e.hid&&!e.icon)g.globalAlpha=.22+Math.sin(tm*10)*.05;if(!fly){const sq=1+Math.sin(ph)*.07;g.scale(1/sq,sq)}
-  if(e.hf>0){const k=1+Math.min(.14,e.hf*.16);g.scale(k,k)}SH[e.sh](e,z,a,ph);g.restore();
+  if(e.hf>0){const k=1+Math.min(.14,e.hf*.16);g.scale(k,k)}silDraw(()=>SH[e.sh](e,z,a,ph));g.restore();
   if(bs<1&&!e.icon)glow(e.x,e.y,34*(1-bs)+8,TH[MAPS[cur].th].portal,(1-bs)*.9);
   if(!e.icon){const ey=e.y-2-(fly?4:0);
     if(e.hf>0)cir(e.x,ey,z*.95,'rgba(255,255,255,'+Math.min(.6,e.hf*.6)+')');
@@ -4538,7 +4558,7 @@ function skyDraw(t){const mb=$('mmbg'),menu=!$('mm').hidden&&!inGame,el=menu?mb:
    g=x.createRadialGradient(tx+17,ty-73,0,tx+17,ty-73,34);g.addColorStop(0,'rgba(255,180,80,'+.3*f+')');g.addColorStop(1,'rgba(255,180,80,0)');x.fillStyle=g;x.fillRect(tx-20,ty-110,74,74);
    x.fillStyle='#c0392b';x.beginPath();x.moveTo(tx+17.8,ty-150);x.quadraticCurveTo(tx+27,ty-149+Math.sin(t*4)*2.5,tx+35,ty-145+Math.sin(t*4+1)*2.5);x.lineTo(tx+17.8,ty-139);x.fill()}
 }
-function loop(ts){simStep(ts);draw();ui();skyDraw(ts/1000);requestAnimationFrame(loop)}
+function loop(ts){simStep(ts);{const t0=performance.now();draw();silGuard(performance.now()-t0)}ui();skyDraw(ts/1000);requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 // Co-op host: a hidden tab gets no animation frames, which froze the game for everyone.
 // A worker's timer keeps the host's game going (without drawing) while the tab is hidden.
