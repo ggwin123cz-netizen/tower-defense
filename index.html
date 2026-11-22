@@ -1311,6 +1311,9 @@ const SND={
   meteor:()=>{noise(1,{vol:.25,f:3000,slide:.06});tone(120,.8,{type:'sine',vol:.15,slide:.3,delay:.1})},
   freeze:()=>[1568,2093,2637,3136].forEach((f,i)=>tone(f,.7,{type:'sine',vol:.06,delay:i*.07,thick:9})),
   gold:()=>{for(let i=0;i<7;i++)tone(1300+i*170,.1,{type:'triangle',vol:.05,delay:i*.045,lp:6000});tone(2637,.4,{type:'sine',vol:.05,delay:.34,thick:6})},
+  sel:()=>{tone(660,.05,{type:'triangle',vol:.05});tone(990,.07,{type:'sine',vol:.035,delay:.04})},
+  unlock:()=>{[523,659,784,1047,1319].forEach((f,i)=>tone(f,.25,{type:'triangle',vol:.08,delay:i*.07,thick:5}));tone(1568,.6,{type:'sine',vol:.05,delay:.38})},
+  step:()=>{tone(784,.08,{type:'sine',vol:.05});tone(1175,.12,{type:'sine',vol:.04,delay:.07})},
   ach:()=>{[784,1047,1319,1568].forEach((f,i)=>tone(f,.22,{type:'triangle',vol:.09,delay:i*.09,thick:5}));tone(2093,.5,{type:'sine',vol:.06,delay:.4})}
 };
 // Minimum gap per sound so a screen full of towers doesn't turn into noise
@@ -1993,7 +1996,7 @@ function end(win){if(!MP)runDrop();$('ovteam').hidden=true;st.over=true;inGame=f
   ups.forEach((l,i)=>setTimeout(()=>{toast('Level '+l+'!','+'+lvRunes(l)+' rune'+(lvRunes(l)>1?'s':'')+' · +'+lvGems(l)+' gems','<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3l3 6 6 1-4.5 4 1 6.5L12 17l-5.5 3.5 1-6.5L3 10l6-1z" fill="#6aa2ff"/></svg>','#6aa2ff');
     const tw=KEYS.filter(k=>towerLv(k)===l).map(k=>T[k].n),dn=DIFLV.map((v,d)=>v===l&&d>1?DIFFS[d].n:null).filter(Boolean);
     if(tw.length||dn.length)setTimeout(()=>toast('New unlock available',[...tw.map(n=>n+' tower'),...dn.map(n=>n+' difficulty')].join(' · '),LOCK.replace(/13/g,'20'),'#f4c152'),600)},900+i*700));
-  gateGrant().forEach((g,i)=>setTimeout(()=>toast('Unlocked!',g.n+(g.tw?' · '+T[g.tw].n+' tower':''),'<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3l3 6 6 1-4.5 4 1 6.5L12 17l-5.5 3.5 1-6.5L3 10l6-1z" fill="#f4c152"/></svg>','#f4c152'),300+i*600));
+  gateGrant().forEach((g,i)=>setTimeout(()=>(sfx('unlock'),toast('Unlocked!',g.n+(g.tw?' · '+T[g.tw].n+' tower':''),'<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3l3 6 6 1-4.5 4 1 6.5L12 17l-5.5 3.5 1-6.5L3 10l6-1z" fill="#f4c152"/></svg>','#f4c152')),300+i*600));
   MAPS.forEach((m,i)=>{if(!wo[i]&&worldOpen(i))setTimeout(()=>toast('New world unlocked!',m.n+' is ready to play','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38d68a" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>','#38d68a'),1200)});
   persist();
   const pTo=save.lvl>=MAXLV?100:save.xp/xpNeed(save.lvl)*100,pFrom=ups.length?0:xp0/xpNeed(lv0)*100;
@@ -2535,20 +2538,22 @@ const lumOf=c=>{const[r,gg,b]=rgbOf(c);return r*.3+gg*.59+b*.11};
 // Sticker outline: towers and enemy bodies are drawn twice. The first pass (SIL.on) turns every solid fill and stroke
 // into a fat dark stroke, which leaves a clean dark rim around the whole silhouette; the normal pass then draws on top.
 // Faint fills (shadows, glows, rgba under .5), text and images are skipped in that pass, so only the body gets a rim.
-const SIL={n:0,off:0,on:0,ctx:null,c:'rgba(16,20,14,.92)',w:3.4};
+const SIL={fl:0,fa:0,n:0,off:0,on:0,ctx:null,c:'rgba(16,20,14,.92)',w:3.4};
 (function(){const P=CanvasRenderingContext2D.prototype,F=P.fill,S=P.stroke,FR=P.fillRect,DI=P.drawImage,FT=P.fillText,ST=P.strokeText;
   const faint=(x,st)=>x.globalAlpha<.5||x.globalCompositeOperation!=='source-over'||(typeof st==='string'&&/^rgba\([^)]*,\s*(0?\.[0-4]\d*|0)\s*\)$/.test(st));
   const sc=x=>{const m=x.getTransform();return Math.sqrt(Math.abs(m.a*m.d-m.b*m.c))||1};
-  P.fill=function(...a){if(!SIL.on||this!==SIL.ctx)return F.apply(this,a);if(faint(this,this.fillStyle))return;const p=a[0]instanceof Path2D?a[0]:null;
+  P.fill=function(...a){if(SIL.fl&&this===SIL.ctx){if(faint(this,this.fillStyle))return;this.save();this.fillStyle='#fff';this.globalAlpha*=SIL.fa;F.apply(this,a);this.restore();return}if(!SIL.on||this!==SIL.ctx)return F.apply(this,a);if(faint(this,this.fillStyle))return;const p=a[0]instanceof Path2D?a[0]:null;
     this.save();this.strokeStyle=SIL.c;this.fillStyle=SIL.c;this.lineJoin='round';this.lineWidth=SIL.w*2/sc(this);p?S.call(this,p):S.call(this);this.restore()};
-  P.stroke=function(...a){if(!SIL.on||this!==SIL.ctx)return S.apply(this,a);if(faint(this,this.strokeStyle))return;
+  P.stroke=function(...a){if(SIL.fl&&this===SIL.ctx){if(faint(this,this.strokeStyle))return;this.save();this.strokeStyle='#fff';this.globalAlpha*=SIL.fa;S.apply(this,a);this.restore();return}if(!SIL.on||this!==SIL.ctx)return S.apply(this,a);if(faint(this,this.strokeStyle))return;
     this.save();this.strokeStyle=SIL.c;this.lineJoin='round';this.lineWidth=this.lineWidth+SIL.w*2/sc(this);S.apply(this,a);this.restore()};
-  P.fillRect=function(...a){if(SIL.on&&this===SIL.ctx)return;return FR.apply(this,a)};
-  P.drawImage=function(...a){if(SIL.on&&this===SIL.ctx)return;return DI.apply(this,a)};
-  P.fillText=function(...a){if(SIL.on&&this===SIL.ctx)return;return FT.apply(this,a)};
-  P.strokeText=function(...a){if(SIL.on&&this===SIL.ctx)return;return ST.apply(this,a)}})();
+  P.fillRect=function(...a){if((SIL.on||SIL.fl)&&this===SIL.ctx)return;return FR.apply(this,a)};
+  P.drawImage=function(...a){if((SIL.on||SIL.fl)&&this===SIL.ctx)return;return DI.apply(this,a)};
+  P.fillText=function(...a){if((SIL.on||SIL.fl)&&this===SIL.ctx)return;return FT.apply(this,a)};
+  P.strokeText=function(...a){if((SIL.on||SIL.fl)&&this===SIL.ctx)return;return ST.apply(this,a)}})();
 // Slow machine guard: if drawing the board takes too long on average, the rim pass is switched off for this session
 function silGuard(ms){if(SIL.off||document.hidden)return;SIL.avg=SIL.avg===undefined?ms:SIL.avg*.97+ms*.03;if(++SIL.n>180&&SIL.avg>12)SIL.off=1}
+// Draws fn again as a white silhouette (a hit enemy flashes white)
+function flashDraw(fn,a){if(a<=0||SIL.on)return;g.save();SIL.fl=1;SIL.fa=a;SIL.ctx=g;try{fn()}finally{SIL.fl=0;SIL.ctx=null;g.restore()}}
 // Runs fn twice: rim pass, then the real drawing
 function silDraw(fn){if(SIL.on||SIL.off){fn();return}g.save();SIL.on=1;SIL.ctx=g;try{fn()}finally{SIL.on=0;SIL.ctx=null;g.restore()}fn()}
 // The tower body: a round keep TWH tall under the top deck, lifted TWL so it stands in its tile.
@@ -3120,10 +3125,9 @@ function drawEnemy(e){
   ell(e.x,e.y+z*.8+(fly?4:0),z*.95*bs,z*.4*bs,fly?'rgba(0,0,0,.15)':'rgba(0,0,0,.28)');
   if(e.ab&&!e.icon){const c=AB[e.ab].col,p=(tm*1.2+e.ph)%1;g.strokeStyle='rgba('+c+','+(.7*(1-p))+')';g.lineWidth=1.5;g.beginPath();g.arc(e.x,e.y-2,z+3+p*9,0,7);g.stroke()}
   g.save();g.translate(e.x,e.y-2-(fly?4:0)+Math.sin(fly?ph*.45:ph)*(fly?2.5:1.6));if(bs<1){g.scale(bs,bs);g.globalAlpha=bs}if(e.hid&&!e.icon)g.globalAlpha=.22+Math.sin(tm*10)*.05;if(!fly){const sq=1+Math.sin(ph)*.07;g.scale(1/sq,sq)}
-  if(e.hf>0){const k=1+Math.min(.14,e.hf*.16);g.scale(k,k)}silDraw(()=>SH[e.sh](e,z,a,ph));g.restore();
+  if(e.hf>0){const k=1+Math.min(.14,e.hf*.16);g.scale(k,k)}silDraw(()=>SH[e.sh](e,z,a,ph));if(e.hf>0&&!e.icon)flashDraw(()=>SH[e.sh](e,z,a,ph),Math.min(.85,e.hf*1.1));g.restore();
   if(bs<1&&!e.icon)glow(e.x,e.y,34*(1-bs)+8,TH[MAPS[cur].th].portal,(1-bs)*.9);
   if(!e.icon){const ey=e.y-2-(fly?4:0);
-    if(e.hf>0)cir(e.x,ey,z*.95,'rgba(255,255,255,'+Math.min(.6,e.hf*.6)+')');
     if(e.ice>0){cir(e.x,ey,z+2.5,'rgba(175,228,255,.55)');g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=1;g.beginPath();for(let i=0;i<3;i++){const an=i*2.1+.4;g.moveTo(e.x+Math.cos(an)*z*.3,ey+Math.sin(an)*z*.3);g.lineTo(e.x+Math.cos(an)*(z+1),ey+Math.sin(an)*(z+1))}g.stroke();gloss(e.x-z*.4,ey-z*.45,z*.35,z*.15,.7)}}
   if(e.shd>0){cir(e.x,e.y-2,z+5,'rgba(110,170,255,.16)');g.strokeStyle='rgba(160,205,255,.85)';g.lineWidth=1.5;g.beginPath();g.arc(e.x,e.y-2,z+5,0,7);g.stroke()}
   if(e.pt>0)for(let i=0;i<2;i++){const p=(tm*1.5+i*.5)%1;cir(e.x+(i?4:-4),e.y-z*.3-p*10,1.2+p,'rgba(140,230,90,'+(1-p)+')')}
@@ -3387,7 +3391,7 @@ function draw(){
   tutDraw();goalDraw();
   if(st.pause&&!st.over){g.fillStyle='rgba(8,11,16,.55)';g.fillRect(0,0,W*C,H*C);g.textAlign='center';g.textBaseline='middle';g.font='700 44px '+FONT;g.fillStyle='#fff';g.fillText('PAUSED',W*C/2,H*C/2-8);g.font='600 12px Inter,sans-serif';g.fillStyle='#b7c2d0';g.fillText('Press P or the Pause button to resume · you can still build and upgrade',W*C/2,H*C/2+24)}
 }
-function ui(){cgPlay();ui0();if(MP)mpUi();tutTick()}
+function ui(){cgPlay();if(HSHOW&&!$('mm').hidden&&!$('s-home').hidden&&!document.hidden)HSHOW();ui0();if(MP)mpUi();tutTick()}
 function ui0(){
   {const gv=Math.floor(goldOf()),ge=$('gold');if(gv>(+ge.dataset.v||0)+0){ge.classList.remove('bump');void ge.offsetWidth;ge.classList.add('bump')}ge.dataset.v=gv;ge.textContent=gv}$('lives').textContent=st.lives;$('g2').textContent=save.gems;
   $('wave').innerHTML=st.wave+(RUN.en?'<small>endless</small>':'<small>/ '+MAXW+'</small>');$('wbar').style.width=(RUN.en?(st.wave%10)*10:Math.min(100,st.wave/MAXW*100))+'%';
@@ -3545,13 +3549,14 @@ function ftTick(el){save.ft=save.ft||{};
   if(!st.ftc){const f=FTIP.find(f=>!save.ft[f.id]&&f.when());if(!f){if(!el.hidden){el.hidden=true;tutHl(null)}return}st.ftc=f;st.ftd=f.d()}
   const f=st.ftc,d=st.ftd,k='f|'+f.id+'|'+d;if(el.dataset.k!==k){el.dataset.k=k;$('tutn').innerHTML='<svg viewBox="0 0 24 24" width="12" height="12" style="display:block">'+FTIC[f.id]+'</svg>';$('tutt').textContent=f.t;$('tutd').innerHTML=d;$('tutok').hidden=false;tutHl(f.hl)}
   if(el.hidden){el.hidden=false;tutHl(f.hl)}}
-function tutTick(){const el=$('tut');keysTick();
+let SEL0=null;
+function tutTick(){const el=$('tut');keysTick();if(st.sel!==SEL0){SEL0=st.sel;if(st.sel&&inGame)sfx('sel')}
   if(save.tips&&inGame&&!st.over&&$('mm').hidden){ftTick(el);return}
   if(MP||save.tips||!inGame||st.over||!$('mm').hidden){if(!el.hidden){el.hidden=true;tutHl(null)}return}
   while(st.tut<TUT.length&&TUT[st.tut].done())st.tut++;
   if(st.tut>=TUT.length){tutEnd();return}
   const s=TUT[st.tut];if(s.when&&!s.when()){if(!el.hidden){el.hidden=true;tutHl(null)}return}const d=s.d(),k=st.tut+'|'+d;
-  if(el.dataset.k!==k){el.dataset.k=k;$('tutn').textContent=(st.tut+1)+'/'+TUT.length;$('tutt').textContent=s.t;$('tutd').innerHTML=d;$('tutok').hidden=!s.ok;tutHl(s.hl)}
+  if(el.dataset.k!==k){if(el.dataset.k&&el.dataset.k.split('|')[0]!==String(st.tut))sfx('step');el.dataset.k=k;$('tutn').textContent=(st.tut+1)+'/'+TUT.length;$('tutt').textContent=s.t;$('tutd').innerHTML=d;$('tutok').hidden=!s.ok;tutHl(s.hl)}
   if(el.hidden){el.hidden=false;tutHl(s.hl)}}
 function tutHl(id){document.querySelectorAll('.tuthl').forEach(e=>e.classList.remove('tuthl'));if(id)$(id).classList.add('tuthl')}
 function tutEnd(){save.tips=1;persist();$('tut').hidden=true;tutHl(null)}
@@ -3704,6 +3709,7 @@ function renderAch(){const dn=ACH.filter(a=>save.ach[a.id]);$('achsum').textCont
   $('achs').innerHTML=ACH.map(a=>{const d=!!save.ach[a.id],p=a.p&&!d?a.p():null;return'<div class="ach'+(d?' done':'')+'"><span class="ti">'+(d?TROPHY:TROPHY.replace(/#ffd34d/g,'#4a5568'))+'</span><div class="tx"><b>'+a.n+'</b><small>'+a.d+(p?' · '+fmt(Math.min(p[0],p[1]))+' / '+fmt(p[1]):'')+'</small>'+(p?'<div class="pg"><i style="width:'+Math.min(100,p[0]/p[1]*100)+'%"></i></div>':'')+'</div><span class="rw">'+(d?'✓ Done':'+'+a.g+' '+GEM)+'</span></div>'}).join('')}
 function openMenu(){paused=!MP;if(spRun()){if(!DLY.m)dlySwap();if(!inGame){RUN.dly=null;RUN.ch=null;DLY.keep=null;DLY.m=0}}st.sel=null;$('mm').hidden=false;scr('home');if(ACC.recheck&&!inGame){ACC.recheck=0;accReconcile()}}
 function closeMenu(){if(spRun()&&DLY.m)dlySwap();$('mm').hidden=true;paused=false}
+let HSHOW=null;
 function renderHome(){
   $('m-resume').querySelector('b').textContent=inGame?'Resume':'Continue';{const sv=!inGame&&!MP&&runLoad();$('m-resume').hidden=!(inGame||sv);if(sv)$('m-rs').textContent=runName(sv)+' · wave '+(sv.s.wave+1)}if(inGame)$('m-rs').textContent=RUN.ch?'Challenge · '+RUN.ch.t.n+' · wave '+st.wave+' of '+CHW:RUN.dly?'Daily challenge · wave '+st.wave:MAPS[cur].n+' · '+DIFFS[dif].n+' · wave '+st.wave+' of '+MAXW;
   {const D=dailyOf(utcDay()),o=save.daily&&save.daily.d===D.k?save.daily:null;$('m-dc').textContent=MAPS[D.m].n+' · '+(o&&o.b?'best: wave '+o.b:'new today');$('m-db').hidden=!!(save.daily&&save.daily.last===D.k)}
@@ -3716,14 +3722,15 @@ function renderHome(){
   const canSk=SKT.some(s=>{const r=sk(s.id);return r<s.mx&&skOpen(s)&&save.runes>=skCost(s,r)});
   $('m-kc').textContent=save.runes?save.runes+' rune'+(save.runes>1?'s':''):skSpent()+' spent';$('m-kb').hidden=!canSk;$('m-kb').textContent='!';
   const qd=save.q.list.filter(q=>q.c||q.p>=qGoal(q)).length,qr=qReady();$('m-qc').textContent=qr?qr+' to claim':qd+' / 3 today';$('m-qb').hidden=!qr;$('m-qb').textContent=qr;
-  const c=$('show');paint(c,280,()=>{
+  const c=$('show');HSHOW=()=>paint(c,280,HSFN);const HSFN=()=>{
     const gr=g.createLinearGradient(0,0,0,110);gr.addColorStop(0,'#64a548');gr.addColorStop(1,'#3d7a2e');rr(0,0,280,110,0,gr);
     g.fillStyle='rgba(0,0,0,.2)';g.fillRect(0,48,280,26);g.fillStyle='#7a5a30';g.fillRect(0,44,280,26);g.fillStyle='#cfb27a';g.fillRect(0,47,280,20);g.fillStyle='#dcc28e';g.fillRect(0,51,280,12);
     const un=KEYS.filter(k=>save.un.includes(k)).slice(0,6),M=MAPS[0];
-    un.forEach((k,i)=>{if(i%2===0)drawTower({k,u:{d:0,s:0,r:0,z:0},x:30+i*44,y:24,ang:1.1})});
-    [M.e.norm,M.x.freeze,M.e.fast,M.x.heal,M.e.tank].forEach((E,i)=>drawEnemy(fake(E,[10,11,8,11,13][i],26+i*56,56)));
-    un.forEach((k,i)=>{if(i%2)drawTower({k,u:{d:0,s:0,r:0,z:0},x:30+i*44,y:90,ang:-1.1})});
-  });
+    const ex=i=>(26+i*56+tm*14)%300-10,aim=(x,y)=>{let b=null,bd=1e9;for(let i=0;i<5;i++){const d=Math.abs(ex(i)-x);if(d<bd){bd=d;b=i}}return Math.atan2(56-y,ex(b)-x)};
+    un.forEach((k,i)=>{if(i%2===0)drawTower({k,u:{d:0,s:0,r:0,z:0},x:30+i*44,y:20,ang:aim(30+i*44,20)})});
+    [M.e.norm,M.x.freeze,M.e.fast,M.x.heal,M.e.tank].forEach((E,i)=>{const f=fake(E,[10,11,8,11,13][i],ex(i),56);f.fa=0;drawEnemy(f)});
+    un.forEach((k,i)=>{if(i%2)drawTower({k,u:{d:0,s:0,r:0,z:0},x:30+i*44,y:90,ang:aim(30+i*44,90)})});
+  };HSHOW();
 }
 function paintDiff(){if(!difOpen(dif))dif=1;[...$('diff').children].forEach((b,i)=>{b.classList.toggle('on',i===dif);const o=difOpen(i);b.classList.toggle('lock',!o);b.querySelector('em').innerHTML=o?'Gems ×'+DIFFS[i].gm:LOCK+' Level '+DIFLV[i]})}
 // Start button explains what is still locked
