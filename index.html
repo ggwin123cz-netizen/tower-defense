@@ -144,6 +144,7 @@ kbd{font:600 10px/1 Inter,sans-serif;padding:3px 5px;border-radius:5px;backgroun
 .estats b{display:block;font:700 20px/1.1 "Barlow Condensed",Inter,sans-serif}
 .estats span{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
 /* Toasts */
+body.ingame #toasts{top:auto;bottom:14px;flex-direction:column-reverse}
 #toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{display:flex;align-items:center;gap:12px;min-width:270px;padding:10px 18px 10px 12px;background:rgba(17,23,31,.97);border:1px solid var(--tc,#ffd34d);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.5);animation:tin .35s ease-out,tout .4s ease-in 3.2s forwards}
 .toast .ti{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--tc,#ffd34d) 18%,transparent)}
@@ -1218,7 +1219,7 @@ if(CGON){const sc=document.createElement('script');sc.src='https://sdk.crazygame
     cgSafe(()=>S.game.addJoinRoomListener(p=>{const r=p&&(p.room||p.roomId);if(r&&!MP&&!NET.code)cgLobby(String(r))}));
   }catch(e){}};document.head.appendChild(sc)}
 // Master volume: silent while an ad plays or when CrazyGames asks for no sound
-function masterVol(){const v=(CG.ad||CG.mute)?0:.55*(save.vol??1);if(AU&&AU.m)AU.m.gain.value=v;return v}
+function masterVol(){const v=(CG.ad||CG.mute||document.hidden)?0:.55*(save.vol??1);if(AU&&AU.m)AU.m.gain.value=v;return v}
 // Tell CrazyGames when real play starts and stops (menus, pause, end screen and ads are breaks)
 // Open the lobby and join the room with this code, or create a new room when there is no code
 // Name used in co-op: the CrazyGames username when logged in, else the one typed in the lobby
@@ -1235,7 +1236,7 @@ function cgLobby(code){code=code.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);
 function cgRoom(){const key=NET.code?NET.code+'|'+NET.players.length:'';if(key===CG.room)return;const had=CG.room;CG.room=key;
   if(NET.code)cgSafe(()=>CG.sdk.game.updateRoom({roomId:NET.code,isJoinable:NET.players.length<4,inviteParams:{room:NET.code}}));
   else if(had)cgSafe(()=>CG.sdk.game.leftRoom())}
-function cgPlay(){if(!CG.sdk)return;cgRoom();const p=inGame&&!st.over&&$('mm').hidden&&!st.pause&&!paused&&!CG.ad;if(p!==CG.play){CG.play=p;cgSafe(()=>p?CG.sdk.game.gameplayStart():CG.sdk.game.gameplayStop());if(p&&!CG.t0)CG.t0=Date.now()}}
+function cgPlay(){if(!CG.sdk)return;cgRoom();const p=!document.hidden&&inGame&&!st.over&&$('mm').hidden&&!st.pause&&!paused&&!CG.ad;if(p!==CG.play){CG.play=p;cgSafe(()=>p?CG.sdk.game.gameplayStart():CG.sdk.game.gameplayStop());if(p&&!CG.t0)CG.t0=Date.now()}}
 function cgAd(kind,done){if(!CG.sdk){done&&done(false,'none');return}
   cgSafe(()=>CG.sdk.ad.requestAd(kind,{adStarted:()=>{CG.ad=true;masterVol();cgPlay()},adFinished:()=>{CG.ad=false;masterVol();done&&done(true)},adError:e=>{CG.ad=false;masterVol();done&&done(false,e&&e.code||e)}}))}
 // End of a game: a midgame ad after a real game (a few waves in), and the optional double-gems offer
@@ -3391,7 +3392,8 @@ function draw(){
   tutDraw();goalDraw();
   if(st.pause&&!st.over){g.fillStyle='rgba(8,11,16,.55)';g.fillRect(0,0,W*C,H*C);g.textAlign='center';g.textBaseline='middle';g.font='700 44px '+FONT;g.fillStyle='#fff';g.fillText('PAUSED',W*C/2,H*C/2-8);g.font='600 12px Inter,sans-serif';g.fillStyle='#b7c2d0';g.fillText('Press P or the Pause button to resume · you can still build and upgrade',W*C/2,H*C/2+24)}
 }
-function ui(){cgPlay();if(HSHOW&&!$('mm').hidden&&!$('s-home').hidden&&!document.hidden)HSHOW();ui0();if(MP)mpUi();tutTick()}
+let UIG=null;
+function ui(){const ig=inGame&&$('mm').hidden;if(ig!==UIG){UIG=ig;document.body.classList.toggle('ingame',ig)}cgPlay();if(HSHOW&&!$('mm').hidden&&!$('s-home').hidden&&!document.hidden)HSHOW();ui0();if(MP)mpUi();tutTick()}
 function ui0(){
   {const gv=Math.floor(goldOf()),ge=$('gold');if(gv>(+ge.dataset.v||0)+0){ge.classList.remove('bump');void ge.offsetWidth;ge.classList.add('bump')}ge.dataset.v=gv;ge.textContent=gv}$('lives').textContent=st.lives;$('g2').textContent=save.gems;
   $('wave').innerHTML=st.wave+(RUN.en?'<small>endless</small>':'<small>/ '+MAXW+'</small>');$('wbar').style.width=(RUN.en?(st.wave%10)*10:Math.min(100,st.wave/MAXW*100))+'%';
@@ -3643,7 +3645,7 @@ function renderAccount(){const el=$('accl');
     +'<p class="note">There is no e-mail, so a forgotten password cannot be reset. Pick one you will remember.</p></form>';
   $('acc-f').onsubmit=e=>{e.preventDefault();accLogin(false)};$('acc-new').onclick=()=>accLogin(true)}
 // Upload right away when the player leaves the page or switches away
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&ACC.user&&save.syncDirty)accPush()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&ACC.user&&save.syncDirty)accPush();masterVol();cgPlay()});
 
 /* ---------- Main menu ---------- */
 let selT='sip',skT='sip';
