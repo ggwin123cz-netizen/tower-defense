@@ -882,7 +882,8 @@ input,textarea{-webkit-user-select:text;user-select:text}
 
 <script>
 const C=40,W=16,H=10,cv=document.getElementById('c');let g=cv.getContext('2d');
-const S=3;cv.width=W*C*S;cv.height=H*C*S;g.scale(S,S);
+// Board drawn at 2x on normal screens and 3x on high-density ones (crisp, but a third of the pixels on a 1x screen)
+const S=(devicePixelRatio||1)>=1.75?3:2;cv.width=W*C*S;cv.height=H*C*S;g.scale(S,S);
 const $=id=>document.getElementById(id);
 const FONT='"Barlow Condensed",Inter,sans-serif';
 let LK=1,route,wp,deco,dif=1,auto=false,mapI=0,layI=0,cur=0,lay=0,MAXW=20,paused=true,inGame=false,AV=[];
@@ -2554,9 +2555,9 @@ const SIL={fl:0,fa:0,n:0,off:0,on:0,ctx:null,c:'rgba(16,20,14,.92)',w:3.4};
   const faint=(x,st)=>x.globalAlpha<.5||x.globalCompositeOperation!=='source-over'||(typeof st==='string'&&/^rgba\([^)]*,\s*(0?\.[0-4]\d*|0)\s*\)$/.test(st));
   const sc=x=>{const m=x.getTransform();return Math.sqrt(Math.abs(m.a*m.d-m.b*m.c))||1};
   P.fill=function(...a){if(SIL.fl&&this===SIL.ctx){if(faint(this,this.fillStyle))return;this.save();this.fillStyle='#fff';this.globalAlpha*=SIL.fa;F.apply(this,a);this.restore();return}if(!SIL.on||this!==SIL.ctx)return F.apply(this,a);if(faint(this,this.fillStyle))return;const p=a[0]instanceof Path2D?a[0]:null;
-    this.save();this.strokeStyle=SIL.c;this.fillStyle=SIL.c;this.lineJoin='round';this.lineWidth=SIL.w*2/sc(this);p?S.call(this,p):S.call(this);this.restore()};
+    this.save();this.strokeStyle=SIL.c;this.fillStyle=SIL.c;this.lineJoin='round';this.lineWidth=SIL.w*2/SIL.k;p?S.call(this,p):S.call(this);this.restore()};
   P.stroke=function(...a){if(SIL.fl&&this===SIL.ctx){if(faint(this,this.strokeStyle))return;this.save();this.strokeStyle='#fff';this.globalAlpha*=SIL.fa;S.apply(this,a);this.restore();return}if(!SIL.on||this!==SIL.ctx)return S.apply(this,a);if(faint(this,this.strokeStyle))return;
-    this.save();this.strokeStyle=SIL.c;this.lineJoin='round';this.lineWidth=this.lineWidth+SIL.w*2/sc(this);S.apply(this,a);this.restore()};
+    this.save();this.strokeStyle=SIL.c;this.lineJoin='round';this.lineWidth=this.lineWidth+SIL.w*2/SIL.k;S.apply(this,a);this.restore()};
   P.fillRect=function(...a){if((SIL.on||SIL.fl)&&this===SIL.ctx)return;return FR.apply(this,a)};
   P.drawImage=function(...a){if((SIL.on||SIL.fl)&&this===SIL.ctx)return;return DI.apply(this,a)};
   P.fillText=function(...a){if((SIL.on||SIL.fl)&&this===SIL.ctx)return;return FT.apply(this,a)};
@@ -2566,7 +2567,7 @@ function silGuard(ms){if(SIL.off||document.hidden)return;SIL.avg=SIL.avg===undef
 // Draws fn again as a white silhouette (a hit enemy flashes white)
 function flashDraw(fn,a){if(a<=0||SIL.on)return;g.save();SIL.fl=1;SIL.fa=a;SIL.ctx=g;try{fn()}finally{SIL.fl=0;SIL.ctx=null;g.restore()}}
 // Runs fn twice: rim pass, then the real drawing
-function silDraw(fn){if(SIL.on||SIL.off){fn();return}g.save();SIL.on=1;SIL.ctx=g;try{fn()}finally{SIL.on=0;SIL.ctx=null;g.restore()}fn()}
+function silDraw(fn){if(SIL.on||SIL.off){fn();return}g.save();SIL.on=1;SIL.ctx=g;{const m=g.getTransform();SIL.k=Math.sqrt(Math.abs(m.a*m.d-m.b*m.c))||1}try{fn()}finally{SIL.on=0;SIL.ctx=null;g.restore()}fn()}
 // The tower body: a round keep TWH tall under the top deck, lifted TWL so it stands in its tile.
 // The wall is lit from the left, darkens towards the ground, and each skin gives it its own material (WALLFX).
 const TWH=9,TWL=4;
@@ -2617,15 +2618,10 @@ function towerWall(sk,n){const key=WALLFX[sk.id]?sk.id:SIGW[sk.tw]||'_',mat=WALL
   else{const ck=sk.id;let c=WCACHE[ck];if(!c){c=WCACHE[ck]=document.createElement('canvas');c.width=36*WPX;c.height=(TWH+19)*WPX;paint(c,36,()=>{g.translate(18,1);wallBody(sk,mat)})}
     g.drawImage(c,-18,-1,36,TWH+19)}
   if(n>=7){const bc=n>=11?'#f4c152':'#aab4c0';g.strokeStyle=shade(bc,-.5);g.lineWidth=2.2;g.beginPath();g.arc(0,TWH*.55,16,.12,3.02);g.stroke();g.strokeStyle=bc;g.lineWidth=1.3;g.stroke();for(const an of[.45,1.02,1.571,2.12,2.69])cir(Math.cos(an)*16,TWH*.55+Math.sin(an)*16,.75,shade(bc,.45))}}
-function drawTower(t){silDraw(()=>drawTower0(t))}
-function drawTower0(t){
-  const pp=t.pop||0,n=tot(t),sc=(1+Math.min(.25,n*.02))*(1+pp*.35*Math.sin(pp*Math.PI*3)),k=t.k,fl=t.fl||0,sk=SK[t.skin||save.eq[k]]||SK.classic,MT=c=>sk.m||c;
-  g.save();g.translate(t.x,t.y);g.scale(sc,sc);
-  const sg=sk.tw===k?SIGD[k]:null;
-  // Base: stone plinth, coloured trim ring and inner platform (all recoloured by the skin). Traps lie flat on the path instead.
-  if(!T[k].trap){
-  ell(7,13.5,21,9,'rgba(0,0,0,.17)');ell(3,12,18.5,8.5,'rgba(0,0,0,.3)');
-  g.translate(0,-TWL);towerWall(sk,n);
+// The base under the turret: keep wall, rim, battlements, coloured ring and the deck
+const BCACHE={},BSTATIC=new Set(['classic','wood','moss']),BPX=6;
+function towerBase(sk,sg,n,k){
+towerWall(sk,n);
   g.beginPath();g.arc(0,0,16,0,7);fo(sph(0,0,16,sk.o,.3,.35),shade(sk.o,-.6),.8);
   g.strokeStyle=shade(sk.o,-.35);g.lineWidth=.7;g.beginPath();for(let i=0;i<8;i++){const an=i*.785+.39;g.moveTo(Math.cos(an)*13.6,Math.sin(an)*13.6);g.lineTo(Math.cos(an)*15.8,Math.sin(an)*15.8)}g.stroke();
   g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=.9;g.beginPath();g.arc(0,0,15.3,-2.7,-1.1);g.stroke();
@@ -2643,6 +2639,21 @@ function drawTower0(t){
   // Deck plates, then the shadow the weapon casts on the deck
   g.strokeStyle='rgba(0,0,0,.15)';g.lineWidth=.6;g.beginPath();g.arc(0,0,8.6,0,7);for(let i=0;i<6;i++){const an=i*1.047+.52;g.moveTo(Math.cos(an)*8.6,Math.sin(an)*8.6);g.lineTo(Math.cos(an)*11.7,Math.sin(an)*11.7)}g.stroke();
   g.beginPath();g.ellipse(1.5,2.5,10.5,9.5,0,0,7);g.fillStyle=cg('tsh',()=>{const r=g.createRadialGradient(1.5,2.5,2,1.5,2.5,10.5);r.addColorStop(0,'rgba(0,0,0,.36)');r.addColorStop(1,'rgba(0,0,0,0)');return r});g.fill();
+}
+function drawTower(t){silDraw(()=>drawTower0(t))}
+function drawTower0(t){
+  const pp=t.pop||0,n=tot(t),sc=(1+Math.min(.25,n*.02))*(1+pp*.35*Math.sin(pp*Math.PI*3)),k=t.k,fl=t.fl||0,sk=SK[t.skin||save.eq[k]]||SK.classic,MT=c=>sk.m||c;
+  g.save();g.translate(t.x,t.y);g.scale(sc,sc);
+  const sg=sk.tw===k?SIGD[k]:null;
+  // Base: stone plinth, coloured trim ring and inner platform (all recoloured by the skin). Traps lie flat on the path instead.
+  if(!T[k].trap){
+  ell(7,13.5,21,9,'rgba(0,0,0,.17)');ell(3,12,18.5,8.5,'rgba(0,0,0,.3)');
+  g.translate(0,-TWL);
+  // Plain skins have a base that never moves: it is drawn once (with its outline) per tower kind, skin and upgrade stage and stamped
+  if(!sg&&BSTATIC.has(sk.id)){if(!SIL.on){const key=k+'|'+sk.id+'|'+(n>=11?3:n>=7?2:n>=3?1:0);let c=BCACHE[key];
+      if(!c){c=BCACHE[key]=document.createElement('canvas');c.width=46*BPX;c.height=(TWH+46)*BPX;paint(c,46,()=>{g.translate(23,21);silDraw(()=>towerBase(sk,sg,n,k))})}
+      g.drawImage(c,-23,-21,46,TWH+46)}}
+  else towerBase(sk,sg,n,k);
   }
   if(sg)sg.top(t,fl);
   else if(k==='dul'){
@@ -4672,7 +4683,7 @@ function skyBuild(w,h,dp){SKY.w=w;SKY.h=h;
 }
 // The lights fill the whole page behind the game; while the main menu is open outside a game they are drawn on the menu's own canvas instead
 function skyDraw(t){const mb=$('mmbg'),menu=!$('mm').hidden&&!inGame,el=menu?mb:$('pgbg');if(mb.style.display!==(menu?'block':'none'))mb.style.display=menu?'block':'none';
-  const w=el.clientWidth,h=el.clientHeight,dp=Math.min(devicePixelRatio||1,1.5);if(!w||!h)return;if(SKY.w!==w||SKY.h!==h)skyBuild(w,h,dp);if(SKY.still)t=40;
+  const w=el.clientWidth,h=el.clientHeight,dp=1;if(!w||!h)return;if(SKY.w!==w||SKY.h!==h)skyBuild(w,h,dp);if(SKY.still)t=40;
   if(el.width!==Math.round(w*dp)||el.height!==Math.round(h*dp)){el.width=Math.round(w*dp);el.height=Math.round(h*dp)}
   const x=el.getContext('2d'),hz=SKY.hz;x.setTransform(dp,0,0,dp,0,0);
   let g=x.createLinearGradient(0,0,0,hz);g.addColorStop(0,'#020814');g.addColorStop(.55,'#04192a');g.addColorStop(1,'#0b3a44');x.fillStyle=g;x.fillRect(0,0,w,hz);
@@ -4702,7 +4713,8 @@ function skyDraw(t){const mb=$('mmbg'),menu=!$('mm').hidden&&!inGame,el=menu?mb:
    g=x.createRadialGradient(tx+17,ty-73,0,tx+17,ty-73,34);g.addColorStop(0,'rgba(255,180,80,'+.3*f+')');g.addColorStop(1,'rgba(255,180,80,0)');x.fillStyle=g;x.fillRect(tx-20,ty-110,74,74);
    x.fillStyle='#c0392b';x.beginPath();x.moveTo(tx+17.8,ty-150);x.quadraticCurveTo(tx+27,ty-149+Math.sin(t*4)*2.5,tx+35,ty-145+Math.sin(t*4+1)*2.5);x.lineTo(tx+17.8,ty-139);x.fill()}
 }
-function loop(ts){simStep(ts);{const t0=performance.now();draw();silGuard(performance.now()-t0)}ui();skyDraw(ts/1000);requestAnimationFrame(loop)}
+let skyN=0;
+function loop(ts){simStep(ts);{const t0=performance.now();draw();silGuard(performance.now()-t0)}ui();if(++skyN%(inGame&&$('mm').hidden?3:1)===0)skyDraw(ts/1000);requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 // Co-op host: a hidden tab gets no animation frames, which froze the game for everyone.
 // A worker's timer keeps the host's game going (without drawing) while the tab is hidden.
