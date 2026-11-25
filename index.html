@@ -683,6 +683,36 @@ h1{background:linear-gradient(180deg,#fff,#c5d3e6);-webkit-background-clip:text;
 details.priv{margin-top:12px;font-size:11.5px;color:var(--mut)}details.priv summary{cursor:pointer}details.priv p{margin:6px 0 0;line-height:1.5}
 input,textarea{-webkit-user-select:text;user-select:text}
 @media (prefers-reduced-motion:reduce){#start::after,#startgame::after,.sp.ready svg{animation:none!important}}
+/* ---------- Sidebar fit: controls always in view, only the tower list scrolls ---------- */
+.side h1{font-size:16px;letter-spacing:.03em}
+@media (min-width:901px),(orientation:landscape) and (max-height:620px){
+  .side>.panel{flex:1 1 auto;min-height:120px;display:flex;flex-direction:column;overflow:hidden}
+  #types{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;align-content:start;margin:-3px;padding:3px;scrollbar-width:thin;scrollbar-color:rgba(124,170,255,.35) transparent}
+  #types::-webkit-scrollbar{width:6px}#types::-webkit-scrollbar-thumb{background:rgba(124,170,255,.35);border-radius:6px}
+}
+/* Short landscape screens (800x450 iframes, phones on their side): tighter controls, more towers per row */
+@media (orientation:landscape) and (max-height:620px){
+  .side{gap:6px}
+  .side .brand{padding:0}.side .brand .logo{display:none}.side .brand p{max-width:none;margin-top:2px;font-size:11px}
+  .stats{gap:6px}.stat{padding:5px 9px;gap:2px;border-radius:10px}.stat span{font-size:9.5px}.stat span svg{width:13px;height:13px}.stat b{font-size:21px}.stat small{font-size:12px}
+  .nextw{min-height:26px;padding:2px 8px}.nextw canvas{width:20px;height:20px}
+  .sp{flex-direction:row;gap:6px;padding:6px 4px}.sp svg{width:20px;height:20px}.sp kbd{display:none}
+  #start{padding:9px;font-size:13px}.ctl{gap:5px}.ctl button:not(#start){padding:7px 3px;font-size:11px}
+  .side>.panel{padding:8px;min-height:100px}.side .ph{margin-bottom:6px}
+  #types{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+  .tw{padding:5px 2px 4px;gap:1px}.tw canvas{width:30px;height:30px}.tw i{font-size:10.5px}.tw b{font-size:10px}.tw kbd{font-size:8px;padding:0 3px}
+  #tsel{margin-top:5px;min-height:0;font-size:10.5px}#tsel:empty{display:none}
+  #khint{display:none}
+}
+/* Very short screens: five towers per row, names only on the selected-tower line */
+@media (orientation:landscape) and (max-height:430px){
+  .side .brand p{display:none}
+  .nextw{min-height:22px}
+  #types{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .tw i{display:none}.tw canvas{width:28px;height:28px}
+  .stat{flex-direction:row;align-items:center;gap:6px;padding:4px 8px}.stat span{font-size:0;gap:0}.stat span svg{width:15px;height:15px}.stat b{font-size:20px}
+  #start{padding:7px}.ctl button:not(#start){padding:6px 3px}
+}
 </style>
 </head>
 <body>
