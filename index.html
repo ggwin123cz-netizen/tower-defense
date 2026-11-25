@@ -2621,14 +2621,18 @@ const TWFACE={rail:-1,gat:-1},TWAIM=new Set(['sip','del','snip','las','mor','rai
 function paintedTower(t,k,fl){const i=KEYS.indexOf(k),c=rgbOf(T[k].col).join(','),tr=T[k].trap,ph=t.x*.37+t.y*.21;
   // Facing: flip the art towards the target, with a short squash instead of a hard cut
   let fx=1;if(TWAIM.has(k)){const want=(Math.cos(t.ang??-.6)<0?-1:1)*(TWFACE[k]||1);t.fx=t.fx===undefined?want:t.fx+(want-t.fx)*Math.min(1,.25);fx=Math.abs(t.fx)<.15?(t.fx<0?-.15:.15):t.fx}
-  const br=1+Math.sin(tm*2.2+ph)*.012,kick=fl*fl,dir=Math.cos(t.ang??-.6)<0?-1:1;
-  if(!tr)ell(3,13,19,7,'rgba(0,0,0,.22)');
-  g.save();
-  if(TWAIM.has(k))g.translate(-dir*kick*2.6,kick*.8);
-  g.scale(fx*(1+kick*.06),br*(1-kick*.05));
+  const br=1+Math.sin(tm*2.2+ph)*.03,bob=tr?0:Math.sin(tm*2.2+ph)*.9,kick=fl*fl,dir=Math.cos(t.ang??-.6)<0?-1:1,aim=TWAIM.has(k),lv=Math.min(1,tot(t)/12);
+  // Upgrade aura: a soft pulsing ring at the foot that grows with the tower's level
+  if(!tr&&lv>0){g.save();g.scale(1,.42);g.strokeStyle='rgba('+c+','+(.18+lv*.3+Math.sin(tm*3+ph)*.08)+')';g.lineWidth=1.4+lv*1.4;g.beginPath();g.arc(0,30,16+lv*4+Math.sin(tm*3+ph)*1.5,0,7);g.stroke();g.restore()}
+  if(!tr)ell(3,13,19*(1-bob*.02),7,'rgba(0,0,0,.22)');
+  g.save();g.translate(0,bob-Math.abs(bob)*.3);
+  // Aiming towers lean towards the target and jolt back when they fire; the others hop on their own beat
+  if(aim){const sy=Math.sin(t.ang??-.6);g.translate(-dir*kick*6,kick*1.6);g.rotate(dir*.05+sy*.04*dir-dir*kick*.14)}
+  else if(fl>0)g.translate(0,-Math.sin(fl*Math.PI)*4);
+  g.scale(fx*(1+kick*.12),br*(1-kick*.1));
   const S=tr?38:46,y0=tr?-19:-30;
   g.drawImage(TWSPR,(i%5)*128,(i/5|0)*128,128,128,-S/2,y0,S,S);
-  if(fl>0){g.globalCompositeOperation='lighter';g.globalAlpha=fl*.35;g.drawImage(TWSPR,(i%5)*128,(i/5|0)*128,128,128,-S/2,y0,S,S);g.globalAlpha=1;g.globalCompositeOperation='source-over'}
+  if(fl>0){g.globalCompositeOperation='lighter';g.globalAlpha=fl*.6;g.drawImage(TWSPR,(i%5)*128,(i/5|0)*128,128,128,-S/2,y0,S,S);g.globalAlpha=1;g.globalCompositeOperation='source-over'}
   g.restore();
   // Per-kind life on top of the picture
   if(k==='tesla'){glow(0,-25,9+fl*6,'255,230,90',.35+fl*.4+Math.sin(tm*9)*.08);g.strokeStyle='rgba(255,246,160,'+(.55+Math.sin(tm*23)*.3)+')';g.lineWidth=.8;
@@ -2644,6 +2648,11 @@ function paintedTower(t,k,fl){const i=KEYS.indexOf(k),c=rgbOf(T[k].col).join(','
   else if(k==='thr'){if(fl>0)glow(0,-16,18,'120,220,90',fl*.4)}
   else if(k==='drn'){for(let j=0;j<2;j++){const a=tm*1.6+j*Math.PI+ph;cir(Math.cos(a)*14,-24+Math.sin(a)*4,1.2,'rgba(255,220,90,.8)')}}
   else if(TWAIM.has(k)&&fl>.5){const mx=dir*20,my=k==='mor'?-26:-18;glow(mx,my,10*fl,'255,190,60',.8*fl)}
+  // Shot burst: an expanding ring and sparks at the muzzle, plus a dust puff at the foot of heavy guns
+  if(aim&&fl>0){const mx=dir*21,my=k==='mor'?-28:-19,u=1-fl;g.strokeStyle='rgba(255,235,170,'+fl*.9+')';g.lineWidth=1.6*fl+.3;g.beginPath();g.arc(mx,my,4+u*12,0,7);g.stroke();
+    g.strokeStyle='rgba(255,210,110,'+fl+')';g.lineWidth=1;g.beginPath();for(let j=0;j<5;j++){const a=Math.atan2(Math.sin(t.ang??0),Math.cos(t.ang??0))+(j-2)*.45,r0=3+u*8,r1=r0+3+fl*4;g.moveTo(mx+Math.cos(a)*r0,my+Math.sin(a)*r0*.7);g.lineTo(mx+Math.cos(a)*r1,my+Math.sin(a)*r1*.7)}g.stroke();
+    if(k==='del'||k==='mor'||k==='flk'||k==='rail')for(let j=-1;j<=1;j+=2)cir(j*(8+u*10),12-u*2,2.5+u*3,'rgba(200,190,170,'+fl*.45+')')}
+  else if(!tr&&fl>0)glow(0,-12,14+(1-fl)*14,c,fl*.35)
 }
 function drawTower(t){silDraw(()=>drawTower0(t))}
 function drawTower0(t){
