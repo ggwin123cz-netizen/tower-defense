@@ -4070,19 +4070,36 @@ function lbMsg(s){NET.msg=s;const el=$('lb-msg');if(el)el.textContent=s}
 /* --- Connection --- */
 // The co-op server. A copy of the game served from somewhere else (GitHub Pages, a file) connects to it directly.
 const MP_SERVER='wss://tower-defense1.onrender.com';
-try{fetch(MP_SERVER.replace(/^wss/,'https')+'/',{mode:'no-cors',cache:'no-store'}).catch(()=>{})}catch(e){}
-function wakeMP(){if((location.protocol==='https:'?'wss://':'ws://')+location.host!==MP_SERVER)fetch(MP_SERVER.replace('wss:','https:')+'/healthz',{mode:'no-cors',cache:'no-store'}).catch(()=>{})}
-function netOpen(then,url){
-  if(NET.ws&&NET.ws.readyState===1){then();return}
+const MP_HTTP=MP_SERVER.replace(/^wss/,'https');
+const MP_WAIT=120000; // how long to keep retrying while a sleeping server wakes up
+const mpSameHost=()=>(location.protocol==='https:'?'wss://':'ws://')+location.host===MP_SERVER;
+// Wake the free server as early as possible: on page load and again when the lobby opens
+function wakeMP(){if(!mpSameHost())try{fetch(MP_HTTP+'/healthz',{mode:'no-cors',cache:'no-store'}).catch(()=>{})}catch(e){}}
+wakeMP();
+function netOpen(then,url,t0){
+  if(NET.ws&&NET.ws.readyState===1){NET.then=null;then();return}
+  NET.then=then; // the latest action runs once the socket opens
+  if(NET.ws&&NET.ws.readyState===0)return;
+  t0=t0||Date.now();
   url=url||(location.host&&/^https?:$/.test(location.protocol)?(location.protocol==='https:'?'wss://':'ws://')+location.host:MP_SERVER);
-  lbMsg('Connecting… (a sleeping server can take up to a minute to wake up)');
-  let ws;try{ws=new WebSocket(url)}catch(e){if(url!==MP_SERVER){netOpen(then,MP_SERVER);return}lbMsg('Could not connect to the server.');return}
+  clearInterval(NET.tick);
+  const show=()=>{const s=Math.round((Date.now()-t0)/1000);lbMsg(s<4?'Connecting\u2026':'Waking up the multiplayer server\u2026 '+s+' s. It sleeps when nobody plays, so the first connection can take up to a minute.')};
+  show();NET.tick=setInterval(show,1000);
+  let ws;try{ws=new WebSocket(url)}catch(e){if(url!==MP_SERVER){netOpen(then,MP_SERVER,t0);return}clearInterval(NET.tick);lbMsg('Could not connect to the server.');return}
   NET.ws=ws;
   let opened=false;
-  ws.onopen=()=>{opened=true;lbMsg('');NET.ping=setInterval(()=>netSend({t:'ping'}),20000);then()};
+  ws.onopen=()=>{opened=true;clearInterval(NET.tick);lbMsg('');NET.ping=setInterval(()=>netSend({t:'ping'}),20000);const f=NET.then;NET.then=null;if(f)f()};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}netMsg(m)};
-  // No game server where the page came from: use the main one
-  ws.onclose=()=>{clearInterval(NET.ping);if(NET.ws===ws){NET.ws=null;if(!opened&&url!==MP_SERVER){netOpen(then,MP_SERVER);return}if(!opened)NET.msg='Could not reach the multiplayer server. Check your connection and try again.';netDown()}};
+  ws.onclose=()=>{clearInterval(NET.ping);if(NET.ws!==ws)return;NET.ws=null;
+    if(!opened){
+      const f=NET.then||then;
+      // No game server where the page came from: use the main one
+      if(url!==MP_SERVER){netOpen(f,MP_SERVER,t0);return}
+      // The server is probably still waking up: keep trying for a while
+      if(Date.now()-t0<MP_WAIT){setTimeout(()=>{if(!NET.ws)netOpen(NET.then||f,MP_SERVER,t0)},3000);return}
+      clearInterval(NET.tick);NET.then=null;NET.msg='Could not reach the multiplayer server. Check your connection and try again.';
+    }
+    netDown()};
   ws.onerror=()=>{};
 }
 function netDown(){
@@ -4208,7 +4225,8 @@ function renderLobby(){
   lb.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.k==='sw'){const v=$('lb-swv');if(v)v.textContent=t.value}});
   lb.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='lb-code'){const j=lb.querySelector('[data-act=join]');if(j)j.click()}if(e.key==='Enter'&&e.target.id==='lb-chat'){chatSend(e.target.value);e.target.value=''}});
 })();
-$('m-mp').onclick=()=>{scr('lobby');wakeMP()};
+// Open the connection as soon as the lobby opens, so Create and Join are instant once the server is up
+$('m-mp').onclick=()=>{scr('lobby');wakeMP();if(!NET.ws)netOpen(()=>{})};
 
 /* --- Starting and leaving a game --- */
 function mpStart(){
