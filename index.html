@@ -2617,7 +2617,11 @@ function towerWall(sk,n){const key=WALLFX[sk.id]?sk.id:SIGW[sk.tw]||'_',mat=WALL
 // Towers with the classic skin use the painted art (same sprite as the UI icons), animated on top:
 // it turns to face its target, kicks back when it fires, breathes a little, and each kind has its own glow or particles.
 // Other skins keep the drawn towers so the skin stays visible.
-const TWFACE={rail:-1,gat:-1},TWAIM=new Set(['sip','del','snip','las','mor','rail','mis','bal','blu','gat','flk']);
+const TWFACE={},TWNAT={rail:-.45,gat:-.4,las:-.5,mis:-.5},TWAIM=new Set(['sip','del','snip','las','mor','rail','mis','bal','blu','gat','flk']);
+// Each painted tower split once into a fixed base and a turning weapon, with a soft blend where they meet
+const TWLY={};function twLayers(i){let L=TWLY[i];if(L)return L;const mk=(a0,a1,b0,b1)=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.drawImage(TWSPR,(i%5)*128,(i/5|0)*128,128,128,0,0,128,128);
+  const gr=x.createLinearGradient(0,0,0,128);gr.addColorStop(a0/128,'rgba(0,0,0,'+b0+')');gr.addColorStop(a1/128,'rgba(0,0,0,'+b1+')');x.globalCompositeOperation='destination-in';x.fillStyle=gr;x.fillRect(0,0,128,128);return c};
+  return TWLY[i]={b:mk(48,60,0,1),t:mk(56,68,1,0)}}
 function paintedTower(t,k,fl){const i=KEYS.indexOf(k),c=rgbOf(T[k].col).join(','),tr=T[k].trap,ph=t.x*.37+t.y*.21;
   // Facing: flip the art towards the target, with a short squash instead of a hard cut
   let fx=1;if(TWAIM.has(k)){const want=(Math.cos(t.ang??-.6)<0?-1:1)*(TWFACE[k]||1);t.fx=t.fx===undefined?want:t.fx+(want-t.fx)*Math.min(1,.25);fx=Math.abs(t.fx)<.15?(t.fx<0?-.15:.15):t.fx}
@@ -2627,12 +2631,20 @@ function paintedTower(t,k,fl){const i=KEYS.indexOf(k),c=rgbOf(T[k].col).join(','
   if(!tr)ell(3,13,19*(1-bob*.02),7,'rgba(0,0,0,.22)');
   g.save();g.translate(0,bob-Math.abs(bob)*.3);
   // Aiming towers lean towards the target and jolt back when they fire; the others hop on their own beat
-  if(aim){const sy=Math.sin(t.ang??-.6);g.translate(-dir*kick*6,kick*1.6);g.rotate(dir*.05+sy*.04*dir-dir*kick*.14)}
+  if(aim){g.translate(-dir*kick*6,kick*1.6);g.rotate(-dir*kick*.1)}
   else if(fl>0)g.translate(0,-Math.sin(fl*Math.PI)*4);
   g.scale(fx*(1+kick*.12),br*(1-kick*.1));
   const S=tr?38:46,y0=tr?-19:-30;
-  g.drawImage(TWSPR,(i%5)*128,(i/5|0)*128,128,128,-S/2,y0,S,S);
-  if(fl>0){g.globalCompositeOperation='lighter';g.globalAlpha=fl*.6;g.drawImage(TWSPR,(i%5)*128,(i/5|0)*128,128,128,-S/2,y0,S,S);g.globalAlpha=1;g.globalCompositeOperation='source-over'}
+  // Turret: the upper part of the picture (the weapon) turns on its own towards the target, the stone base stays put.
+  // The art is mirrored to the target's side, so the weapon only has to swing within about 50 degrees up or down.
+  const sx=(i%5)*128,sy=(i/5|0)*128,sc=S/128,turn=aim&&k!=='mor';
+  if(turn){const a=t.ang??-.6,lt=fx<0?Math.PI-a:a,ln=TWNAT[k]??-.7,d0=lt-ln,n=Math.atan2(Math.sin(d0),Math.cos(d0)),want=Math.max(-1,Math.min(1.2,n));
+    t.tr=t.tr===undefined?want:t.tr+(want-t.tr)*.3}
+  const art=()=>{if(!turn){g.drawImage(TWSPR,sx,sy,128,128,-S/2,y0,S,S);return}const L=twLayers(i);
+    g.drawImage(L.b,-S/2,y0,S,S);
+    g.save();g.translate(0,y0+60*sc);g.rotate(t.tr);g.drawImage(L.t,-S/2,-60*sc,S,S);g.restore()};
+  art();
+  if(fl>0){g.globalCompositeOperation='lighter';g.globalAlpha=fl*.6;art();g.globalAlpha=1;g.globalCompositeOperation='source-over'}
   g.restore();
   // Per-kind life on top of the picture
   if(k==='tesla'){glow(0,-25,9+fl*6,'255,230,90',.35+fl*.4+Math.sin(tm*9)*.08);g.strokeStyle='rgba(255,246,160,'+(.55+Math.sin(tm*23)*.3)+')';g.lineWidth=.8;
@@ -2647,9 +2659,9 @@ function paintedTower(t,k,fl){const i=KEYS.indexOf(k),c=rgbOf(T[k].col).join(','
   else if(k==='las'||k==='rail'){glow(dir*16,-20,6+fl*6,c,.25+fl*.5+Math.sin(tm*6+ph)*.08)}
   else if(k==='thr'){if(fl>0)glow(0,-16,18,'120,220,90',fl*.4)}
   else if(k==='drn'){for(let j=0;j<2;j++){const a=tm*1.6+j*Math.PI+ph;cir(Math.cos(a)*14,-24+Math.sin(a)*4,1.2,'rgba(255,220,90,.8)')}}
-  else if(TWAIM.has(k)&&fl>.5){const mx=dir*20,my=k==='mor'?-26:-18;glow(mx,my,10*fl,'255,190,60',.8*fl)}
+  else if(TWAIM.has(k)&&fl>.5){const mx=k==='mor'?dir*20:Math.cos(t.ang??-.6)*22,my=k==='mor'?-26:-9+Math.sin(t.ang??-.6)*18;glow(mx,my,10*fl,'255,190,60',.8*fl)}
   // Shot burst: an expanding ring and sparks at the muzzle, plus a dust puff at the foot of heavy guns
-  if(aim&&fl>0){const mx=dir*21,my=k==='mor'?-28:-19,u=1-fl;g.strokeStyle='rgba(255,235,170,'+fl*.9+')';g.lineWidth=1.6*fl+.3;g.beginPath();g.arc(mx,my,4+u*12,0,7);g.stroke();
+  if(aim&&fl>0){const a0=t.ang??-.6,mx=k==='mor'?dir*21:Math.cos(a0)*22,my=k==='mor'?-28:-9+Math.sin(a0)*18,u=1-fl;g.strokeStyle='rgba(255,235,170,'+fl*.9+')';g.lineWidth=1.6*fl+.3;g.beginPath();g.arc(mx,my,4+u*12,0,7);g.stroke();
     g.strokeStyle='rgba(255,210,110,'+fl+')';g.lineWidth=1;g.beginPath();for(let j=0;j<5;j++){const a=Math.atan2(Math.sin(t.ang??0),Math.cos(t.ang??0))+(j-2)*.45,r0=3+u*8,r1=r0+3+fl*4;g.moveTo(mx+Math.cos(a)*r0,my+Math.sin(a)*r0*.7);g.lineTo(mx+Math.cos(a)*r1,my+Math.sin(a)*r1*.7)}g.stroke();
     if(k==='del'||k==='mor'||k==='flk'||k==='rail')for(let j=-1;j<=1;j+=2)cir(j*(8+u*10),12-u*2,2.5+u*3,'rgba(200,190,170,'+fl*.45+')')}
   else if(!tr&&fl>0)glow(0,-12,14+(1-fl)*14,c,fl*.35)
