@@ -2178,7 +2178,7 @@ const TD={
 };
 function buildBG(){
   const b=bg.getContext('2d');b.setTransform(S,0,0,S,0,0);b.clearRect(0,0,W*C,H*C);
-  {const pic=!customMap&&MAPPIC[cur+','+lay];if(pic){b.imageSmoothingQuality='high';b.drawImage(pic,0,0,W*C,H*C);b.strokeStyle='rgba(255,255,255,.05)';b.lineWidth=.6;b.beginPath();for(let x=1;x<W;x++){b.moveTo(x*C,0);b.lineTo(x*C,H*C)}for(let y=1;y<H;y++){b.moveTo(0,y*C);b.lineTo(W*C,y*C)}b.stroke();return}}let sd=7;const R=()=>(sd=sd*16807%2147483647)/2147483647;
+  {const pic=!customMap&&MAPPIC[cur+','+lay];if(pic){b.imageSmoothingQuality='high';b.drawImage(pic,0,0,W*C,H*C);return}}let sd=7;const R=()=>(sd=sd*16807%2147483647)/2147483647;
   const tn=MAPS[cur].th,th=TH[tn];
   const gr=b.createLinearGradient(0,0,0,H*C);gr.addColorStop(0,th.g[0]);gr.addColorStop(1,th.g[1]);b.fillStyle=gr;b.fillRect(0,0,W*C,H*C);
   const E=(x,y,rx,ry,c)=>{b.fillStyle=c;b.beginPath();b.ellipse(x,y,rx,ry,0,0,7);b.fill()};
@@ -2186,10 +2186,7 @@ function buildBG(){
   // Uneven ground: large soft patches of lighter and darker colour, so the board does not read as flat tiles
   for(let i=0;i<54;i++){const px=R()*W*C,py=R()*H*C,r=55+R()*95,c=rgbOf(shade(th.g[i%2],i%2?-.3:.24)).join(','),a=(i%2?.1:.17)+R()*.12,q=b.createRadialGradient(px,py,0,px,py,r);
     q.addColorStop(0,'rgba('+c+','+a+')');q.addColorStop(.5,'rgba('+c+','+a*.55+')');q.addColorStop(1,'rgba('+c+',0)');b.fillStyle=q;b.fillRect(px-r,py-r,r*2,r*2)}
-  // The build grid: faint lines and a small mark on every corner (light marks on dark worlds)
-  {const[r0,g0,b0]=rgbOf(th.g[0]),dk=r0*.3+g0*.59+b0*.11<95,ln=dk?'rgba(255,255,255,.035)':'rgba(0,0,0,.05)',mk=dk?'rgba(255,255,255,.08)':'rgba(0,0,0,.16)';
-   b.strokeStyle=ln;b.lineWidth=.6;b.beginPath();for(let x=1;x<W;x++){b.moveTo(x*C,0);b.lineTo(x*C,H*C)}for(let y=1;y<H;y++){b.moveTo(0,y*C);b.lineTo(W*C,y*C)}b.stroke();
-   b.fillStyle=mk;for(let y=1;y<H;y++)for(let x=1;x<W;x++){b.fillRect(x*C-2.5,y*C-.5,5,1);b.fillRect(x*C-.5,y*C-2.5,1,5)}}
+  // No visible build grid: Štepan wants the map clean; the hover highlight shows the tile while placing
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
     if(road.has(x+','+y))continue;
     if(tn==='grass'){
