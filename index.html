@@ -2639,7 +2639,7 @@ function paintedTower(t,k,fl){const i=KEYS.indexOf(k),c=rgbOf(T[k].col).join(','
   if(aim){g.translate(-dir*kick*6,kick*1.6);g.rotate(-dir*kick*.1)}
   else if(fl>0)g.translate(0,-Math.sin(fl*Math.PI)*4);
   g.scale(fx*(1+kick*.12),br*(1-kick*.1));
-  const S=tr?38:46,y0=tr?-19:-30;
+  const S=tr?36:40,y0=tr?-18:-24;
   // Turret: the upper part of the picture (the weapon) turns on its own towards the target, the stone base stays put.
   // The art is mirrored to the target's side, so the weapon only has to swing within about 50 degrees up or down.
   const sx=(i%5)*128,sy=(i/5|0)*128,sc=S/128,cut=TWCUT[k],turn=aim&&!!cut&&TWT.complete&&TWT.naturalWidth>0;
